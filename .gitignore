@@ -10,3 +10,4 @@ yarn-error.log
 /storage/framework/
 /storage/logs/
 /storage/
+/vendor/
