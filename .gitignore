@@ -7,3 +7,6 @@
 npm-debug.log
 yarn-error.log
 .gitignore
+/storage/framework/
+/storage/logs/
+/storage/
