@@ -8,13 +8,13 @@
 <?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-    <h1 class="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6"><?php echo e(__('Welcome back!')); ?></h1>
+    <h1 class="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6"><?php echo e(__('Bienvenido')); ?></h1>
     <?php if(session('status')): ?>
         <div class="mb-4 font-medium text-sm text-green-600">
             <?php echo e(session('status')); ?>
 
         </div>
-    <?php endif; ?>   
+    <?php endif; ?>
     <!-- Form -->
     <form method="POST" action="<?php echo e(route('login')); ?>">
         <?php echo csrf_field(); ?>
@@ -22,14 +22,14 @@
             <div>
                 <?php if (isset($component)) { $__componentOriginald8ba2b4c22a13c55321e34443c386276 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald8ba2b4c22a13c55321e34443c386276 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.label','data' => ['for' => 'email','value' => ''.e(__('Email')).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.label','data' => ['for' => 'email','value' => ''.e(__('Correo')).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
 <?php $component->withName('label'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(Illuminate\View\AnonymousComponent::class))->getConstructor()): ?>
 <?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['for' => 'email','value' => ''.e(__('Email')).'']); ?>
+<?php $component->withAttributes(['for' => 'email','value' => ''.e(__('Correo')).'']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginald8ba2b4c22a13c55321e34443c386276)): ?>
@@ -59,19 +59,19 @@
 <?php if (isset($__componentOriginalc2fcfa88dc54fee60e0757a7e0572df1)): ?>
 <?php $component = $__componentOriginalc2fcfa88dc54fee60e0757a7e0572df1; ?>
 <?php unset($__componentOriginalc2fcfa88dc54fee60e0757a7e0572df1); ?>
-<?php endif; ?>                
+<?php endif; ?>
             </div>
             <div>
                 <?php if (isset($component)) { $__componentOriginald8ba2b4c22a13c55321e34443c386276 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald8ba2b4c22a13c55321e34443c386276 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.label','data' => ['for' => 'password','value' => ''.e(__('Password')).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.label','data' => ['for' => 'password','value' => ''.e(__('Contraseña')).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
 <?php $component->withName('label'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(Illuminate\View\AnonymousComponent::class))->getConstructor()): ?>
 <?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['for' => 'password','value' => ''.e(__('Password')).'']); ?>
+<?php $component->withAttributes(['for' => 'password','value' => ''.e(__('Contraseña')).'']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginald8ba2b4c22a13c55321e34443c386276)): ?>
@@ -101,18 +101,10 @@
 <?php if (isset($__componentOriginalc2fcfa88dc54fee60e0757a7e0572df1)): ?>
 <?php $component = $__componentOriginalc2fcfa88dc54fee60e0757a7e0572df1; ?>
 <?php unset($__componentOriginalc2fcfa88dc54fee60e0757a7e0572df1); ?>
-<?php endif; ?>                
+<?php endif; ?>
             </div>
         </div>
         <div class="flex items-center justify-between mt-6">
-            <?php if(Route::has('password.request')): ?>
-                <div class="mr-1">
-                    <a class="text-sm underline hover:no-underline" href="<?php echo e(route('password.request')); ?>">
-                        <?php echo e(__('Forgot Password?')); ?>
-
-                    </a>
-                </div>
-            <?php endif; ?>            
             <?php if (isset($component)) { $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginald0f1fd2689e4bb7060122a5b91fe8561 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.button','data' => ['class' => 'ml-3']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
@@ -123,7 +115,7 @@
 <?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['class' => 'ml-3']); ?>
-                <?php echo e(__('Sign in')); ?>
+                <?php echo e(__('Iniciar')); ?>
 
              <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
@@ -134,7 +126,7 @@
 <?php if (isset($__componentOriginald0f1fd2689e4bb7060122a5b91fe8561)): ?>
 <?php $component = $__componentOriginald0f1fd2689e4bb7060122a5b91fe8561; ?>
 <?php unset($__componentOriginald0f1fd2689e4bb7060122a5b91fe8561); ?>
-<?php endif; ?>            
+<?php endif; ?>
         </div>
     </form>
     <?php if (isset($component)) { $__componentOriginalb24df6adf99a77ed35057e476f61e153 = $component; } ?>
@@ -156,24 +148,7 @@
 <?php if (isset($__componentOriginalb24df6adf99a77ed35057e476f61e153)): ?>
 <?php $component = $__componentOriginalb24df6adf99a77ed35057e476f61e153; ?>
 <?php unset($__componentOriginalb24df6adf99a77ed35057e476f61e153); ?>
-<?php endif; ?>   
-    <!-- Footer -->
-    <div class="pt-5 mt-6 border-t border-gray-100 dark:border-gray-700/60">
-        <div class="text-sm">
-            <?php echo e(__('Don\'t you have an account?')); ?> <a class="font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" href="<?php echo e(route('register')); ?>"><?php echo e(__('Sign Up')); ?></a>
-        </div>
-        <!-- Warning -->
-        <div class="mt-5">
-            <div class="bg-yellow-500/20 text-yellow-700 px-3 py-2 rounded-lg">
-                <svg class="inline w-3 h-3 shrink-0 fill-current" viewBox="0 0 12 12">
-                    <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-                </svg>
-                <span class="text-sm">
-                    To support you during the pandemic super pro features are free until March 31st.
-                </span>
-            </div>
-        </div>
-    </div>
+<?php endif; ?>
  <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalba12d9dc6b6d0736b8d5b99cb2390ea5)): ?>

@@ -4,7 +4,7 @@
 
             <!-- Header: Left side -->
             <div class="flex">
-                
+
                 <!-- Hamburger button -->
                 <button
                     class="text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 lg:hidden"
@@ -69,28 +69,6 @@
 <?php unset($__componentOriginalf79de796c8f6af2e04e458215bf88445); ?>
 <?php endif; ?>
 
-                <!-- Info button -->
-                <?php if (isset($component)) { $__componentOriginala308611a4282b4c749bf2379e6194123 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginala308611a4282b4c749bf2379e6194123 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.dropdown-help','data' => ['align' => 'right']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
-<?php $component->withName('dropdown-help'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(Illuminate\View\AnonymousComponent::class))->getConstructor()): ?>
-<?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['align' => 'right']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginala308611a4282b4c749bf2379e6194123)): ?>
-<?php $attributes = $__attributesOriginala308611a4282b4c749bf2379e6194123; ?>
-<?php unset($__attributesOriginala308611a4282b4c749bf2379e6194123); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginala308611a4282b4c749bf2379e6194123)): ?>
-<?php $component = $__componentOriginala308611a4282b4c749bf2379e6194123; ?>
-<?php unset($__componentOriginala308611a4282b4c749bf2379e6194123); ?>
-<?php endif; ?>
-
                 <!-- Dark mode toggle -->
                 <?php if (isset($component)) { $__componentOriginal2090438866f3dcdb76cd8b070bcc302d = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal2090438866f3dcdb76cd8b070bcc302d = $attributes; } ?>
@@ -111,7 +89,7 @@
 <?php if (isset($__componentOriginal2090438866f3dcdb76cd8b070bcc302d)): ?>
 <?php $component = $__componentOriginal2090438866f3dcdb76cd8b070bcc302d; ?>
 <?php unset($__componentOriginal2090438866f3dcdb76cd8b070bcc302d); ?>
-<?php endif; ?>                
+<?php endif; ?>
 
                 <!-- Divider -->
                 <hr class="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
@@ -142,4 +120,5 @@
 
         </div>
     </div>
-</header><?php /**PATH C:\xampp8.2\htdocs\Proyecto-CAM\resources\views/components/app/header.blade.php ENDPATH**/ ?>
+</header>
+<?php /**PATH C:\xampp8.2\htdocs\Proyecto-CAM\resources\views/components/app/header.blade.php ENDPATH**/ ?>
