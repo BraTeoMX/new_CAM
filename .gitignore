@@ -9,5 +9,9 @@ yarn-error.log
 .gitignore
 /storage/framework/
 /storage/logs/
-/storage/
+/storage/*
 /vendor/
+/storage/
+/storage/framework/
+/storage/logs/
+/storage
