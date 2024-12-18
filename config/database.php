@@ -78,7 +78,7 @@ return [
             'sslmode' => 'prefer',
         ],
 
-        'sqlsrv' => [
+        'sqlsrv1' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', 'localhost'),
@@ -92,7 +92,17 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
-
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_SQLSRV_HOST', 'localhost'),
+            'port' => env('DB_SQLSRV_PORT', '1433'),
+            'database' => env('DB_SQLSRV_DATABASE', 'forge'),
+            'username' => env('DB_SQLSRV_USERNAME', 'forge'),
+            'password' => env('DB_SQLSRV_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
     ],
 
     /*

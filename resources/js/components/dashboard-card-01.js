@@ -1,3 +1,4 @@
+// Import Chart.js
 import {
     Chart,
     LineController,
@@ -16,6 +17,8 @@ import { tailwindConfig, formatValue, hexToRGB } from '../utils';
 
 Chart.register(LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip);
 
+// A chart built with Chart.js 3
+// https://www.chartjs.org/
 const dashboardCard01 = () => {
     const ctx = document.getElementById('dashboard-card-01');
     if (!ctx) return;
@@ -37,22 +40,14 @@ const dashboardCard01 = () => {
         dark: '#4B5563'
     };
 
-    // Antes de crear un nuevo gráfico, destruye el anterior si existe
-    if (ctx.chartInstance) {
-        ctx.chartInstance.destroy();
-    }
-
     fetch('/json-data-feed?datatype=1')
-        .then(a => a.json())
+        .then(a => {
+            return a.json();
+        })
         .then(result => {
-            // Verificar si los datos no están vacíos
+
             const dataset1 = result.data.slice(0, 26);
             const dataset2 = result.data.slice(26, 52);
-
-            if (dataset1.length === 0 || dataset2.length === 0) {
-                console.error("Datos vacíos recibidos. No se puede crear el gráfico.");
-                return; // Detener la creación del gráfico si los datos están vacíos
-            }
 
             const chart = new Chart(ctx, {
                 type: 'line',
@@ -138,7 +133,6 @@ const dashboardCard01 = () => {
                 },
             });
 
-            // Actualizar la configuración de color cuando se cambia el modo oscuro
             document.addEventListener('darkMode', (e) => {
                 const { mode } = e.detail;
                 if (mode === 'on') {
@@ -152,12 +146,6 @@ const dashboardCard01 = () => {
                 }
                 chart.update('none');
             });
-
-            // Guardar la instancia del gráfico en el canvas para destruirla la próxima vez
-            ctx.chartInstance = chart;
-        })
-        .catch(error => {
-            console.error('Error al cargar los datos del gráfico:', error);
         });
 };
 

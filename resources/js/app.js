@@ -2,6 +2,9 @@
 import './bootstrap';
 import { Chart } from 'chart.js';
 import flatpickr from 'flatpickr';
+// enable the interactive UI components from Flowbite with Turbo
+import 'flowbite/dist/flowbite.turbo.js';
+import 'flowbite';
 
 // Importación de componentes
 import dashboardCard01 from './components/dashboard-card-01';

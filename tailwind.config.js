@@ -97,6 +97,9 @@ export default {
                     900: '#4F3D0E',
                     950: '#342809',
                 },
+                white: {
+                    100: '#FFFFFF',
+                },
             },
             fontFamily: {
                 inter: ['Inter', 'sans-serif'],
@@ -146,5 +149,6 @@ export default {
                                 modifySelectors(({ className }) => `.sidebar-expanded .${e(`sidebar-expanded${separator}${className}`)}`);
       });
     }),
+    require('flowbite/plugin') // add the flowbite plugin
   ],
 };
