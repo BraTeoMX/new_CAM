@@ -8,7 +8,7 @@
     </x-slot>
 
     <x-slot name="form">
-
+        <!-- Profile Photo -->
             <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-4">
                 <!-- Profile Photo File Input -->
                 <input type="file" id="photo" class="hidden"

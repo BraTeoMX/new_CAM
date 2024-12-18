@@ -25,28 +25,6 @@
             <!-- Header: Right side -->
             <div class="flex items-center space-x-3">
 
-                <!-- Search Button with Modal -->
-                <?php if (isset($component)) { $__componentOriginal13ee9a0e8138817f2f9da799ef194e6c = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal13ee9a0e8138817f2f9da799ef194e6c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modal-search','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? (array) $attributes->getIterator() : [])); ?>
-<?php $component->withName('modal-search'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag && $constructor = (new ReflectionClass(Illuminate\View\AnonymousComponent::class))->getConstructor()): ?>
-<?php $attributes = $attributes->except(collect($constructor->getParameters())->map->getName()->all()); ?>
-<?php endif; ?>
-<?php $component->withAttributes([]); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal13ee9a0e8138817f2f9da799ef194e6c)): ?>
-<?php $attributes = $__attributesOriginal13ee9a0e8138817f2f9da799ef194e6c; ?>
-<?php unset($__attributesOriginal13ee9a0e8138817f2f9da799ef194e6c); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal13ee9a0e8138817f2f9da799ef194e6c)): ?>
-<?php $component = $__componentOriginal13ee9a0e8138817f2f9da799ef194e6c; ?>
-<?php unset($__componentOriginal13ee9a0e8138817f2f9da799ef194e6c); ?>
-<?php endif; ?>
-
                 <!-- Notifications button -->
                 <?php if (isset($component)) { $__componentOriginalf79de796c8f6af2e04e458215bf88445 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalf79de796c8f6af2e04e458215bf88445 = $attributes; } ?>

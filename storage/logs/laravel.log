@@ -54,3 +54,88 @@
 [2024-12-17 17:48:22] local.INFO: Número de empleado recibido: 0007105  
 [2024-12-17 17:48:26] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0007105","name":"MARIA DEL ROSARIO PAISANO LOPEZ","subject":"desde que","description":"dsfdsf"} 
 [2024-12-17 17:48:26] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0007105","Nombre":"MARIA DEL ROSARIO PAISANO LOPEZ","Tip_prob":"desde que","Descrip_prob":"dsfdsf","Folio":"OT-72C548","Status":"Aprobado","updated_at":"2024-12-17T23:48:26.000000Z","created_at":"2024-12-17T23:48:26.000000Z","id":1} 
+[2024-12-17 18:25:08] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 18:25:13] local.INFO: Cargando empleados desde el caché para el módulo: 101A  
+[2024-12-17 18:25:14] local.INFO: Número de empleado recibido: 0002897  
+[2024-12-17 18:25:25] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0002897","name":"ISIDORA EMILIANO MARCELINO","subject":"Prueba","description":"Prueba"} 
+[2024-12-17 18:25:25] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0002897","Nombre":"ISIDORA EMILIANO MARCELINO","Tip_prob":"Prueba","Descrip_prob":"Prueba","Folio":"OT-76B84F","Status":"Aprobado","updated_at":"2024-12-18T00:25:25.000000Z","created_at":"2024-12-18T00:25:25.000000Z","id":2} 
+[2024-12-17 19:06:10] local.ERROR: Unable to locate a class or view for component [dropdown-filter]. {"userId":1,"exception":"[object] (InvalidArgumentException(code: 0): Unable to locate a class or view for component [dropdown-filter]. at C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php:311)
+[stacktrace]
+#0 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(235): Illuminate\\View\\Compilers\\ComponentTagCompiler->componentClass('dropdown-filter')
+#1 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(220): Illuminate\\View\\Compilers\\ComponentTagCompiler->componentString('dropdown-filter', Array)
+#2 [internal function]: Illuminate\\View\\Compilers\\ComponentTagCompiler->Illuminate\\View\\Compilers\\{closure}(Array)
+#3 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(215): preg_replace_callback('/\\r\\n            ...', Object(Closure), '<x-app-layout>\\r...')
+#4 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(89): Illuminate\\View\\Compilers\\ComponentTagCompiler->compileSelfClosingTags('<x-app-layout>\\r...')
+#5 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\ComponentTagCompiler.php(76): Illuminate\\View\\Compilers\\ComponentTagCompiler->compileTags('<x-app-layout>\\r...')
+#6 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(438): Illuminate\\View\\Compilers\\ComponentTagCompiler->compile('<x-app-layout>\\r...')
+#7 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(270): Illuminate\\View\\Compilers\\BladeCompiler->compileComponentTags('<x-app-layout>\\r...')
+#8 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Compilers\\BladeCompiler.php(184): Illuminate\\View\\Compilers\\BladeCompiler->compileString('<x-app-layout>\\r...')
+#9 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Engines\\CompilerEngine.php(64): Illuminate\\View\\Compilers\\BladeCompiler->compile('C:\\\\xampp8.2\\\\htd...')
+#10 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\livewire\\livewire\\src\\Mechanisms\\ExtendBlade\\ExtendedCompilerEngine.php(10): Illuminate\\View\\Engines\\CompilerEngine->get('C:\\\\xampp8.2\\\\htd...', Array)
+#11 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(207): Livewire\\Mechanisms\\ExtendBlade\\ExtendedCompilerEngine->get('C:\\\\xampp8.2\\\\htd...', Array)
+#12 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(190): Illuminate\\View\\View->getContents()
+#13 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\View.php(159): Illuminate\\View\\View->renderContents()
+#14 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Response.php(69): Illuminate\\View\\View->render()
+#15 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Response.php(35): Illuminate\\Http\\Response->setContent(Object(Illuminate\\View\\View))
+#16 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(918): Illuminate\\Http\\Response->__construct(Object(Illuminate\\View\\View), 200, Array)
+#17 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(885): Illuminate\\Routing\\Router::toResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+#18 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Routing\\Router->prepareResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+#19 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#20 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified.php(41): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\EnsureEmailIsVerified->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(57): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure), 'sanctum')
+#26 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#30 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#31 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#32 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#39 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(784): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#40 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(748): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#41 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(737): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#42 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#43 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#44 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\livewire\\livewire\\src\\Features\\SupportDisablingBackButtonCache\\DisableBackButtonCacheMiddleware.php(19): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#45 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Livewire\\Features\\SupportDisablingBackButtonCache\\DisableBackButtonCacheMiddleware->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#46 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#47 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#48 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#50 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#51 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#52 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#53 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#54 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(99): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#55 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#56 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#57 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#58 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#59 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#60 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#61 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#62 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#63 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#64 C:\\xampp8.2\\htdocs\\Proyecto-CAM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\xampp8.2\\\\htd...')
+#65 {main}
+"} 
+[2024-12-17 19:11:02] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:11:03] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:05] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:06] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:06] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:07] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:08] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:09] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:10] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:10] local.INFO: Cargando módulos desde el caché...  
+[2024-12-17 19:16:11] local.INFO: Cargando módulos desde el caché...  

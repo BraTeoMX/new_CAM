@@ -97,9 +97,6 @@ export default {
                     900: '#4F3D0E',
                     950: '#342809',
                 },
-                white: {
-                    100: '#FFFFFF',
-                },
             },
             fontFamily: {
                 inter: ['Inter', 'sans-serif'],
