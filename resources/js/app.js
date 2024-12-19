@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 import $ from 'jquery';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import moment from 'moment';
 
 window.Pusher = Pusher;
 
@@ -72,6 +73,11 @@ window.Echo = new Echo({
 
 let notificationCount = 0;
 
+// Función para calcular el tiempo transcurrido desde la creación de la notificación
+function timeAgo(time) {
+    return moment(time).fromNow();
+}
+
 // Cargar notificaciones almacenadas en localStorage al cargar la página
 $(document).ready(function() {
     const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
@@ -81,9 +87,12 @@ $(document).ready(function() {
     }
 
     storedNotifications.forEach(notification => {
-        $('#notificationList').append(`
-            <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer" data-folio="${notification.folio}">
-                <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}<br>Operador: ${notification.nombre}
+        $('#notificationList').prepend(`
+            <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${notification.folio}">
+                <div>
+                    <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}<br>Operador: ${notification.nombre}
+                </div>
+                <div class="text-xs text-gray-500">${timeAgo(notification.created_at)}</div>
             </li>
         `);
     });
@@ -98,10 +107,13 @@ window.Echo.channel('notifications')
         const notificationExists = storedNotifications.some(notification => notification.folio === e.folio);
 
         if (!notificationExists) {
-            // Agregar la notificación al DOM usando jQuery
-            $('#notificationList').append(`
-                <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer" data-folio="${e.folio}">
-                    <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}<br>Operador: ${e.nombre}
+            // Agregar la notificación al DOM usando jQuery al principio de la lista
+            $('#notificationList').prepend(`
+                <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${e.folio}">
+                    <div>
+                        <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}<br>Operador: ${e.nombre}
+                    </div>
+                    <div class="text-xs text-gray-500">${timeAgo(e.created_at)}</div>
                 </li>
             `);
 
