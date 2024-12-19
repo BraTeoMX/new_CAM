@@ -72,15 +72,35 @@ window.Echo = new Echo({
 
 let notificationCount = 0;
 
+// Cargar notificaciones almacenadas en localStorage al cargar la página
+$(document).ready(function() {
+    const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    notificationCount = storedNotifications.length;
+    if (notificationCount > 0) {
+        $('#notificationCount').text(notificationCount).show();
+    }
+
+    storedNotifications.forEach(notification => {
+        $('#notificationList').append(`
+            <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer" data-folio="${notification.folio}">
+                <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}<br>Operador: ${notification.nombre}
+            </li>
+        `);
+    });
+});
+
 window.Echo.channel('notifications')
     .listen('NewOrderNotification', (e) => {
         console.log('Notificación recibida:', e);
 
-        // Verificar si la notificación ya existe para evitar duplicados
-        if (!$('#notificationList').find(`[data-folio="${e.folio}"]`).length) {
+        // Verificar si la notificación ya existe en localStorage para evitar duplicados
+        const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+        const notificationExists = storedNotifications.some(notification => notification.folio === e.folio);
+
+        if (!notificationExists) {
             // Agregar la notificación al DOM usando jQuery
             $('#notificationList').append(`
-                <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700" data-folio="${e.folio}">
+                <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer" data-folio="${e.folio}">
                     <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}<br>Operador: ${e.nombre}
                 </li>
             `);
@@ -88,6 +108,10 @@ window.Echo.channel('notifications')
             // Actualizar el contador de notificaciones
             notificationCount++;
             $('#notificationCount').text(notificationCount).show();
+
+            // Guardar la notificación en localStorage
+            storedNotifications.push(e);
+            localStorage.setItem('notifications', JSON.stringify(storedNotifications));
         }
     });
 
@@ -105,4 +129,38 @@ $(document).on('click', function(event) {
         $('#notificationDropdown').hide();
         $('#notificationButton').attr('aria-expanded', 'false');
     }
+});
+
+// Mostrar notificación en modal y descontar del contador
+$(document).on('click', '#notificationList li', function() {
+    const folio = $(this).data('folio');
+    const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+    const notification = storedNotifications.find(notification => notification.folio === folio);
+
+    // Mostrar notificación en el modal
+    $('#notificationModalTitle').text(`Nueva OT: ${notification.folio}`);
+    $('#notificationModalBody').html(`
+        <p>Modulo: ${notification.modulo}</p>
+        <p>Operador: ${notification.nombre}</p>
+        <p>Descripción: ${notification.descripcion}</p>
+    `);
+    $('#notificationModal').removeClass('hidden');
+
+    // Eliminar la notificación del DOM y de localStorage
+    $(this).remove();
+    const updatedNotifications = storedNotifications.filter(notification => notification.folio !== folio);
+    localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
+
+    // Actualizar el contador de notificaciones
+    notificationCount--;
+    if (notificationCount === 0) {
+        $('#notificationCount').hide();
+    } else {
+        $('#notificationCount').text(notificationCount);
+    }
+});
+
+// Cerrar modal
+$(document).on('click', '[data-modal-toggle="notificationModal"]', function() {
+    $('#notificationModal').addClass('hidden');
 });

@@ -452,3 +452,201 @@
 [2024-12-18 18:55:21] local.INFO: Datos validados:  {"modulo":"103A","numeroEmpleado":"0008698","name":"JULIETA GONZALEZ ALBERTO","subject":"asdasd","description":"asdasd"} 
 [2024-12-18 18:55:22] local.INFO: Ticket creado:  {"Modulo":"103A","Num_empl":"0008698","Nombre":"JULIETA GONZALEZ ALBERTO","Tip_prob":"asdasd","Descrip_prob":"asdasd","Folio":"OT-80662E","Status":"Aprobado","updated_at":"2024-12-19T00:55:21.000000Z","created_at":"2024-12-19T00:55:21.000000Z","id":53} 
 [2024-12-18 18:55:22] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"103A","Num_empl":"0008698","Nombre":"JULIETA GONZALEZ ALBERTO","Tip_prob":"asdasd","Descrip_prob":"asdasd","Folio":"OT-80662E","Status":"Aprobado","updated_at":"2024-12-19T00:55:21.000000Z","created_at":"2024-12-19T00:55:21.000000Z","id":53}}} 
+[2024-12-18 19:00:45] local.INFO: Cargando módulos desde el caché...  
+[2024-12-18 19:00:47] local.INFO: Cargando empleados desde el caché para el módulo: 103A  
+[2024-12-18 19:00:48] local.INFO: Número de empleado recibido: 0008694  
+[2024-12-18 19:00:51] local.INFO: Datos validados:  {"modulo":"103A","numeroEmpleado":"0008694","name":"GUILLERMO MENDOZA HERNANDEZ","subject":"asdasdas","description":"sadasd"} 
+[2024-12-18 19:00:52] local.INFO: Ticket creado:  {"Modulo":"103A","Num_empl":"0008694","Nombre":"GUILLERMO MENDOZA HERNANDEZ","Tip_prob":"asdasdas","Descrip_prob":"sadasd","Folio":"OT-B9C861","Status":"Aprobado","updated_at":"2024-12-19T01:00:51.000000Z","created_at":"2024-12-19T01:00:51.000000Z","id":54} 
+[2024-12-18 19:00:52] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"103A","Num_empl":"0008694","Nombre":"GUILLERMO MENDOZA HERNANDEZ","Tip_prob":"asdasdas","Descrip_prob":"sadasd","Folio":"OT-B9C861","Status":"Aprobado","updated_at":"2024-12-19T01:00:51.000000Z","created_at":"2024-12-19T01:00:51.000000Z","id":54}}} 
+[2024-12-18 19:01:02] local.INFO: Cargando módulos desde el caché...  
+[2024-12-18 19:01:03] local.INFO: Cargando empleados desde la base de datos para el módulo: 133A  
+[2024-12-18 19:01:03] local.INFO: Empleados del módulo 133A almacenados en caché.  
+[2024-12-18 19:01:05] local.INFO: Número de empleado recibido: 0022673  
+[2024-12-18 19:01:07] local.INFO: Datos validados:  {"modulo":"133A","numeroEmpleado":"0022673","name":"KARINA GONZALEZ SALINAS","subject":"sadsad","description":"asdsad"} 
+[2024-12-18 19:01:08] local.INFO: Ticket creado:  {"Modulo":"133A","Num_empl":"0022673","Nombre":"KARINA GONZALEZ SALINAS","Tip_prob":"sadsad","Descrip_prob":"asdsad","Folio":"OT-CB95C7","Status":"Aprobado","updated_at":"2024-12-19T01:01:07.000000Z","created_at":"2024-12-19T01:01:07.000000Z","id":55} 
+[2024-12-18 19:01:08] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"133A","Num_empl":"0022673","Nombre":"KARINA GONZALEZ SALINAS","Tip_prob":"sadsad","Descrip_prob":"asdsad","Folio":"OT-CB95C7","Status":"Aprobado","updated_at":"2024-12-19T01:01:07.000000Z","created_at":"2024-12-19T01:01:07.000000Z","id":55}}} 
+[2024-12-19 08:06:08] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:06:10] local.INFO: Cargando empleados desde el caché para el módulo: 101A  
+[2024-12-19 08:06:12] local.INFO: Número de empleado recibido: 0023035  
+[2024-12-19 08:06:20] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0023035","name":"ADRIANA CRISOLIS GARCIA","subject":"asdasd","description":"asdasd"} 
+[2024-12-19 08:06:22] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0023035","Nombre":"ADRIANA CRISOLIS GARCIA","Tip_prob":"asdasd","Descrip_prob":"asdasd","Folio":"OT-551388","Status":"Aprobado","updated_at":"2024-12-19T14:06:20.000000Z","created_at":"2024-12-19T14:06:20.000000Z","id":1} 
+[2024-12-19 08:06:22] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"101A","Num_empl":"0023035","Nombre":"ADRIANA CRISOLIS GARCIA","Tip_prob":"asdasd","Descrip_prob":"asdasd","Folio":"OT-551388","Status":"Aprobado","updated_at":"2024-12-19T14:06:20.000000Z","created_at":"2024-12-19T14:06:20.000000Z","id":1}}} 
+[2024-12-19 08:06:28] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:06:30] local.INFO: Cargando empleados desde el caché para el módulo: 104A  
+[2024-12-19 08:06:35] local.INFO: Número de empleado recibido: 0003709  
+[2024-12-19 08:06:40] local.INFO: Datos validados:  {"modulo":"104A","numeroEmpleado":"0003709","name":"SOFIA GARDUÑO SANCHEZ","subject":"sadsad","description":"sadas"} 
+[2024-12-19 08:06:41] local.INFO: Ticket creado:  {"Modulo":"104A","Num_empl":"0003709","Nombre":"SOFIA GARDUÑO SANCHEZ","Tip_prob":"sadsad","Descrip_prob":"sadas","Folio":"OT-C8B3CB","Status":"Aprobado","updated_at":"2024-12-19T14:06:40.000000Z","created_at":"2024-12-19T14:06:40.000000Z","id":2} 
+[2024-12-19 08:06:41] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"104A","Num_empl":"0003709","Nombre":"SOFIA GARDUÑO SANCHEZ","Tip_prob":"sadsad","Descrip_prob":"sadas","Folio":"OT-C8B3CB","Status":"Aprobado","updated_at":"2024-12-19T14:06:40.000000Z","created_at":"2024-12-19T14:06:40.000000Z","id":2}}} 
+[2024-12-19 08:58:14] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:58:17] local.INFO: Cargando empleados desde el caché para el módulo: 101A  
+[2024-12-19 08:58:18] local.INFO: Número de empleado recibido: 0003812  
+[2024-12-19 08:58:21] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0003812","name":"ROSA GONZALEZ PETRONILO","subject":"sadsad","description":"sadasd"} 
+[2024-12-19 08:58:22] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0003812","Nombre":"ROSA GONZALEZ PETRONILO","Tip_prob":"sadsad","Descrip_prob":"sadasd","Folio":"OT-8CFBE0","Status":"Aprobado","updated_at":"2024-12-19T14:58:21.000000Z","created_at":"2024-12-19T14:58:21.000000Z","id":3} 
+[2024-12-19 08:58:22] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"101A","Num_empl":"0003812","Nombre":"ROSA GONZALEZ PETRONILO","Tip_prob":"sadsad","Descrip_prob":"sadasd","Folio":"OT-8CFBE0","Status":"Aprobado","updated_at":"2024-12-19T14:58:21.000000Z","created_at":"2024-12-19T14:58:21.000000Z","id":3}}} 
+[2024-12-19 08:58:54] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:58:58] local.INFO: Cargando empleados desde el caché para el módulo: 101A  
+[2024-12-19 08:58:59] local.INFO: Número de empleado recibido: 0012388  
+[2024-12-19 08:59:02] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0012388","name":"NANCY GARDUÑO SEVERO","subject":"asdas","description":"sadas"} 
+[2024-12-19 08:59:02] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0012388","Nombre":"NANCY GARDUÑO SEVERO","Tip_prob":"asdas","Descrip_prob":"sadas","Folio":"OT-D29F21","Status":"Aprobado","updated_at":"2024-12-19T14:59:02.000000Z","created_at":"2024-12-19T14:59:02.000000Z","id":4} 
+[2024-12-19 08:59:02] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"101A","Num_empl":"0012388","Nombre":"NANCY GARDUÑO SEVERO","Tip_prob":"asdas","Descrip_prob":"sadas","Folio":"OT-D29F21","Status":"Aprobado","updated_at":"2024-12-19T14:59:02.000000Z","created_at":"2024-12-19T14:59:02.000000Z","id":4}}} 
+[2024-12-19 08:59:09] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:59:11] local.INFO: Cargando empleados desde la base de datos para el módulo: 138A  
+[2024-12-19 08:59:13] local.INFO: Empleados del módulo 138A almacenados en caché.  
+[2024-12-19 08:59:14] local.INFO: Cargando empleados desde el caché para el módulo: 138A  
+[2024-12-19 08:59:15] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:59:15] local.INFO: Cargando empleados desde el caché para el módulo: 207A  
+[2024-12-19 08:59:17] local.INFO: Número de empleado recibido: 0022483  
+[2024-12-19 08:59:19] local.INFO: Datos validados:  {"modulo":"207A","numeroEmpleado":"0022483","name":"ERICK ROSALES AYALA","subject":"sadsa","description":"sadas"} 
+[2024-12-19 08:59:20] local.INFO: Ticket creado:  {"Modulo":"207A","Num_empl":"0022483","Nombre":"ERICK ROSALES AYALA","Tip_prob":"sadsa","Descrip_prob":"sadas","Folio":"OT-E9FE66","Status":"Aprobado","updated_at":"2024-12-19T14:59:19.000000Z","created_at":"2024-12-19T14:59:19.000000Z","id":5} 
+[2024-12-19 08:59:20] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"207A","Num_empl":"0022483","Nombre":"ERICK ROSALES AYALA","Tip_prob":"sadsa","Descrip_prob":"sadas","Folio":"OT-E9FE66","Status":"Aprobado","updated_at":"2024-12-19T14:59:19.000000Z","created_at":"2024-12-19T14:59:19.000000Z","id":5}}} 
+[2024-12-19 08:59:39] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 08:59:41] local.INFO: Cargando empleados desde el caché para el módulo: 104A  
+[2024-12-19 08:59:43] local.INFO: Número de empleado recibido: 0016128  
+[2024-12-19 08:59:45] local.INFO: Datos validados:  {"modulo":"104A","numeroEmpleado":"0016128","name":"EDITH GONZALEZ MOLINA","subject":"sadas","description":"asdasd"} 
+[2024-12-19 08:59:46] local.INFO: Ticket creado:  {"Modulo":"104A","Num_empl":"0016128","Nombre":"EDITH GONZALEZ MOLINA","Tip_prob":"sadas","Descrip_prob":"asdasd","Folio":"OT-68D06D","Status":"Aprobado","updated_at":"2024-12-19T14:59:46.000000Z","created_at":"2024-12-19T14:59:46.000000Z","id":6} 
+[2024-12-19 08:59:47] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"104A","Num_empl":"0016128","Nombre":"EDITH GONZALEZ MOLINA","Tip_prob":"sadas","Descrip_prob":"asdasd","Folio":"OT-68D06D","Status":"Aprobado","updated_at":"2024-12-19T14:59:46.000000Z","created_at":"2024-12-19T14:59:46.000000Z","id":6}}} 
+[2024-12-19 09:00:06] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:00:10] local.INFO: Cargando empleados desde la base de datos para el módulo: 145A  
+[2024-12-19 09:00:10] local.INFO: Empleados del módulo 145A almacenados en caché.  
+[2024-12-19 09:00:10] local.INFO: Número de empleado recibido: 0001083  
+[2024-12-19 09:00:14] local.INFO: Datos validados:  {"modulo":"145A","numeroEmpleado":"0001083","name":"FELICITAS BONIFACIO GARCIA","subject":"asdasd","description":"asdas"} 
+[2024-12-19 09:00:15] local.INFO: Ticket creado:  {"Modulo":"145A","Num_empl":"0001083","Nombre":"FELICITAS BONIFACIO GARCIA","Tip_prob":"asdasd","Descrip_prob":"asdas","Folio":"OT-B4A4D5","Status":"Aprobado","updated_at":"2024-12-19T15:00:14.000000Z","created_at":"2024-12-19T15:00:14.000000Z","id":7} 
+[2024-12-19 09:00:15] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"145A","Num_empl":"0001083","Nombre":"FELICITAS BONIFACIO GARCIA","Tip_prob":"asdasd","Descrip_prob":"asdas","Folio":"OT-B4A4D5","Status":"Aprobado","updated_at":"2024-12-19T15:00:14.000000Z","created_at":"2024-12-19T15:00:14.000000Z","id":7}}} 
+[2024-12-19 09:04:40] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:04:42] local.INFO: Cargando empleados desde el caché para el módulo: 104A  
+[2024-12-19 09:04:43] local.INFO: Número de empleado recibido: 0003709  
+[2024-12-19 09:04:47] local.INFO: Datos validados:  {"modulo":"104A","numeroEmpleado":"0003709","name":"SOFIA GARDUÑO SANCHEZ","subject":"sadsa","description":"asdasd"} 
+[2024-12-19 09:04:48] local.INFO: Ticket creado:  {"Modulo":"104A","Num_empl":"0003709","Nombre":"SOFIA GARDUÑO SANCHEZ","Tip_prob":"sadsa","Descrip_prob":"asdasd","Folio":"OT-8E5755","Status":"Aprobado","updated_at":"2024-12-19T15:04:47.000000Z","created_at":"2024-12-19T15:04:47.000000Z","id":8} 
+[2024-12-19 09:04:48] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"104A","Num_empl":"0003709","Nombre":"SOFIA GARDUÑO SANCHEZ","Tip_prob":"sadsa","Descrip_prob":"asdasd","Folio":"OT-8E5755","Status":"Aprobado","updated_at":"2024-12-19T15:04:47.000000Z","created_at":"2024-12-19T15:04:47.000000Z","id":8}}} 
+[2024-12-19 09:12:01] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:12:03] local.INFO: Cargando empleados desde el caché para el módulo: 103A  
+[2024-12-19 09:12:04] local.INFO: Número de empleado recibido: 0008694  
+[2024-12-19 09:12:11] local.INFO: Datos validados:  {"modulo":"103A","numeroEmpleado":"0008694","name":"GUILLERMO MENDOZA HERNANDEZ","subject":"sdasa","description":"asdas"} 
+[2024-12-19 09:12:11] local.INFO: Ticket creado:  {"Modulo":"103A","Num_empl":"0008694","Nombre":"GUILLERMO MENDOZA HERNANDEZ","Tip_prob":"sdasa","Descrip_prob":"asdas","Folio":"OT-39C761","Status":"Aprobado","updated_at":"2024-12-19T15:12:11.000000Z","created_at":"2024-12-19T15:12:11.000000Z","id":9} 
+[2024-12-19 09:12:11] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"103A","Num_empl":"0008694","Nombre":"GUILLERMO MENDOZA HERNANDEZ","Tip_prob":"sdasa","Descrip_prob":"asdas","Folio":"OT-39C761","Status":"Aprobado","updated_at":"2024-12-19T15:12:11.000000Z","created_at":"2024-12-19T15:12:11.000000Z","id":9}}} 
+[2024-12-19 09:14:34] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:14:36] local.INFO: Cargando empleados desde el caché para el módulo: 101A  
+[2024-12-19 09:14:37] local.INFO: Número de empleado recibido: 0003812  
+[2024-12-19 09:14:40] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0003812","name":"ROSA GONZALEZ PETRONILO","subject":"asdsa","description":"asdsa"} 
+[2024-12-19 09:14:41] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0003812","Nombre":"ROSA GONZALEZ PETRONILO","Tip_prob":"asdsa","Descrip_prob":"asdsa","Folio":"OT-DE84BB","Status":"Aprobado","updated_at":"2024-12-19T15:14:40.000000Z","created_at":"2024-12-19T15:14:40.000000Z","id":10} 
+[2024-12-19 09:14:41] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"101A","Num_empl":"0003812","Nombre":"ROSA GONZALEZ PETRONILO","Tip_prob":"asdsa","Descrip_prob":"asdsa","Folio":"OT-DE84BB","Status":"Aprobado","updated_at":"2024-12-19T15:14:40.000000Z","created_at":"2024-12-19T15:14:40.000000Z","id":10}}} 
+[2024-12-19 09:15:06] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:15:08] local.INFO: Cargando empleados desde el caché para el módulo: 104A  
+[2024-12-19 09:15:09] local.INFO: Número de empleado recibido: 0003709  
+[2024-12-19 09:15:11] local.INFO: Datos validados:  {"modulo":"104A","numeroEmpleado":"0003709","name":"SOFIA GARDUÑO SANCHEZ","subject":"sadasd","description":"sadas"} 
+[2024-12-19 09:15:12] local.INFO: Ticket creado:  {"Modulo":"104A","Num_empl":"0003709","Nombre":"SOFIA GARDUÑO SANCHEZ","Tip_prob":"sadasd","Descrip_prob":"sadas","Folio":"OT-4F765A","Status":"Aprobado","updated_at":"2024-12-19T15:15:11.000000Z","created_at":"2024-12-19T15:15:11.000000Z","id":11} 
+[2024-12-19 09:15:12] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"104A","Num_empl":"0003709","Nombre":"SOFIA GARDUÑO SANCHEZ","Tip_prob":"sadasd","Descrip_prob":"sadas","Folio":"OT-4F765A","Status":"Aprobado","updated_at":"2024-12-19T15:15:11.000000Z","created_at":"2024-12-19T15:15:11.000000Z","id":11}}} 
+[2024-12-19 09:47:50] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:47:52] local.INFO: Cargando empleados desde el caché para el módulo: 104A  
+[2024-12-19 09:47:53] local.INFO: Número de empleado recibido: 0002988  
+[2024-12-19 09:47:57] local.INFO: Datos validados:  {"modulo":"104A","numeroEmpleado":"0002988","name":"HUMBERTO SALINAS MARTINEZ","subject":"sdfds","description":"asdsa"} 
+[2024-12-19 09:47:58] local.INFO: Ticket creado:  {"Modulo":"104A","Num_empl":"0002988","Nombre":"HUMBERTO SALINAS MARTINEZ","Tip_prob":"sdfds","Descrip_prob":"asdsa","Folio":"OT-BD25CD","Status":"Aprobado","updated_at":"2024-12-19T15:47:57.000000Z","created_at":"2024-12-19T15:47:57.000000Z","id":12} 
+[2024-12-19 09:47:58] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"104A","Num_empl":"0002988","Nombre":"HUMBERTO SALINAS MARTINEZ","Tip_prob":"sdfds","Descrip_prob":"asdsa","Folio":"OT-BD25CD","Status":"Aprobado","updated_at":"2024-12-19T15:47:57.000000Z","created_at":"2024-12-19T15:47:57.000000Z","id":12}}} 
+[2024-12-19 09:47:59] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:48:01] local.INFO: Cargando empleados desde el caché para el módulo: 104A  
+[2024-12-19 09:48:02] local.INFO: Número de empleado recibido: 0023406  
+[2024-12-19 09:48:06] local.INFO: Datos validados:  {"modulo":"104A","numeroEmpleado":"0023406","name":"YAZMIN HERNANDEZ VENTURA","subject":"dsadsad","description":"sadsad"} 
+[2024-12-19 09:48:06] local.INFO: Ticket creado:  {"Modulo":"104A","Num_empl":"0023406","Nombre":"YAZMIN HERNANDEZ VENTURA","Tip_prob":"dsadsad","Descrip_prob":"sadsad","Folio":"OT-ECCF31","Status":"Aprobado","updated_at":"2024-12-19T15:48:06.000000Z","created_at":"2024-12-19T15:48:06.000000Z","id":13} 
+[2024-12-19 09:48:06] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"104A","Num_empl":"0023406","Nombre":"YAZMIN HERNANDEZ VENTURA","Tip_prob":"dsadsad","Descrip_prob":"sadsad","Folio":"OT-ECCF31","Status":"Aprobado","updated_at":"2024-12-19T15:48:06.000000Z","created_at":"2024-12-19T15:48:06.000000Z","id":13}}} 
+[2024-12-19 09:48:15] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:48:17] local.INFO: Cargando empleados desde la base de datos para el módulo: 148A  
+[2024-12-19 09:48:17] local.INFO: Empleados del módulo 148A almacenados en caché.  
+[2024-12-19 09:48:18] local.INFO: Número de empleado recibido: 0019171  
+[2024-12-19 09:48:21] local.INFO: Datos validados:  {"modulo":"148A","numeroEmpleado":"0019171","name":"MARIA ROSAURA RAMIREZ LOPEZ","subject":"asdasd","description":"sadsa"} 
+[2024-12-19 09:48:22] local.INFO: Ticket creado:  {"Modulo":"148A","Num_empl":"0019171","Nombre":"MARIA ROSAURA RAMIREZ LOPEZ","Tip_prob":"asdasd","Descrip_prob":"sadsa","Folio":"OT-DDBD9A","Status":"Aprobado","updated_at":"2024-12-19T15:48:21.000000Z","created_at":"2024-12-19T15:48:21.000000Z","id":14} 
+[2024-12-19 09:48:22] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"148A","Num_empl":"0019171","Nombre":"MARIA ROSAURA RAMIREZ LOPEZ","Tip_prob":"asdasd","Descrip_prob":"sadsa","Folio":"OT-DDBD9A","Status":"Aprobado","updated_at":"2024-12-19T15:48:21.000000Z","created_at":"2024-12-19T15:48:21.000000Z","id":14}}} 
+[2024-12-19 09:48:38] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:48:40] local.INFO: Cargando empleados desde el caché para el módulo: 139A  
+[2024-12-19 09:48:41] local.INFO: Número de empleado recibido: 0023733  
+[2024-12-19 09:48:44] local.INFO: Datos validados:  {"modulo":"139A","numeroEmpleado":"0023733","name":"RICARDO HERNANDEZ SALAZAR","subject":"sadsa","description":"sadsa"} 
+[2024-12-19 09:48:45] local.INFO: Ticket creado:  {"Modulo":"139A","Num_empl":"0023733","Nombre":"RICARDO HERNANDEZ SALAZAR","Tip_prob":"sadsa","Descrip_prob":"sadsa","Folio":"OT-438D04","Status":"Aprobado","updated_at":"2024-12-19T15:48:44.000000Z","created_at":"2024-12-19T15:48:44.000000Z","id":15} 
+[2024-12-19 09:48:45] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"139A","Num_empl":"0023733","Nombre":"RICARDO HERNANDEZ SALAZAR","Tip_prob":"sadsa","Descrip_prob":"sadsa","Folio":"OT-438D04","Status":"Aprobado","updated_at":"2024-12-19T15:48:44.000000Z","created_at":"2024-12-19T15:48:44.000000Z","id":15}}} 
+[2024-12-19 09:48:48] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:48:50] local.INFO: Cargando empleados desde el caché para el módulo: 111A  
+[2024-12-19 09:48:51] local.INFO: Número de empleado recibido: 0007084  
+[2024-12-19 09:48:53] local.INFO: Datos validados:  {"modulo":"111A","numeroEmpleado":"0007084","name":"MARIBEL URBANO FLORES","subject":"asdsad","description":"sadsa"} 
+[2024-12-19 09:48:54] local.INFO: Ticket creado:  {"Modulo":"111A","Num_empl":"0007084","Nombre":"MARIBEL URBANO FLORES","Tip_prob":"asdsad","Descrip_prob":"sadsa","Folio":"OT-98E3B0","Status":"Aprobado","updated_at":"2024-12-19T15:48:53.000000Z","created_at":"2024-12-19T15:48:53.000000Z","id":16} 
+[2024-12-19 09:48:54] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"111A","Num_empl":"0007084","Nombre":"MARIBEL URBANO FLORES","Tip_prob":"asdsad","Descrip_prob":"sadsa","Folio":"OT-98E3B0","Status":"Aprobado","updated_at":"2024-12-19T15:48:53.000000Z","created_at":"2024-12-19T15:48:53.000000Z","id":16}}} 
+[2024-12-19 09:48:56] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 09:48:59] local.INFO: Cargando empleados desde la base de datos para el módulo: 239A  
+[2024-12-19 09:48:59] local.INFO: Empleados del módulo 239A almacenados en caché.  
+[2024-12-19 09:49:00] local.INFO: Número de empleado recibido: 0023312  
+[2024-12-19 09:49:02] local.INFO: Datos validados:  {"modulo":"239A","numeroEmpleado":"0023312","name":"VERONICA JIMENEZ ESCOBAR","subject":"asdasd","description":"sadsa"} 
+[2024-12-19 09:49:03] local.INFO: Ticket creado:  {"Modulo":"239A","Num_empl":"0023312","Nombre":"VERONICA JIMENEZ ESCOBAR","Tip_prob":"asdasd","Descrip_prob":"sadsa","Folio":"OT-2396C0","Status":"Aprobado","updated_at":"2024-12-19T15:49:02.000000Z","created_at":"2024-12-19T15:49:02.000000Z","id":17} 
+[2024-12-19 09:49:04] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"239A","Num_empl":"0023312","Nombre":"VERONICA JIMENEZ ESCOBAR","Tip_prob":"asdasd","Descrip_prob":"sadsa","Folio":"OT-2396C0","Status":"Aprobado","updated_at":"2024-12-19T15:49:02.000000Z","created_at":"2024-12-19T15:49:02.000000Z","id":17}}} 
+[2024-12-19 10:39:21] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:39:23] local.INFO: Cargando empleados desde el caché para el módulo: 101A  
+[2024-12-19 10:39:25] local.INFO: Número de empleado recibido: 0023699  
+[2024-12-19 10:39:29] local.INFO: Datos validados:  {"modulo":"101A","numeroEmpleado":"0023699","name":"MARGARITA ALEJANDRO VIVIANO","subject":"sadsa","description":"sadsad"} 
+[2024-12-19 10:39:30] local.INFO: Ticket creado:  {"Modulo":"101A","Num_empl":"0023699","Nombre":"MARGARITA ALEJANDRO VIVIANO","Tip_prob":"sadsa","Descrip_prob":"sadsad","Folio":"OT-951F08","Status":"Aprobado","updated_at":"2024-12-19T16:39:29.000000Z","created_at":"2024-12-19T16:39:29.000000Z","id":18} 
+[2024-12-19 10:39:30] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"101A","Num_empl":"0023699","Nombre":"MARGARITA ALEJANDRO VIVIANO","Tip_prob":"sadsa","Descrip_prob":"sadsad","Folio":"OT-951F08","Status":"Aprobado","updated_at":"2024-12-19T16:39:29.000000Z","created_at":"2024-12-19T16:39:29.000000Z","id":18}}} 
+[2024-12-19 10:39:58] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:40:00] local.INFO: Cargando empleados desde el caché para el módulo: 103A  
+[2024-12-19 10:40:01] local.INFO: Número de empleado recibido: 0018525  
+[2024-12-19 10:41:21] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:41:23] local.INFO: Cargando empleados desde el caché para el módulo: 103A  
+[2024-12-19 10:41:27] local.INFO: Número de empleado recibido: 0018525  
+[2024-12-19 10:41:31] local.INFO: Datos validados:  {"modulo":"103A","numeroEmpleado":"0018525","name":"ROBERTO DE JESUS OCTAVIANO","subject":"asdasd sa","description":"asdsads"} 
+[2024-12-19 10:41:32] local.INFO: Ticket creado:  {"Modulo":"103A","Num_empl":"0018525","Nombre":"ROBERTO DE JESUS OCTAVIANO","Tip_prob":"asdasd sa","Descrip_prob":"asdsads","Folio":"OT-162A7E","Status":"Aprobado","updated_at":"2024-12-19T16:41:31.000000Z","created_at":"2024-12-19T16:41:31.000000Z","id":19} 
+[2024-12-19 10:41:32] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"103A","Num_empl":"0018525","Nombre":"ROBERTO DE JESUS OCTAVIANO","Tip_prob":"asdasd sa","Descrip_prob":"asdsads","Folio":"OT-162A7E","Status":"Aprobado","updated_at":"2024-12-19T16:41:31.000000Z","created_at":"2024-12-19T16:41:31.000000Z","id":19}}} 
+[2024-12-19 10:44:53] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:44:55] local.INFO: Cargando empleados desde el caché para el módulo: 103A  
+[2024-12-19 10:44:56] local.INFO: Número de empleado recibido: 0014937  
+[2024-12-19 10:45:00] local.INFO: Datos validados:  {"modulo":"103A","numeroEmpleado":"0014937","name":"HILARIO INES SAMANO","subject":"dsad","description":"asdas"} 
+[2024-12-19 10:45:00] local.INFO: Ticket creado:  {"Modulo":"103A","Num_empl":"0014937","Nombre":"HILARIO INES SAMANO","Tip_prob":"dsad","Descrip_prob":"asdas","Folio":"OT-80EE4F","Status":"Aprobado","updated_at":"2024-12-19T16:45:00.000000Z","created_at":"2024-12-19T16:45:00.000000Z","id":20} 
+[2024-12-19 10:45:00] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"103A","Num_empl":"0014937","Nombre":"HILARIO INES SAMANO","Tip_prob":"dsad","Descrip_prob":"asdas","Folio":"OT-80EE4F","Status":"Aprobado","updated_at":"2024-12-19T16:45:00.000000Z","created_at":"2024-12-19T16:45:00.000000Z","id":20}}} 
+[2024-12-19 10:45:07] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:45:09] local.INFO: Cargando empleados desde el caché para el módulo: 107A  
+[2024-12-19 10:45:10] local.INFO: Número de empleado recibido: 0012883  
+[2024-12-19 10:45:13] local.INFO: Datos validados:  {"modulo":"107A","numeroEmpleado":"0012883","name":"VERONICA MENDOZA SEGUNDO","subject":"asdsad","description":"sadas"} 
+[2024-12-19 10:45:13] local.INFO: Ticket creado:  {"Modulo":"107A","Num_empl":"0012883","Nombre":"VERONICA MENDOZA SEGUNDO","Tip_prob":"asdsad","Descrip_prob":"sadas","Folio":"OT-124059","Status":"Aprobado","updated_at":"2024-12-19T16:45:13.000000Z","created_at":"2024-12-19T16:45:13.000000Z","id":21} 
+[2024-12-19 10:45:14] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"107A","Num_empl":"0012883","Nombre":"VERONICA MENDOZA SEGUNDO","Tip_prob":"asdsad","Descrip_prob":"sadas","Folio":"OT-124059","Status":"Aprobado","updated_at":"2024-12-19T16:45:13.000000Z","created_at":"2024-12-19T16:45:13.000000Z","id":21}}} 
+[2024-12-19 10:45:43] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:45:45] local.INFO: Cargando empleados desde el caché para el módulo: 148A  
+[2024-12-19 10:45:46] local.INFO: Número de empleado recibido: 0019171  
+[2024-12-19 10:45:49] local.INFO: Datos validados:  {"modulo":"148A","numeroEmpleado":"0019171","name":"MARIA ROSAURA RAMIREZ LOPEZ","subject":"asdsad","description":"asdasd"} 
+[2024-12-19 10:45:50] local.INFO: Ticket creado:  {"Modulo":"148A","Num_empl":"0019171","Nombre":"MARIA ROSAURA RAMIREZ LOPEZ","Tip_prob":"asdsad","Descrip_prob":"asdasd","Folio":"OT-72F463","Status":"Aprobado","updated_at":"2024-12-19T16:45:49.000000Z","created_at":"2024-12-19T16:45:49.000000Z","id":22} 
+[2024-12-19 10:45:50] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"148A","Num_empl":"0019171","Nombre":"MARIA ROSAURA RAMIREZ LOPEZ","Tip_prob":"asdsad","Descrip_prob":"asdasd","Folio":"OT-72F463","Status":"Aprobado","updated_at":"2024-12-19T16:45:49.000000Z","created_at":"2024-12-19T16:45:49.000000Z","id":22}}} 
+[2024-12-19 10:45:53] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:45:55] local.INFO: Cargando empleados desde el caché para el módulo: 138A  
+[2024-12-19 10:45:56] local.INFO: Número de empleado recibido: 0023465  
+[2024-12-19 10:46:00] local.INFO: Datos validados:  {"modulo":"138A","numeroEmpleado":"0023465","name":"ANALI MARIANO ALVAREZ","subject":"asdasd","description":"sadasd"} 
+[2024-12-19 10:46:01] local.INFO: Ticket creado:  {"Modulo":"138A","Num_empl":"0023465","Nombre":"ANALI MARIANO ALVAREZ","Tip_prob":"asdasd","Descrip_prob":"sadasd","Folio":"OT-6BD651","Status":"Aprobado","updated_at":"2024-12-19T16:46:00.000000Z","created_at":"2024-12-19T16:46:00.000000Z","id":23} 
+[2024-12-19 10:46:01] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"138A","Num_empl":"0023465","Nombre":"ANALI MARIANO ALVAREZ","Tip_prob":"asdasd","Descrip_prob":"sadasd","Folio":"OT-6BD651","Status":"Aprobado","updated_at":"2024-12-19T16:46:00.000000Z","created_at":"2024-12-19T16:46:00.000000Z","id":23}}} 
+[2024-12-19 10:46:29] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:46:34] local.INFO: Cargando empleados desde el caché para el módulo: 168A  
+[2024-12-19 10:46:36] local.INFO: Número de empleado recibido: 0016950  
+[2024-12-19 10:46:44] local.INFO: Datos validados:  {"modulo":"168A","numeroEmpleado":"0016950","name":"NICOLASA FLORES SAMANO","subject":"dadas","description":"sadsa"} 
+[2024-12-19 10:46:45] local.INFO: Ticket creado:  {"Modulo":"168A","Num_empl":"0016950","Nombre":"NICOLASA FLORES SAMANO","Tip_prob":"dadas","Descrip_prob":"sadsa","Folio":"OT-543737","Status":"Aprobado","updated_at":"2024-12-19T16:46:44.000000Z","created_at":"2024-12-19T16:46:44.000000Z","id":24} 
+[2024-12-19 10:46:45] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"168A","Num_empl":"0016950","Nombre":"NICOLASA FLORES SAMANO","Tip_prob":"dadas","Descrip_prob":"sadsa","Folio":"OT-543737","Status":"Aprobado","updated_at":"2024-12-19T16:46:44.000000Z","created_at":"2024-12-19T16:46:44.000000Z","id":24}}} 
+[2024-12-19 10:46:53] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:46:55] local.INFO: Cargando empleados desde el caché para el módulo: 168A  
+[2024-12-19 10:46:57] local.INFO: Número de empleado recibido: 0021995  
+[2024-12-19 10:47:01] local.INFO: Datos validados:  {"modulo":"168A","numeroEmpleado":"0021995","name":"ROSA ISELA GARCIA DE LA CRUZ","subject":"dsfdsf","description":"dsfdsf"} 
+[2024-12-19 10:47:01] local.INFO: Ticket creado:  {"Modulo":"168A","Num_empl":"0021995","Nombre":"ROSA ISELA GARCIA DE LA CRUZ","Tip_prob":"dsfdsf","Descrip_prob":"dsfdsf","Folio":"OT-EC907B","Status":"Aprobado","updated_at":"2024-12-19T16:47:01.000000Z","created_at":"2024-12-19T16:47:01.000000Z","id":25} 
+[2024-12-19 10:47:01] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"168A","Num_empl":"0021995","Nombre":"ROSA ISELA GARCIA DE LA CRUZ","Tip_prob":"dsfdsf","Descrip_prob":"dsfdsf","Folio":"OT-EC907B","Status":"Aprobado","updated_at":"2024-12-19T16:47:01.000000Z","created_at":"2024-12-19T16:47:01.000000Z","id":25}}} 
+[2024-12-19 10:47:15] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:47:18] local.INFO: Cargando empleados desde el caché para el módulo: 138A  
+[2024-12-19 10:47:19] local.INFO: Número de empleado recibido: 0023664  
+[2024-12-19 10:47:24] local.INFO: Datos validados:  {"modulo":"138A","numeroEmpleado":"0023664","name":"GABRIELA MEJIA SALVADOR","subject":"asdsad","description":"asdsa"} 
+[2024-12-19 10:47:25] local.INFO: Ticket creado:  {"Modulo":"138A","Num_empl":"0023664","Nombre":"GABRIELA MEJIA SALVADOR","Tip_prob":"asdsad","Descrip_prob":"asdsa","Folio":"OT-6C9013","Status":"Aprobado","updated_at":"2024-12-19T16:47:24.000000Z","created_at":"2024-12-19T16:47:24.000000Z","id":26} 
+[2024-12-19 10:47:25] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"138A","Num_empl":"0023664","Nombre":"GABRIELA MEJIA SALVADOR","Tip_prob":"asdsad","Descrip_prob":"asdsa","Folio":"OT-6C9013","Status":"Aprobado","updated_at":"2024-12-19T16:47:24.000000Z","created_at":"2024-12-19T16:47:24.000000Z","id":26}}} 
+[2024-12-19 10:48:01] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:48:02] local.INFO: Cargando empleados desde el caché para el módulo: 139A  
+[2024-12-19 10:48:04] local.INFO: Número de empleado recibido: 0023759  
+[2024-12-19 10:48:08] local.INFO: Datos validados:  {"modulo":"139A","numeroEmpleado":"0023759","name":"ARANZA SANCHEZ CELEDONIO","subject":"desde dsfds","description":"dsfds"} 
+[2024-12-19 10:48:09] local.INFO: Ticket creado:  {"Modulo":"139A","Num_empl":"0023759","Nombre":"ARANZA SANCHEZ CELEDONIO","Tip_prob":"desde dsfds","Descrip_prob":"dsfds","Folio":"OT-4E094B","Status":"Aprobado","updated_at":"2024-12-19T16:48:08.000000Z","created_at":"2024-12-19T16:48:08.000000Z","id":27} 
+[2024-12-19 10:48:09] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"139A","Num_empl":"0023759","Nombre":"ARANZA SANCHEZ CELEDONIO","Tip_prob":"desde dsfds","Descrip_prob":"dsfds","Folio":"OT-4E094B","Status":"Aprobado","updated_at":"2024-12-19T16:48:08.000000Z","created_at":"2024-12-19T16:48:08.000000Z","id":27}}} 
+[2024-12-19 10:49:41] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:49:43] local.INFO: Cargando empleados desde la base de datos para el módulo: 209A  
+[2024-12-19 10:49:45] local.INFO: Empleados del módulo 209A almacenados en caché.  
+[2024-12-19 10:49:47] local.INFO: Número de empleado recibido: 0023199  
+[2024-12-19 10:49:51] local.INFO: Datos validados:  {"modulo":"209A","numeroEmpleado":"0023199","name":"ALONDRA LILENI MONTOYA MERCADO","subject":"fdsf","description":"dsfds"} 
+[2024-12-19 10:49:52] local.INFO: Ticket creado:  {"Modulo":"209A","Num_empl":"0023199","Nombre":"ALONDRA LILENI MONTOYA MERCADO","Tip_prob":"fdsf","Descrip_prob":"dsfds","Folio":"OT-FDCBE4","Status":"Aprobado","updated_at":"2024-12-19T16:49:51.000000Z","created_at":"2024-12-19T16:49:51.000000Z","id":28} 
+[2024-12-19 10:49:52] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"209A","Num_empl":"0023199","Nombre":"ALONDRA LILENI MONTOYA MERCADO","Tip_prob":"fdsf","Descrip_prob":"dsfds","Folio":"OT-FDCBE4","Status":"Aprobado","updated_at":"2024-12-19T16:49:51.000000Z","created_at":"2024-12-19T16:49:51.000000Z","id":28}}} 
+[2024-12-19 10:49:56] local.INFO: Cargando módulos desde el caché...  
+[2024-12-19 10:49:58] local.INFO: Cargando empleados desde el caché para el módulo: 139A  
+[2024-12-19 10:49:59] local.INFO: Número de empleado recibido: 0017503  
+[2024-12-19 10:50:01] local.INFO: Datos validados:  {"modulo":"139A","numeroEmpleado":"0017503","name":"MARIBEL TAPIA PROSPERO","subject":"asdasd","description":"asdas"} 
+[2024-12-19 10:50:02] local.INFO: Ticket creado:  {"Modulo":"139A","Num_empl":"0017503","Nombre":"MARIBEL TAPIA PROSPERO","Tip_prob":"asdasd","Descrip_prob":"asdas","Folio":"OT-A9A17E","Status":"Aprobado","updated_at":"2024-12-19T16:50:01.000000Z","created_at":"2024-12-19T16:50:01.000000Z","id":29} 
+[2024-12-19 10:50:02] local.INFO: Evento NewOrderNotification emitido {"ticket":{"App\\Models\\TicketOT":{"Modulo":"139A","Num_empl":"0017503","Nombre":"MARIBEL TAPIA PROSPERO","Tip_prob":"asdasd","Descrip_prob":"asdas","Folio":"OT-A9A17E","Status":"Aprobado","updated_at":"2024-12-19T16:50:01.000000Z","created_at":"2024-12-19T16:50:01.000000Z","id":29}}} 

@@ -34,12 +34,38 @@
     </button>
     <div
         id="notificationDropdown"
-        class="origin-top-right z-10 absolute top-full right-0 min-w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1 transform -translate-x-1/4"
+        class="origin-top-right z-10 absolute top-full right-0 min-w-80 max-h-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-y-auto mt-1 transform -translate-x-1/4"
         style="display: none;"
     >
         <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-4">Notifications</div>
         <ul id="notificationList">
         </ul>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="notificationModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 w-full h-full flex justify-center items-center">
+    <div class="relative p-4 w-full max-w-md h-auto">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex justify-between items-start p-4 rounded-t border-b dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white" id="notificationModalTitle"></h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="notificationModal">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.707-9.707a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414L11.414 10l1.293 1.293a1 1 0 01-1.414 1.414L10 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L8.586 10 7.293 8.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-6 space-y-6">
+                <p id="notificationModalBody" class="text-base leading-relaxed text-gray-500 dark:text-gray-400"></p>
+            </div>
+            <!-- Modal footer -->
+            <div class="flex items-center p-6 space-x-2 rounded-b border-t border-gray-200 dark:border-gray-600">
+                <button data-modal-toggle="notificationModal" type="button" class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cerrar</button>
+            </div>
+        </div>
     </div>
 </div>
 <?php /**PATH C:\xampp8.2\htdocs\Proyecto-CAM\resources\views/components/dropdown-notifications.blade.php ENDPATH**/ ?>
