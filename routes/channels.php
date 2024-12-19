@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
+// Canal para notificaciones en tiempo real
+Broadcast::channel('notifications', function () {
+    return true; // Permite a cualquier usuario escuchar el canal
+});
+
+// Canal para usuarios específicos (ya configurado)
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });

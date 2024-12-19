@@ -191,113 +191,120 @@
     </script>
 
 
-    <script>
-        document.getElementById('submitTicket').addEventListener('click', function() {
-            const submitButton = document.getElementById('submitTicket');
+<script>
+    document.getElementById('submitTicket').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
-            // Captura de datos del formulario
-            const formData = {
-                modulo: $('#modul').val(), // Select2: módulo seleccionado
-                numeroEmpleado: $('#numeroEmpleado').val(), // Select2: número de empleado
-                name: $('#name').val(), // Input: nombre del empleado
-                subject: document.getElementById('subject').value.trim(), // Asunto
-                description: document.getElementById('description').value.trim(), // Descripción
-                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
-            };
+        const submitButton = document.getElementById('submitTicket');
 
-            // Validaciones del lado del cliente
-            if (!formData.modulo) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, selecciona un módulo válido.'
-                });
-                return;
-            }
-            if (!formData.numeroEmpleado) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, selecciona un número de empleado.'
-                });
-                return;
-            }
-            if (!formData.name.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, ingresa tu nombre completo.'
-                });
-                return;
-            }
-            if (!formData.subject.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, ingresa un asunto válido.'
-                });
-                return;
-            }
-            if (!formData.description.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, ingresa una descripción detallada.'
-                });
-                return;
-            }
+        // Evitar el doble envío deshabilitando el botón inmediatamente
+        if (submitButton.disabled) {
+            return;
+        }
 
-            // Deshabilitar el botón mientras se envía la solicitud
-            submitButton.disabled = true;
-            submitButton.textContent = 'Enviando...';
+        // Captura de datos del formulario
+        const formData = {
+            modulo: $('#modul').val(), // Select2: módulo seleccionado
+            numeroEmpleado: $('#numeroEmpleado').val(), // Select2: número de empleado
+            name: $('#name').val(), // Input: nombre del empleado
+            subject: document.getElementById('subject').value.trim(), // Asunto
+            description: document.getElementById('description').value.trim(), // Descripción
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
+        };
 
-            // Petición al servidor
-            fetch('/ticketsOT', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Ticket registrado',
-                            text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`
-                        }).then(() => {
-                            document.getElementById('ticketForm').reset();
-                            $('#modul, #numeroEmpleado').val(null).trigger(
-                            'change'); // Reiniciar Select2
-                            $('#name').val(''); // Limpiar el nombre
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Hubo un error al registrar el ticket.'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+        // Validaciones del lado del cliente
+        if (!formData.modulo) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, selecciona un módulo válido.'
+            });
+            return;
+        }
+        if (!formData.numeroEmpleado) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, selecciona un número de empleado.'
+            });
+            return;
+        }
+        if (!formData.name.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, ingresa tu nombre completo.'
+            });
+            return;
+        }
+        if (!formData.subject.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, ingresa un asunto válido.'
+            });
+            return;
+        }
+        if (!formData.description.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, ingresa una descripción detallada.'
+            });
+            return;
+        }
+
+        // Deshabilitar el botón mientras se envía la solicitud
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+
+        // Petición al servidor
+        fetch('/ticketsOT', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': formData._token
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Ticket registrado',
+                        text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`
+                    }).then(() => {
+                        document.getElementById('ticketForm').reset();
+                        $('#modul, #numeroEmpleado').val(null).trigger('change'); // Reiniciar Select2
+                        $('#name').val(''); // Limpiar el nombre
+                    });
+                } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error inesperado',
-                        text: 'Inténtalo de nuevo.'
+                        title: 'Error',
+                        text: 'Hubo un error al registrar el ticket.'
                     });
-                })
-                .finally(() => {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Enviar OT';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Inténtalo de nuevo.'
                 });
-        });
-    </script>
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Enviar OT';
+            });
+    });
+</script>
 
 
 </x-guest-layout>

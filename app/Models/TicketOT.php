@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Events\NewOrderNotification;
 
 class TicketOT extends Model
 {
@@ -27,4 +28,15 @@ class TicketOT extends Model
 
     // Si tu tabla tiene soft deletes
     protected $dates = ['deleted_at'];
+
+    /**
+     * El evento "booted" permite registrar acciones en eventos del modelo.
+     */
+    protected static function booted()
+    {
+        static::created(function ($ticket) {
+            // Disparar el evento cuando se crea un nuevo TicketOT
+            event(new NewOrderNotification($ticket));
+        });
+    }
 }

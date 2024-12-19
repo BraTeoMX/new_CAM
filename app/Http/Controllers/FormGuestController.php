@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\TicketOT;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Events\NewOrderNotification;
 
 class FormGuestController extends Controller
 {
@@ -177,6 +178,10 @@ class FormGuestController extends Controller
 
             Log::info('Ticket creado: ', $ticket->toArray());
 
+            // Emitir el evento NewOrderNotification
+            event(new NewOrderNotification($ticket));
+            Log::info('Evento NewOrderNotification emitido', ['ticket' => $ticket]);
+
             // Respuesta de éxito
             return response()->json([
                 'success' => true,
@@ -201,4 +206,5 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
+
 }

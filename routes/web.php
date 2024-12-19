@@ -22,6 +22,7 @@ Route::redirect('/', 'login');
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route for the getting the data feed
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 });
 //Route::middleware(['guest'])->group(function () {
     Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
