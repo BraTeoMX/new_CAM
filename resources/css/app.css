@@ -1,0 +1,12 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'flowbite';
+
+/* Additional styles */
+
+@import 'additional-styles/utility-patterns.css';
+@import 'additional-styles/flatpickr.css';
+@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
