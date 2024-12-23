@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
 import $ from 'jquery';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
@@ -78,6 +77,84 @@ function timeAgo(time) {
     return moment(time).fromNow();
 }
 
+// Función para iniciar el temporizador
+function startTimer(duration, display) {
+    let timer = duration,
+        minutes, seconds;
+    const interval = setInterval(() => {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.text(minutes + ":" + seconds);
+
+        if (--timer < 0) {
+            clearInterval(interval);
+            showResolutionModal();
+        }
+    }, 1000);
+}
+
+// Mostrar modal de resolución al terminar el temporizador
+function showResolutionModal() {
+    Swal.fire({
+        title: '¿Pudiste resolver el problema?',
+        showDenyButton: true,
+        showCancelButton: false,
+        confirmButtonText: `Sí`,
+        denyButtonText: `No`,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            updateTicketStatus('Autonomo');
+        } else if (result.isDenied) {
+            updateTicketStatus('Abierto');
+        }
+    });
+}
+
+// Función para actualizar el estado del ticket
+function updateTicketStatus(status) {
+    const folio = formData.folio;
+    fetch(`/update-ticket-status/${folio}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': formData._token
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Estado actualizado',
+                    text: 'El estado del ticket ha sido actualizado.'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Hubo un error al actualizar el estado del ticket.'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error inesperado',
+                text: 'Inténtalo de nuevo.'
+            });
+        });
+}
+
 // Cargar notificaciones almacenadas en localStorage al cargar la página
 $(document).ready(function() {
     const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
@@ -93,11 +170,17 @@ $(document).ready(function() {
                     <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}
                 </div>
                 <div class="text-xs text-gray-500">${timeAgo(notification.created_at)}</div>
+                <div class="text-xs text-gray-500 timer" data-folio="${notification.folio}" data-duration="60">01:00</div>
             </li>
         `);
     });
-});
 
+    // Iniciar temporizadores
+    $('.timer').each(function() {
+        const duration = $(this).data('duration');
+        startTimer(duration, $(this));
+    });
+});
 window.Echo.channel('notifications')
     .listen('NewOrderNotification', (e) => {
         console.log('Notificación recibida:', e);
@@ -114,6 +197,7 @@ window.Echo.channel('notifications')
                         <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}
                     </div>
                     <div class="text-xs text-gray-500">${timeAgo(e.created_at)}</div>
+                    <div class="text-xs text-gray-500 timer" data-folio="${e.folio}" data-duration="60">01:00</div>
                 </li>
             `);
 
@@ -124,6 +208,9 @@ window.Echo.channel('notifications')
             // Guardar la notificación en localStorage
             storedNotifications.push(e);
             localStorage.setItem('notifications', JSON.stringify(storedNotifications));
+
+            // Iniciar temporizador para la nueva notificación
+            startTimer(60, $(`.timer[data-folio="${e.folio}"]`));
         }
     });
 
@@ -154,8 +241,12 @@ $(document).on('click', '#notificationList li', function() {
     $('#notificationModalBody').html(`
         <p>Modulo: ${notification.modulo}</p>
         <p>Descripción: ${notification.descripcion}</p>
+        <p>Tiempo restante: <span class="timer-modal" data-folio="${notification.folio}" data-duration="60">01:00</span></p>
     `);
     $('#notificationModal').removeClass('hidden');
+
+    // Iniciar temporizador en el modal
+    startTimer(60, $(`.timer-modal[data-folio="${notification.folio}"]`));
 
     // Eliminar la notificación del DOM y de localStorage
     $(this).remove();

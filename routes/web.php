@@ -26,6 +26,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
     Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
     Route::post('/ticketsOT',[FormGuestController::class, 'ticketsOT']);
+    Route::post('/update-ticket-status/{folio}', [FormGuestController::class, 'updateTicketStatus']);
 //});
 
 

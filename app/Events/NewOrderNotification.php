@@ -45,7 +45,6 @@ class NewOrderNotification implements ShouldBroadcast
         return [
             'folio' => $this->ticket->Folio,
             'modulo'=> $this->ticket->Modulo,
-            'nombre' => $this->ticket->Nombre,
             'descripcion' => $this->ticket->Descrip_prob,
             'created_at' => $this->ticket->created_at->toDateTimeString(),
         ];

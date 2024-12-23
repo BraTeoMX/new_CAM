@@ -84,7 +84,7 @@ class FormGuestController extends Controller
                     'Tip_prob' => $validatedData['subject'],
                     'Descrip_prob' => $validatedData['description'],
                     'Folio' => $folio,
-                    'Status' => 'ABIERTO',
+                    'Status' => 'SIN ASIGNAR',
                 ]);
 
                 Log::info('Ticket creado: ', $ticket->toArray());
@@ -121,6 +121,27 @@ class FormGuestController extends Controller
             }
         }
 
+        public function updateTicketStatus(Request $request, $folio)
+        {
+            try {
+                $ticket = TicketOT::where('Folio', $folio)->firstOrFail();
+                $ticket->Status = $request->input('status');
+                $ticket->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Estado del ticket actualizado con éxito.',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error al actualizar el estado del ticket: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ocurrió un error al actualizar el estado del ticket',
+                    'error' => $e->getMessage(),
+                ], 500);
+            }
+        }
+
         private function sendTicketCreatedEmail($ticket)
         {
             $toEmail = 'adejesus@intimark.com.mx'; // Dirección de correo a la que enviar el mensaje
@@ -130,3 +151,4 @@ class FormGuestController extends Controller
             });
         }
     }
+?>
