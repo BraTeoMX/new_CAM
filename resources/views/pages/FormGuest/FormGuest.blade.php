@@ -14,15 +14,15 @@
         <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
             <form id="ticketForm" class="space-y-6">
 
-                    <!-- Numero empleado -->
-                    <div>
-                        <label for="numeroEmpleado" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Número empleado
-                        </label>
-                        <input type="number" name="numeroEmpleado" id="subject" required
+                <!-- Numero empleado -->
+                <div>
+                    <label for="numeroEmpleado" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Número empleado
+                    </label>
+                    <input type="number" name="numeroEmpleado" id="numeroEmpleado" required
                         placeholder="Numero de empleado"
                         class="mt-1 block w-full rounded-md shadow-sm border-gray-300 dark:bg-gray-900 dark:border-gray-700 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
+                </div>
                 <!-- Modulo -->
                 <div>
                     <label for="modul" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -61,57 +61,6 @@
     <!-- Script para inicializar Select2 y cargar datos -->
     <script>
         $(document).ready(function() {
-            // Inicializar el Select2 de Número empleado
-            $('#numeroEmpleado').select2({
-                placeholder: 'Selecciona un número de empleado',
-                allowClear: true
-            });
-
-            // Evento para cuando se selecciona un módulo
-            $('#modul').on('change', function() {
-                var moduloID = $(this).val(); // Obtener el ID del módulo seleccionado
-
-                if (moduloID) {
-                    // Habilitar el Select2 de Número empleado y cargar datos
-                    $('#numeroEmpleado').prop('disabled', false).select2({
-                        placeholder: 'Cargando...',
-                        ajax: {
-                            url: '/obtener-empleados', // Ruta a la función en tu controller
-                            type: 'GET',
-                            dataType: 'json',
-                            delay: 250,
-                            data: function() {
-                                return {
-                                    modulo: moduloID // Pasar el módulo seleccionado
-                                };
-                            },
-                            processResults: function(data) {
-                                return {
-                                    results: $.map(data, function(item) {
-                                        return {
-                                            id: item.PERSONNELNUMBER,
-                                            text: item.PERSONNELNUMBER
-                                        };
-                                    })
-                                };
-                            },
-                            cache: true
-                        }
-                    }).on('select2:open', function() {
-                        // Cambiar el placeholder a vacío una vez que los datos hayan cargado
-                        if ($('#numeroEmpleado').data('select2').results.$results.children()
-                            .length > 0) {
-                            $('#numeroEmpleado').data('select2').$selection.find(
-                                '.select2-selection__placeholder').text(
-                                'Seleccione un número de empleado');
-                        }
-                    });
-                }
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
             $('#modul').select2({
                 placeholder: 'Selecciona un módulo',
                 ajax: {
@@ -133,111 +82,112 @@
             });
         });
     </script>
-<script>
-    document.getElementById('submitTicket').addEventListener('click', function(event) {
-        event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+    <script>
+        document.getElementById('submitTicket').addEventListener('click', function(event) {
+            event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
-        const submitButton = document.getElementById('submitTicket');
+            const submitButton = document.getElementById('submitTicket');
 
-        // Evitar el doble envío deshabilitando el botón inmediatamente
-        if (submitButton.disabled) {
-            return;
-        }
+            // Evitar el doble envío deshabilitando el botón inmediatamente
+            if (submitButton.disabled) {
+                return;
+            }
 
-        // Captura de datos del formulario
-        const formData = {
-            modulo: $('#modul').val(), // Select2: módulo seleccionado
-            numeroEmpleado: document.getElementById('numeroEmpleado').value.trim(), // Select2: número de empleado
-            subject: document.getElementById('subject').value.trim(), // Asunto
-            description: document.getElementById('description').value.trim(), // Descripción
-            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
-        };
+            // Captura de datos del formulario
+            const formData = {
+                modulo: $('#modul').val(), // Select2: módulo seleccionado
+                numeroEmpleado: document.getElementById('numeroEmpleado').value.trim(), // Numero empleado
+                subject: document.getElementById('subject').value.trim(), // Asunto
+                description: document.getElementById('description').value.trim(), // Descripción
+                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
+            };
 
-        // Validaciones del lado del cliente
-        if (!formData.modulo) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Datos inválidos',
-                text: 'Por favor, selecciona un módulo válido.'
-            });
-            return;
-        }
-        if (!formData.numeroEmpleado) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Datos inválidos',
-                text: 'Por favor, selecciona un número de empleado.'
-            });
-            return;
-        }
-        if (!formData.subject.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Datos inválidos',
-                text: 'Por favor, ingresa un asunto válido.'
-            });
-            return;
-        }
-        if (!formData.description.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Datos inválidos',
-                text: 'Por favor, ingresa una descripción detallada.'
-            });
-            return;
-        }
+            // Validaciones del lado del cliente
+            if (!formData.modulo) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos inválidos',
+                    text: 'Por favor, selecciona un módulo válido.'
+                });
+                return;
+            }
+            if (!formData.numeroEmpleado) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos inválidos',
+                    text: 'Por favor, selecciona un número de empleado.'
+                });
+                return;
+            }
+            if (!formData.subject.trim()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos inválidos',
+                    text: 'Por favor, ingresa un asunto válido.'
+                });
+                return;
+            }
+            if (!formData.description.trim()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos inválidos',
+                    text: 'Por favor, ingresa una descripción detallada.'
+                });
+                return;
+            }
 
-        // Deshabilitar el botón mientras se envía la solicitud
-        submitButton.disabled = true;
-        submitButton.textContent = 'Enviando...';
+            // Deshabilitar el botón mientras se envía la solicitud
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
 
-        // Petición al servidor
-        fetch('/ticketsOT', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': formData._token
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Ticket registrado',
-                        text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`
-                    }).then(() => {
-                        document.getElementById('ticketForm').reset();
-                        $('#modul, #numeroEmpleado').val(null).trigger('change'); // Reiniciar Select2
-                        $('#name').val(''); // Limpiar el nombre
-                    });
-                } else {
+            // Petición al servidor
+            fetch('/ticketsOT', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': formData._token
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Ticket registrado',
+                            text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`
+                        }).then(() => {
+                            document.getElementById('ticketForm').reset();
+                            $('#modul, #numeroEmpleado').val(null).trigger(
+                            'change'); // Reiniciar Select2
+                            $('#name').val(''); // Limpiar el nombre
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un error al registrar el ticket.'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
-                        text: 'Hubo un error al registrar el ticket.'
+                        title: 'Error inesperado',
+                        text: 'Inténtalo de nuevo.'
                     });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error inesperado',
-                    text: 'Inténtalo de nuevo.'
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Enviar OT';
                 });
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Enviar OT';
-            });
-    });
-</script>
+        });
+    </script>
 
 
 </x-guest-layout>
