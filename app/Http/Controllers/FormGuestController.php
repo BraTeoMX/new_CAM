@@ -27,40 +27,6 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
-    public function ObtenerModulos()
-    {
-        try {
-            // Clave única para identificar el cache de módulos
-            $cacheKey = 'modulos';
-
-            // Verificar si los módulos están en caché
-            if (cache()->has($cacheKey)) {
-                Log::info('Cargando módulos desde el caché...');
-                $modulos = cache()->get($cacheKey);
-            } else {
-                Log::info('Cargando módulos desde la base de datos...');
-                // Consultar la base de datos
-                $modulos = DB::connection('sqlsrv')
-                    ->table('CatModuloOperario_View')
-                    ->select('MODULEID')
-                    ->distinct()
-                    ->get();
-
-                // Guardar en caché por 1 día
-                cache()->put($cacheKey, $modulos, now()->addDay());
-                Log::info('Módulos almacenados en caché.');
-            }
-
-            return response()->json($modulos);
-        } catch (\Exception $e) {
-            // Manejo de errores
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener los módulos',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
     public function ObtenerEmpleados(Request $request)
     {
         // Validar que se recibe el parámetro 'modulo'
@@ -103,49 +69,39 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
-    public function ObtenerNombre(Request $request)
+    public function ObtenerModulos()
     {
-        // Validar que se recibe el parámetro 'numeroEmpleado'
-        $request->validate([
-            'numeroEmpleado' => 'required'
-        ]);
+        try {
+            // Clave única para identificar el cache de módulos
+            $cacheKey = 'modulos';
 
-        $numeroEmpleado = $request->input('numeroEmpleado'); // Obtener el número de empleado
-        Log::info('Número de empleado recibido: ' . $numeroEmpleado);
-
-        // Verificar si el nombre está en la caché
-        $cacheKey = "nombre_empleado_{$numeroEmpleado}";
-
-        if (cache()->has($cacheKey)) {
-            // Si está en caché, devolverlo desde allí
-            $nombre = cache()->get($cacheKey);
-        } else {
-            // Si no está en caché, realizar la consulta a la base de datos
-            try {
-                $nombre = DB::connection('sqlsrv')
+            // Verificar si los módulos están en caché
+            if (cache()->has($cacheKey)) {
+                Log::info('Cargando módulos desde el caché...');
+                $modulos = cache()->get($cacheKey);
+            } else {
+                Log::info('Cargando módulos desde la base de datos...');
+                // Consultar la base de datos
+                $modulos = DB::connection('sqlsrv')
                     ->table('CatModuloOperario_View')
-                    ->select('NAME')
-                    ->where('PERSONNELNUMBER', $numeroEmpleado)
+                    ->select('MODULEID')
                     ->distinct()
-                    ->value('NAME'); // Obtener solo un valor único
+                    ->get();
 
-                // Guardar el nombre en la caché durante 24 horas
-                cache()->put($cacheKey, $nombre, now()->addDay());
-            } catch (\Exception $e) {
-                // Manejo de errores
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error al obtener el nombre',
-                    'error' => $e->getMessage(),
-                ], 500);
+                // Guardar en caché por 1 día
+                cache()->put($cacheKey, $modulos, now()->addDay());
+                Log::info('Módulos almacenados en caché.');
             }
-        }
 
-        // Devolver el nombre en formato JSON
-        return response()->json([
-            'success' => true,
-            'name' => $nombre
-        ]);
+            return response()->json($modulos);
+        } catch (\Exception $e) {
+            // Manejo de errores
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener los módulos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
         public function ticketsOT(Request $request)
         {
@@ -172,7 +128,7 @@ class FormGuestController extends Controller
                     'Tip_prob' => $validatedData['subject'],
                     'Descrip_prob' => $validatedData['description'],
                     'Folio' => $folio,
-                    'Status' => 'Aprobado',
+                    'Status' => 'ABIERTO',
                 ]);
 
                 Log::info('Ticket creado: ', $ticket->toArray());

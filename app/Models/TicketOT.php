@@ -17,7 +17,6 @@ class TicketOT extends Model
         'Folio',
         'Modulo',
         'Num_empl',
-        'Nombre',
         'Tip_prob',
         'Descrip_prob',
         'Status',

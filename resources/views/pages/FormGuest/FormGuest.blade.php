@@ -14,6 +14,15 @@
         <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
             <form id="ticketForm" class="space-y-6">
 
+                    <!-- Numero empleado -->
+                    <div>
+                        <label for="numeroEmpleado" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Número empleado
+                        </label>
+                        <input type="number" name="numeroEmpleado" id="subject" required
+                        placeholder="Numero de empleado"
+                        class="mt-1 block w-full rounded-md shadow-sm border-gray-300 dark:bg-gray-900 dark:border-gray-700 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
                 <!-- Modulo -->
                 <div>
                     <label for="modul" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -21,25 +30,6 @@
                     </label>
                     <select id="modul" style="width: 100%;"></select>
                 </div>
-
-
-                <!-- Numero empleado -->
-                <div>
-                    <label for="numeroEmpleado" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Número empleado
-                    </label>
-                    <select id="numeroEmpleado" style="width: 100%;" disabled></select>
-                </div>
-
-                <!-- Nombre -->
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre
-                        completo</label>
-                    <input type="text" name="name" id="name" disabled placeholder="Ingresa tu nombre"
-                        class="mt-1 block w-full rounded-md shadow-sm border-gray-300 dark:bg-gray-900 dark:border-gray-700 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                </div>
-
-
                 <!-- Asunto -->
                 <div>
                     <label for="subject"
@@ -69,29 +59,6 @@
     </div>
     <!--Scripts -->
     <!-- Script para inicializar Select2 y cargar datos -->
-    <script>
-        $(document).ready(function() {
-            $('#modul').select2({
-                placeholder: 'Selecciona un módulo',
-                ajax: {
-                    url: '/obtener-modulos',
-                    type: 'GET',
-                    dataType: 'json',
-                    delay: 250,
-                    processResults: function(data) {
-                        return {
-                            results: $.map(data, function(item) {
-                                return {
-                                    id: item.MODULEID,
-                                    text: item.MODULEID
-                                };
-                            })
-                        };
-                    }
-                }
-            });
-        });
-    </script>
     <script>
         $(document).ready(function() {
             // Inicializar el Select2 de Número empleado
@@ -139,58 +106,33 @@
                                 'Seleccione un número de empleado');
                         }
                     });
-                } else {
-                    // Deshabilitar el Select2 si no hay módulo seleccionado
-                    $('#numeroEmpleado').prop('disabled', true).val(null).trigger('change');
                 }
             });
         });
     </script>
     <script>
         $(document).ready(function() {
-            // Asegurarse de que el input esté inicialmente deshabilitado
-            $('#name').prop('disabled', true);
-
-            // Evento para cuando se selecciona un número de empleado
-            $('#numeroEmpleado').on('change', function() {
-                var numeroEmpleado = $(this).val(); // Obtener el número de empleado seleccionado
-
-                if (numeroEmpleado) {
-                    // Realizar solicitud AJAX para obtener el nombre
-                    $.ajax({
-                        url: '/obtener-nombre', // Ruta al controlador
-                        type: 'GET',
-                        dataType: 'json',
-                        data: {
-                            numeroEmpleado: numeroEmpleado // Pasar el número de empleado seleccionado
-                        },
-                        beforeSend: function() {
-                            // Deshabilitar y limpiar el input mientras se carga la solicitud
-                            $('#name').prop('disabled', true).val('Cargando...');
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // Rellenar el input y habilitarlo
-                                $('#name').val(response.name).prop('disabled', true);
-                            } else {
-                                alert('Error al obtener el nombre: ' + response.message);
-                                $('#name').val('').prop('disabled', true);
-                            }
-                        },
-                        error: function() {
-                            alert('Hubo un error al cargar el nombre. Intenta de nuevo.');
-                            $('#name').val('').prop('disabled', true);
-                        }
-                    });
-                } else {
-                    // Si no se selecciona un número, deshabilitar el input
-                    $('#name').val('').prop('disabled', true);
+            $('#modul').select2({
+                placeholder: 'Selecciona un módulo',
+                ajax: {
+                    url: '/obtener-modulos',
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function(data) {
+                        return {
+                            results: $.map(data, function(item) {
+                                return {
+                                    id: item.MODULEID,
+                                    text: item.MODULEID
+                                };
+                            })
+                        };
+                    }
                 }
             });
         });
     </script>
-
-
 <script>
     document.getElementById('submitTicket').addEventListener('click', function(event) {
         event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
@@ -206,7 +148,6 @@
         const formData = {
             modulo: $('#modul').val(), // Select2: módulo seleccionado
             numeroEmpleado: $('#numeroEmpleado').val(), // Select2: número de empleado
-            name: $('#name').val(), // Input: nombre del empleado
             subject: document.getElementById('subject').value.trim(), // Asunto
             description: document.getElementById('description').value.trim(), // Descripción
             _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
@@ -226,14 +167,6 @@
                 icon: 'warning',
                 title: 'Datos inválidos',
                 text: 'Por favor, selecciona un número de empleado.'
-            });
-            return;
-        }
-        if (!formData.name.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Datos inválidos',
-                text: 'Por favor, ingresa tu nombre completo.'
             });
             return;
         }

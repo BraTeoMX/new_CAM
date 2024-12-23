@@ -18,7 +18,7 @@
     </button>
     <div
         id="notificationDropdown"
-        class="origin-top-right z-10 absolute top-full right-0 min-w-80 max-h-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-y-auto mt-1 transform -translate-x-1/4"
+        class="origin-top-right z-10 absolute top-full right-0 w-full sm:w-80 max-h-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-y-auto mt-1 transform sm:translate-x-0 -translate-x-1/2"
         style="display: none;"
     >
         <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-4">Notifications</div>
