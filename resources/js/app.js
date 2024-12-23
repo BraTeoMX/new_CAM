@@ -90,7 +90,7 @@ $(document).ready(function() {
         $('#notificationList').prepend(`
             <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${notification.folio}">
                 <div>
-                    <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}<br>Operador: ${notification.nombre}
+                    <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}
                 </div>
                 <div class="text-xs text-gray-500">${timeAgo(notification.created_at)}</div>
             </li>
@@ -111,7 +111,7 @@ window.Echo.channel('notifications')
             $('#notificationList').prepend(`
                 <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${e.folio}">
                     <div>
-                        <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}<br>Operador: ${e.nombre}
+                        <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}
                     </div>
                     <div class="text-xs text-gray-500">${timeAgo(e.created_at)}</div>
                 </li>
@@ -153,7 +153,6 @@ $(document).on('click', '#notificationList li', function() {
     $('#notificationModalTitle').text(`Nueva OT: ${notification.folio}`);
     $('#notificationModalBody').html(`
         <p>Modulo: ${notification.modulo}</p>
-        <p>Operador: ${notification.nombre}</p>
         <p>Descripción: ${notification.descripcion}</p>
     `);
     $('#notificationModal').removeClass('hidden');
