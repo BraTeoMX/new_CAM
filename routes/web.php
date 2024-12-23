@@ -1,10 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormGuestController;
-use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
