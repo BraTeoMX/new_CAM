@@ -147,7 +147,7 @@
         // Captura de datos del formulario
         const formData = {
             modulo: $('#modul').val(), // Select2: módulo seleccionado
-            numeroEmpleado: $('#numeroEmpleado').val(), // Select2: número de empleado
+            numeroEmpleado: document.getElementById('numeroEmpleado').value.trim(), // Select2: número de empleado
             subject: document.getElementById('subject').value.trim(), // Asunto
             description: document.getElementById('description').value.trim(), // Descripción
             _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
