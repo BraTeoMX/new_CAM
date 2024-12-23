@@ -18,17 +18,17 @@
     </button>
     <div
         id="notificationDropdown"
-        class="origin-top-right z-10 absolute top-full right-0 w-full sm:w-80 max-h-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-y-auto mt-1 transform sm:translate-x-0 -translate-x-1/2"
+        class="origin-top-right z-10 absolute top-full right-0 w-full sm:w-80 max-h-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-y-auto mt-1 transform -translate-x-0 sm:translate-x-0"
         style="display: none;"
     >
         <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-4">Notifications</div>
-        <ul id="notificationList">
+        <ul id="notificationList" class="max-h-80 overflow-y-auto px-2">
         </ul>
     </div>
 </div>
 
 <!-- Modal -->
-<div id="notificationModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 w-full h-full flex justify-center items-center">
+<div id="notificationModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 flex justify-center items-center">
     <div class="relative p-4 w-full max-w-md h-auto">
         <!-- Modal content -->
         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">

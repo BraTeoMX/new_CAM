@@ -27,48 +27,6 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
-    public function ObtenerEmpleados(Request $request)
-    {
-        // Validar que se recibe el parámetro 'modulo'
-        $request->validate([
-            'modulo' => 'required'
-        ]);
-
-        // Obtener el ID del módulo desde la solicitud
-        $moduloID = $request->input('modulo');
-        $cacheKey = 'empleados_modulo_' . $moduloID; // Generar clave única para cada módulo
-
-        try {
-            // Verificar si los empleados están en caché
-            if (cache()->has($cacheKey)) {
-                Log::info("Cargando empleados desde el caché para el módulo: $moduloID");
-                $empleados = cache()->get($cacheKey);
-            } else {
-                Log::info("Cargando empleados desde la base de datos para el módulo: $moduloID");
-                // Consultar la base de datos
-                $empleados = DB::connection('sqlsrv')
-                    ->table('CatModuloOperario_View')
-                    ->select('PERSONNELNUMBER')
-                    ->where('MODULEID', $moduloID) // Filtrar por módulo
-                    ->distinct()
-                    ->get();
-
-                // Guardar en caché por 1 día
-                cache()->put($cacheKey, $empleados, now()->addDay());
-                Log::info("Empleados del módulo $moduloID almacenados en caché.");
-            }
-
-            // Devolver los resultados en formato JSON
-            return response()->json($empleados);
-        } catch (\Exception $e) {
-            // Manejo de errores
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener los empleados',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
     public function ObtenerModulos()
     {
         try {
@@ -110,7 +68,6 @@ class FormGuestController extends Controller
                 $validatedData = $request->validate([
                     'modulo' => 'required|string|max:255',
                     'numeroEmpleado' => 'required|string|max:255',
-                    'name' => 'required|string|max:255',
                     'subject' => 'required|string|max:255',
                     'description' => 'required|string|max:5000',
                 ]);
@@ -124,7 +81,6 @@ class FormGuestController extends Controller
                 $ticket = TicketOT::create([
                     'Modulo' => $validatedData['modulo'],
                     'Num_empl' => $validatedData['numeroEmpleado'],
-                    'Nombre' => $validatedData['name'],
                     'Tip_prob' => $validatedData['subject'],
                     'Descrip_prob' => $validatedData['description'],
                     'Folio' => $folio,
