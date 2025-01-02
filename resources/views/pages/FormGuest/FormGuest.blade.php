@@ -113,192 +113,276 @@
             });
         });
     </script>
-    <script>
-        document.getElementById('submitTicket').addEventListener('click', function(event) {
-            event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+<script>
+    let currentFolio = ''; // Variable global para almacenar el folio actual
 
-            const submitButton = document.getElementById('submitTicket');
+    document.getElementById('submitTicket').addEventListener('click', function(event) {
+        event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
-            // Evitar el doble envío deshabilitando el botón inmediatamente
-            if (submitButton.disabled) {
-                return;
-            }
+        const submitButton = document.getElementById('submitTicket');
 
-            // Captura de datos del formulario
-            const formData = {
-                modulo: $('#modul').val(), // Select2: módulo seleccionado
-                numeroEmpleado: document.getElementById('numeroEmpleado').value.trim(), // Numero empleado
-                subject: document.getElementById('subject').value.trim(), // Asunto
-                description: document.getElementById('description').value.trim(), // Descripción
-                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
-            };
-
-            // Validaciones del lado del cliente
-            if (!formData.modulo) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, selecciona un módulo válido.'
-                });
-                return;
-            }
-            if (!formData.numeroEmpleado) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, selecciona un número de empleado.'
-                });
-                return;
-            }
-            if (!formData.subject.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, ingresa un asunto válido.'
-                });
-                return;
-            }
-            if (!formData.description.trim()) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Datos inválidos',
-                    text: 'Por favor, ingresa una descripción detallada.'
-                });
-                return;
-            }
-
-            // Deshabilitar el botón mientras se envía la solicitud
-            submitButton.disabled = true;
-            submitButton.textContent = 'Enviando...';
-
-            // Petición al servidor
-            fetch('/ticketsOT', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': formData._token
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Ticket registrado',
-                            text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`
-                        }).then(() => {
-                            document.getElementById('ticketForm').reset();
-                            $('#modul, #numeroEmpleado').val(null).trigger(
-                            'change'); // Reiniciar Select2
-
-                            // Iniciar el temporizador de 1 minuto
-                            startTimer(60, document.getElementById('timer'));
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Hubo un error al registrar el ticket.'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error inesperado',
-                        text: 'Inténtalo de nuevo.'
-                    });
-                })
-                .finally(() => {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Enviar OT';
-                });
-        });
-
-        // Función para iniciar el temporizador
-        function startTimer(duration, display) {
-            let timer = duration,
-                minutes, seconds;
-            const interval = setInterval(() => {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                display.textContent = minutes + ":" + seconds;
-
-                if (--timer < 0) {
-                    clearInterval(interval);
-                    showResolutionModal();
-                }
-            }, 1000);
+        // Evitar el doble envío deshabilitando el botón inmediatamente
+        if (submitButton.disabled) {
+            return;
         }
 
-        // Mostrar modal de resolución al terminar el temporizador
-        function showResolutionModal() {
+        // Captura de datos del formulario
+        const formData = {
+            modulo: $('#modul').val(), // Select2: módulo seleccionado
+            numeroEmpleado: document.getElementById('numeroEmpleado').value.trim(), // Numero empleado
+            subject: document.getElementById('subject').value.trim(), // Asunto
+            description: document.getElementById('description').value.trim(), // Descripción
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
+        };
+
+        // Validaciones del lado del cliente
+        if (!formData.modulo) {
             Swal.fire({
-                title: '¿Pudiste resolver el problema?',
-                showDenyButton: true,
-                showCancelButton: false,
-                confirmButtonText: `Sí`,
-                denyButtonText: `No`,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    updateTicketStatus('Autonomo');
-                } else if (result.isDenied) {
-                    updateTicketStatus('Abierto');
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, selecciona un módulo válido.',
+                customClass: {
+                    title: 'text-black',
+                    content: 'text-black',
+                    confirmButton: 'border-black',
                 }
             });
+            return;
+        }
+        if (!formData.numeroEmpleado) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, selecciona un número de empleado.',
+                customClass: {
+                    title: 'text-black',
+                    content: 'text-black',
+                    confirmButton: 'border-black',
+                }
+            });
+            return;
+        }
+        if (!formData.subject.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, ingresa un asunto válido.',
+                customClass: {
+                    title: 'text-black',
+                    content: 'text-black',
+                    confirmButton: 'border-black',
+                }
+            });
+            return;
+        }
+        if (!formData.description.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos inválidos',
+                text: 'Por favor, ingresa una descripción detallada.',
+                customClass: {
+                    title: 'text-black',
+                    content: 'text-black',
+                    confirmButton: 'border-black',
+                }
+            });
+            return;
         }
 
-        // Función para actualizar el estado del ticket
-        function updateTicketStatus(status) {
-            const folio = formData.folio;
-            fetch(`/update-ticket-status/${folio}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': formData._token
-                    },
-                    body: JSON.stringify({
-                        status
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Error en la respuesta del servidor');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Estado actualizado',
-                            text: 'El estado del ticket ha sido actualizado.'
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Hubo un error al actualizar el estado del ticket.'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+        // Deshabilitar el botón mientras se envía la solicitud
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+
+        // Petición al servidor
+        fetch('/ticketsOT', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': formData._token
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error en la respuesta del servidor');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Ticket registrado',
+                        text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`,
+                        customClass: {
+                            title: 'text-black',
+                            content: 'text-black',
+                            confirmButton: 'border-black',
+                        }
+                    }).then(() => {
+                        document.getElementById('ticketForm').reset();
+                        $('#modul, #numeroEmpleado').val(null).trigger('change'); // Reiniciar Select2
+
+                        // Almacenar el folio actual
+                        currentFolio = data.folio;
+
+                        // Marcar el primer paso como completado
+                        markStepAsCompleted(1);
+
+                        // Iniciar el temporizador de 1 minuto
+                        startTimer(60, $('#timer'));
+                    });
+                } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error inesperado',
-                        text: 'Inténtalo de nuevo.'
+                        title: 'Error',
+                        text: 'Hubo un error al registrar el ticket.',
+                        customClass: {
+                            title: 'text-black',
+                            content: 'text-black',
+                            confirmButton: 'border-black',
+                        }
                     });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error inesperado',
+                    text: 'Inténtalo de nuevo.',
+                    customClass: {
+                        title: 'text-black',
+                        content: 'text-black',
+                        confirmButton: 'border-black',
+                    }
                 });
-        }
-    </script>
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Enviar OT';
+            });
+    });
+
+    // Función para iniciar el temporizador
+    function startTimer(duration, display) {
+        let timer = duration, minutes, seconds;
+        const interval = setInterval(() => {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.text(minutes + ":" + seconds);
+
+            if (--timer < 0) {
+                clearInterval(interval);
+                showResolutionModal();
+            }
+        }, 1000);
+
+        // Marcar el segundo paso como iniciado
+        markStepAsInProgress(2);
+    }
+
+    // Mostrar modal de resolución al terminar el temporizador
+    function showResolutionModal() {
+        Swal.fire({
+            title: '¿Pudiste resolver el problema?',
+            showDenyButton: true,
+            showCancelButton: false,
+            confirmButtonText: `Sí`,
+            denyButtonText: `No`,
+            customClass: {
+                title: 'text-black',
+                content: 'text-black',
+                confirmButton: 'border-black',
+                denyButton: 'border-black',
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updateTicketStatus('Autonomo');
+                markStepAsCompleted(2);
+                markStepAsCompleted(3);
+            } else if (result.isDenied) {
+                updateTicketStatus('Abierto');
+                markStepAsCompleted(2);
+                markStepAsCompleted(3);
+            }
+        });
+    }
+
+    // Función para actualizar el estado del ticket
+    function updateTicketStatus(status) {
+        fetch(`/update-ticket-status/${currentFolio}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Estado actualizado',
+                    text: 'El estado del ticket ha sido actualizado.',
+                    customClass: {
+                        title: 'text-black',
+                        content: 'text-black',
+                        confirmButton: 'border-black',
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Hubo un error al actualizar el estado del ticket.',
+                    customClass: {
+                        title: 'text-black',
+                        content: 'text-black',
+                        confirmButton: 'border-black',
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error inesperado',
+                text: 'Inténtalo de nuevo.',
+                customClass: {
+                    title: 'text-black',
+                    content: 'text-black',
+                    confirmButton: 'border-black',
+                }
+            });
+        });
+    }
+
+    // Función para marcar un paso como completado
+    function markStepAsCompleted(stepNumber) {
+        const step = $(`ol li:nth-child(${stepNumber})`);
+        step.removeClass('text-gray-500').addClass('text-blue-600');
+        step.find('span').removeClass('bg-gray-100 dark:bg-gray-700').addClass('bg-blue-100 dark:bg-blue-800');
+        step.find('svg').removeClass('text-gray-500 dark:text-gray-100').addClass('text-blue-600 dark:text-blue-300');
+    }
+
+    // Función para marcar un paso como en progreso
+    function markStepAsInProgress(stepNumber) {
+        const step = $(`ol li:nth-child(${stepNumber})`);
+        step.removeClass('text-gray-500').addClass('text-yellow-600');
+        step.find('span').removeClass('bg-gray-100 dark:bg-gray-700').addClass('bg-yellow-100 dark:bg-yellow-800');
+        step.find('svg').removeClass('text-gray-500 dark:text-gray-100').addClass('text-yellow-600 dark:text-yellow-300');
+    }
+</script>
+
+
 </x-guest-layout>
