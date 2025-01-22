@@ -1,7 +1,7 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-
+import Sortable from 'sortablejs';
 export default defineConfig({
     plugins: [
         laravel({
@@ -23,6 +23,8 @@ export default defineConfig({
             '@tailwindConfig',
             'laravel-echo',
             'pusher-js',
+            'sortablejs',
+            'sweetalert2',
         ],
     },
 });
