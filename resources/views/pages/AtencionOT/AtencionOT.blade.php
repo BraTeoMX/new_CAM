@@ -10,7 +10,7 @@
             <!-- Sección 1: OT's Pendientes -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Pendientes</h2>
-                <div id="pendientes" class="space-y-4 bg-gray-950 p-4 rounded-lg shadow-md">
+                <div id="pendientes" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -18,7 +18,7 @@
             <!-- Sección 2: OT's Proceso -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Proceso</h2>
-                <div id="proceso" class="space-y-4 bg-gray-950 p-4 rounded-lg shadow-md">
+                <div id="proceso" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -26,7 +26,7 @@
             <!-- Sección 3: OT's Cerradas -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Cerradas</h2>
-                <div id="cerradas" class="space-y-4 bg-gray-950 p-4 rounded-lg shadow-md">
+                <div id="cerradas" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -34,7 +34,7 @@
             <!-- Sección 4: OT's Revisión -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Revisión</h2>
-                <div id="revision" class="space-y-4 bg-gray-950 p-4 rounded-lg shadow-md">
+                <div id="revision" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -42,7 +42,7 @@
             <!-- Sección 5: OT's Finalizadas -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Finalizadas</h2>
-                <div id="finalizadas" class="space-y-4 bg-gray-950 p-4 rounded-lg shadow-md">
+                <div id="finalizadas" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
