@@ -93,10 +93,68 @@ function startTimer(duration, display) {
 
         if (--timer < 0) {
             clearInterval(interval);
+            showResolutionModal();
         }
     }, 1000);
 }
 
+// Mostrar modal de resolución al terminar el temporizador
+function showResolutionModal() {
+    Swal.fire({
+        title: '¿Pudiste resolver el problema?',
+        showDenyButton: true,
+        showCancelButton: false,
+        confirmButtonText: `Sí`,
+        denyButtonText: `No`,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            updateTicketStatus('Autonomo');
+        } else if (result.isDenied) {
+            updateTicketStatus('Abierto');
+        }
+    });
+}
+
+// Función para actualizar el estado del ticket
+function updateTicketStatus(status) {
+    const folio = formData.folio;
+    fetch(`/update-ticket-status/${folio}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': formData._token
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Estado actualizado',
+                    text: 'El estado del ticket ha sido actualizado.'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Hubo un error al actualizar el estado del ticket.'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error inesperado',
+                text: 'Inténtalo de nuevo.'
+            });
+        });
+}
 // Cargar notificaciones almacenadas en localStorage al cargar la página
 $(document).ready(function() {
     const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
