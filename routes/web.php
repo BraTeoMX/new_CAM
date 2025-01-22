@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Controllers\AtencionOT;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormGuestController;
-
+use App\Http\Controllers\DeepSeekController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -28,5 +29,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/ticketsOT',[FormGuestController::class, 'ticketsOT']);
     Route::post('/update-ticket-status/{folio}', [FormGuestController::class, 'updateTicketStatus']);
 //});
+
+Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
+Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
+
+
+
+Route::get('/deepseek', [DeepSeekController::class, 'interactWithAI']);
+Route::post('/interact', [DeepSeekController::class, 'interact']);
 
 
