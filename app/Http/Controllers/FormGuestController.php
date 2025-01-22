@@ -30,30 +30,29 @@ class FormGuestController extends Controller
     public function ObtenerModulos()
     {
         try {
-            // Clave única para identificar el cache de módulos
             $cacheKey = 'modulos';
 
-            // Verificar si los módulos están en caché
+            Log::info('Verificando el caché...');
             if (cache()->has($cacheKey)) {
                 Log::info('Cargando módulos desde el caché...');
                 $modulos = cache()->get($cacheKey);
             } else {
                 Log::info('Cargando módulos desde la base de datos...');
-                // Consultar la base de datos
                 $modulos = DB::connection('sqlsrv')
                     ->table('CatModuloOperario_View')
                     ->select('MODULEID')
                     ->distinct()
                     ->get();
 
-                // Guardar en caché por 1 día
+                Log::info('Módulos obtenidos: ', $modulos->toArray());
+
                 cache()->put($cacheKey, $modulos, now()->addDay());
                 Log::info('Módulos almacenados en caché.');
             }
 
             return response()->json($modulos);
         } catch (\Exception $e) {
-            // Manejo de errores
+            Log::error($e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los módulos',
@@ -61,6 +60,7 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
+
         public function ticketsOT(Request $request)
         {
             try {
