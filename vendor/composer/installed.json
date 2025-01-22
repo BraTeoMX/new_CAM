@@ -283,7 +283,7 @@
                     ]
                 }
             },
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "DeepseekPhp\\DeepseekLaravel\\": "src"
@@ -367,7 +367,7 @@
             },
             "time": "2025-01-02T12:02:51+00:00",
             "type": "library",
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "DeepseekPhp\\": "src/"
@@ -3676,7 +3676,7 @@
                     "dev-master": "1.8-dev"
                 }
             },
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "Nyholm\\Psr7\\": "src/"
@@ -4051,7 +4051,7 @@
                 "class": "Http\\Discovery\\Composer\\Plugin",
                 "plugin-optional": true
             },
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "Http\\Discovery\\": "src/"
@@ -4116,7 +4116,7 @@
             },
             "time": "2024-09-04T13:22:54+00:00",
             "type": "library",
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "Http\\Message\\MultipartStream\\": "src/"
@@ -7537,7 +7537,7 @@
             },
             "time": "2024-12-30T18:35:15+00:00",
             "type": "library",
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "Symfony\\Component\\HttpClient\\": ""
@@ -7613,7 +7613,7 @@
                     "dev-main": "3.5-dev"
                 }
             },
-            "installation-source": "source",
+            "installation-source": "dist",
             "autoload": {
                 "psr-4": {
                     "Symfony\\Contracts\\HttpClient\\": ""
