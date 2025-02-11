@@ -32,6 +32,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
 Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
+Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
+
 
 
 

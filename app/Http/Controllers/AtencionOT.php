@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\TicketOT;
+
 class AtencionOT extends Controller
 {
     public function AtencionOT()
@@ -38,6 +39,25 @@ class AtencionOT extends Controller
                 'message' => 'Error al obtener los datos.',
                 'status' => 'error'
             ], 500);
+        }
+    }
+    public function updateStatus(Request $request)
+    {
+        try {
+            // Validar los datos recibidos
+            $validated = $request->validate([
+                'id' => 'required|integer|exists:ticketsot,id', // Verifica que el ID exista en la tabla 'ots'
+                'status' => 'required|string',
+            ]);
+            Log::info('Datos validados: ' . json_encode($validated));
+            // Buscar la OT y actualizar el estatus
+            $ot = TicketOT::find($validated['id']);
+            $ot->Status = $validated['status'];
+            $ot->save();
+            Log::info('OT encontrada: ' . json_encode($ot));
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
 }
