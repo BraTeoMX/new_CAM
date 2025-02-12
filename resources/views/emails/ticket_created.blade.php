@@ -14,6 +14,7 @@
         <div style="padding: 16px;">
             <p style="margin: 0 0 8px;"><strong>Folio:</strong> {{ $ticket->Folio }}</p>
             <p style="margin: 0 0 8px;"><strong>Modulo:</strong> {{ $ticket->Modulo }}</p>
+            <p style="margin: 0 0 8px;"><strong>Problema:</strong> {{ $ticket->Tip_prob }}</p>
             <p style="margin: 0 0 16px;"><strong>Descripción:</strong> {{ $ticket->Descrip_prob }}</p>
             <p style="color: #6B7280; font-size: 12px; margin: 0;">Este ticket ha sido creado y está en proceso de revisión.</p>
         </div>
