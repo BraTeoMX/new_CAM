@@ -37,7 +37,8 @@ Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
 
 
 
-Route::get('/deepseek', [DeepSeekController::class, 'interactWithAI']);
-Route::post('/interact', [DeepSeekController::class, 'interact']);
+Route::get('/interaction-ia', [DeepSeekController::class, 'index']);
+Route::post('/interact-with-ai', [DeepSeekController::class, 'interactWithAI']);
+Route::post('/chat-with-ai', [DeepSeekController::class, 'chatWithAI'])->name('chat.ai');
 
 
