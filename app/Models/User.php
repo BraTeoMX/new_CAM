@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,6 +26,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'num_empleado',
+        'puesto',
+        'status',
     ];
 
     /**
@@ -58,4 +60,25 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    /**
+     * Verifica si el usuario tiene un puesto específico.
+     *
+     * @param string $role
+     * @return bool
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->puesto === $role;
+    }
+
+    /**
+     * Verifica si el usuario es un Administrador con acceso completo.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('Administrador');
+    }
 }

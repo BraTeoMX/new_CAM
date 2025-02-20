@@ -33,6 +33,7 @@
                     <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6"
                         aria-hidden="true">•••</span>
                 </h3>
+                @if (auth()->user()->isAdmin())
                 <div class="space-y-2">
                     <ul class="mt-3 space-y-2">
                         <!-- Configuraciones -->
@@ -78,8 +79,10 @@
                         </li>
                     </ul>
                 </div>
+                @endif
                 <ul class="mt-3 space-y-2">
                     <!-- Dashboard -->
+                    @if (auth()->user()->isAdmin())
                     <li class="pl-4 pr-3 py-2 rounded-lg bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if (in_array(Request::segment(1), ['dashboard'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif"
                         x-data="{ open: {{ in_array(Request::segment(1), ['dashboard']) ? 1 : 0 }} }">
                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if (Route::is('dashboard')) !text-violet-500 @endif"
@@ -115,6 +118,7 @@
                             </div>
                         </a>
                     </li>
+                    @endif
                     <!-- Reportes Mecanicos -->
                     <li class="pl-4 pr-3 py-2 rounded-lg bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if (in_array(Request::segment(1), ['Documentar'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif"
                         x-data="{ open: {{ in_array(Request::segment(1), ['Documentar']) ? 1 : 0 }} }">
