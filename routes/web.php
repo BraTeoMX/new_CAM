@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\AdminControlController;
 use App\Http\Controllers\AtencionOT;
+use App\Http\Controllers\CatalogosController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormGuestController;
 use App\Http\Controllers\DeepSeekController;
+use App\Http\Controllers\DocumentarController;
 use App\Http\Controllers\OrdenOTController;
 
 /*
@@ -23,6 +26,8 @@ Route::redirect('/', 'login');
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route for the getting the data feed
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/AdminControl', [AdminControlController::class, 'Admin'])->name('Admin');
+    Route::get('/Catalogos', [CatalogosController::class, 'Catalogos'])->name('Catalogos');
 
 });
 //Route::middleware(['guest'])->group(function () {
@@ -33,6 +38,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 //-----------------------
 Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
 //});
+
+Route::get('/Documentar', [DocumentarController::class, 'Documentar'])->name('Documentar');
+
 
 Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
 Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
