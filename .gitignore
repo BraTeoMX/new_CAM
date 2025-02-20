@@ -137,3 +137,4 @@ vendor/dasprid/enum
 vendor/carbonphp/carbon-doctrine-types
 vendor/brick/math
 vendor/bacon/bacon-qr-code
+node_modules/.vite/deps/_metadata.json
