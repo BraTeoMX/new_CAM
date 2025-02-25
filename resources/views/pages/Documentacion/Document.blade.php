@@ -5,5 +5,5 @@
             <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Documentación OT</h1>
         </div>
     </div>
-
+    </div>
 </x-app-layout>

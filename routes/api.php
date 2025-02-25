@@ -17,3 +17,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/events', function (Request $request) {
+    return response()->json([
+        ['title' => 'Evento 1', 'start' => '2025-02-25'],
+        ['title' => 'Evento 2', 'start' => '2025-02-28'],
+    ]);
+});

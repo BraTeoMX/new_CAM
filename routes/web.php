@@ -9,6 +9,7 @@ use App\Http\Controllers\FormGuestController;
 use App\Http\Controllers\DeepSeekController;
 use App\Http\Controllers\DocumentarController;
 use App\Http\Controllers\OrdenOTController;
+use App\Http\Controllers\OTsProgramController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::middleware(['role:Administrador'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/AdminControl', [AdminControlController::class, 'Admin'])->name('Admin');
+        Route::get('/admin-control/users', [AdminControlController::class, 'getUsers'])->name('admin-control.users');
+        Route::get('/admin-control/users/{id}', [AdminControlController::class, 'edit']);
+        Route::put('/admin-control/users/{id}', [AdminControlController::class, 'update']);
         Route::get('/Catalogos', [CatalogosController::class, 'Catalogos'])->name('Catalogos');
     });
 });
@@ -40,7 +44,7 @@ Route::post('/update-ticket-status/{folio}', [FormGuestController::class, 'updat
 //-----------------------
 Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
 //});
-
+Route::get('/OTsProgram', [OTsProgramController::class, 'OTsProgram'])->name('OTsProgram');
 Route::get('/Documentar', [DocumentarController::class, 'Documentar'])->name('Documentar');
 
 

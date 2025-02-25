@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Crypt;
 
 class AdminControlController extends Controller
 {
     public function Admin()
     {
-
         try {
             // Obtener Segundas y Terceras Generales
             return view('profile.Admin');
@@ -23,5 +24,35 @@ class AdminControlController extends Controller
                 'status' => 'error'
             ], 500);
         }
+    }
+
+    public function getUsers()
+    {
+        $users = User::select('name', 'email', 'num_empleado', 'puesto', 'status')->get();
+        return response()->json($users);
+    }
+    public function edit($id)
+    {
+        $user = User::where('num_empleado', $id)->firstOrFail();
+        return response()->json($user);
+    }
+
+    // Actualizar usuario
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $id . ',num_empleado',
+            'puesto' => 'required|string|max:255',
+        ]);
+
+        $user = User::where('num_empleado', $id)->firstOrFail();
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'puesto' => $request->puesto
+        ]);
+
+        return response()->json(['message' => 'Usuario actualizado correctamente']);
     }
 }
