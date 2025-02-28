@@ -5,8 +5,8 @@
 
     <!-- Sidebar -->
     <div id="sidebar"
-        class="flex lg:!flex flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-white dark:bg-gray-800 p-4 transition-all duration-200 ease-in-out"
-        @keydown.escape.window="sidebarOpen = false">
+        class="flex lg:!flex flex-col absolute z-40 right-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-white dark:bg-gray-800 p-4 transition-all duration-200 ease-in-out transform lg:transform-none"
+        :class="sidebarOpen ? 'translate-x-0' : 'translate-x-full'" @keydown.escape.window="sidebarOpen = false">
 
         <!-- Sidebar header -->
         <div class="flex justify-between mb-10 pr-3 sm:px-2">
@@ -24,12 +24,14 @@
                 </h1>
             </div>
         </div>
+
         <!-- Links -->
         <div class="space-y-8 flex flex-col h-full justify-between">
             <ul id="active-users-list" role="list" class="max-w-sm divide-y divide-gray-200 dark:divide-gray-700">
                 <!-- Aquí se agregarán los usuarios activos -->
             </ul>
         </div>
+
         <!-- Expand / collapse button -->
         <div class="pt-3 hidden lg:inline-flex 2xl:hidden justify-end mt-auto">
             <div class="w-12 pl-4 pr-3 py-2">
@@ -47,6 +49,7 @@
         </div>
     </div>
 </div>
+
 <script>
     $(document).ready(function() {
         $.ajax({
