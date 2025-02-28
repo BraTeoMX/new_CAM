@@ -6,10 +6,10 @@
         </div>
         <!-- Contenedor Principal -->
         <div class="grid grid-cols-5 gap-4">
-            <!-- Sección 1: OT's Pendientes -->
+            <!-- Sección 2: OT's Sin Asignacion -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Pendientes</h2>
-                <div id="PENDIENTE" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Sin asignación</h2>
+                <div id="SIN_ASIGNACION" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -17,6 +17,13 @@
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Proceso</h2>
                 <div id="PROCESO" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                    <!-- Cards dinámicas se insertarán aquí -->
+                </div>
+            </div>
+            <!-- Sección 1: OT's Pendientes -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Pendientes</h2>
+                <div id="PENDIENTE" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -45,6 +52,7 @@
                     .then(response => response.json())
                     .then(data => {
                         const containers = {
+                            SIN_ASIGNACION: document.getElementById('SIN_ASIGNACION'),
                             PENDIENTE: document.getElementById('PENDIENTE'),
                             PROCESO: document.getElementById('PROCESO'),
                             ATENDIDO: document.getElementById('ATENDIDO'),
@@ -71,6 +79,8 @@
                             switch (ot.Status) {
                                 case 'ABIERTO':
                                 case 'SIN ASIGNAR':
+                                    containers.SIN_ASIGNACION.appendChild(card);
+                                    break;
                                 case 'PENDIENTE':
                                     containers.PENDIENTE.appendChild(card);
                                     break;

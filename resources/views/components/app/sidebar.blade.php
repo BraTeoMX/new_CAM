@@ -82,7 +82,7 @@
                 @endif
                 <ul class="mt-3 space-y-2">
                     <!-- Dashboard -->
-                    @if (auth()->user()->isAdmin())
+                    @if (auth()->user()->isAdmin()||auth()->user()->ISNULL())
                     <li class="pl-4 pr-3 py-2 rounded-lg bg-[linear-gradient(135deg,var(--tw-gradient-stops))] @if (in_array(Request::segment(1), ['dashboard'])) from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif"
                         x-data="{ open: {{ in_array(Request::segment(1), ['dashboard']) ? 1 : 0 }} }">
                         <a class="block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate @if (Route::is('dashboard')) !text-violet-500 @endif"
@@ -141,7 +141,7 @@
                                 <div class="flex items-center">
                                     <span class="material-symbols-outlined">edit_document</span>
                                     <span
-                                        class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Documentación</span>
+                                        class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Seguimientos OTs</span>
                                 </div>
                             </div>
                         </a>

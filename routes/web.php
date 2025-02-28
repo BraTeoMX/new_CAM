@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActiveUsersController;
 use App\Http\Controllers\AdminControlController;
 use App\Http\Controllers\AtencionOT;
 use App\Http\Controllers\CatalogosController;
@@ -10,7 +11,8 @@ use App\Http\Controllers\DeepSeekController;
 use App\Http\Controllers\DocumentarController;
 use App\Http\Controllers\OrdenOTController;
 use App\Http\Controllers\OTsProgramController;
-
+use App\Http\Livewire\SidebarUsuariosActivosNuevo;
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -58,3 +60,7 @@ Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
 Route::get('/interaction-ia', [DeepSeekController::class, 'index']);
 Route::post('/interact-with-ai', [DeepSeekController::class, 'interactWithAI']);
 Route::post('/chat-with-ai', [DeepSeekController::class, 'chatWithAI'])->name('chat.ai');
+
+
+
+Route::get('/active-users', [UserController::class, 'getActiveUsers']);

@@ -93,7 +93,6 @@ $(document).ready(function() {
                     <strong>Nueva OT: ${notification.folio}</strong><br>Modulo: ${notification.modulo}
                 </div>
                 <div class="text-xs text-gray-500">${timeAgo(notification.created_at)}</div>
-                <div class="text-xs text-gray-500 timer" data-folio="${notification.folio}" data-duration="60">01:00</div>
             </li>
         `);
     });
@@ -114,7 +113,6 @@ window.Echo.channel('notifications')
                         <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}
                     </div>
                     <div class="text-xs text-gray-500">${timeAgo(e.created_at)}</div>
-                    <div class="text-xs text-gray-500 timer" data-folio="${e.folio}" data-duration="60">01:00</div>
                 </li>
             `);
 
@@ -125,9 +123,6 @@ window.Echo.channel('notifications')
             // Guardar la notificación en localStorage
             storedNotifications.push(e);
             localStorage.setItem('notifications', JSON.stringify(storedNotifications));
-
-            // Iniciar temporizador para la nueva notificación
-            startTimer(60, $(`.timer[data-folio="${e.folio}"]`));
         }
     });
 
@@ -158,25 +153,12 @@ $(document).on('click', '#notificationList li', function() {
     $('#notificationModalBody').html(`
         <p>Modulo: ${notification.modulo}</p>
         <p>Descripción: ${notification.descripcion}</p>
-        <p>Tiempo restante: <span class="timer-modal" data-folio="${notification.folio}" data-duration="60">01:00</span></p>
     `);
     $('#notificationModal').removeClass('hidden');
-
-    // Iniciar temporizador en el modal
-    startTimer(60, $(`.timer-modal[data-folio="${notification.folio}"]`));
-
     // Eliminar la notificación del DOM y de localStorage
     $(this).remove();
     const updatedNotifications = storedNotifications.filter(notification => notification.folio !== folio);
     localStorage.setItem('notifications', JSON.stringify(updatedNotifications));
-
-    // Actualizar el contador de notificaciones
-    notificationCount--;
-    if (notificationCount === 0) {
-        $('#notificationCount').hide();
-    } else {
-        $('#notificationCount').text(notificationCount);
-    }
 });
 
 // Cerrar modal
