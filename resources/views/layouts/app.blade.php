@@ -40,14 +40,27 @@
 </head>
 
 <body class="font-inter antialiased bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400"
-    :class="{ 'sidebar-expanded': sidebarExpanded, 'sidebar-active-expanded': sidebarOpenActive }"
-    x-data="{ sidebarOpen: false, sidebarOpenActive: false, sidebarExpanded: localStorage.getItem('sidebar-expanded') == 'true' }" x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value))">
+    :class="{ 'sidebar-expanded': sidebarExpanded, 'sidebar-active-expanded': sidebarActiveExpanded }"
+    x-data="{ 
+        sidebarOpen: false, 
+        sidebarExpanded: localStorage.getItem('sidebar-expanded') == 'true',
+        sidebarOpenActive: false, 
+        sidebarActiveExpanded: localStorage.getItem('sidebar-active-expanded') == 'true' 
+    }" 
+    x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value));
+            $watch('sidebarActiveExpanded', value => localStorage.setItem('sidebar-active-expanded', value))">
 
     <script>
         if (localStorage.getItem('sidebar-expanded') == 'true') {
             document.querySelector('body').classList.add('sidebar-expanded');
         } else {
             document.querySelector('body').classList.remove('sidebar-expanded');
+        }
+
+        if (localStorage.getItem('sidebar-active-expanded') == 'true') {
+            document.querySelector('body').classList.add('sidebar-active-expanded');
+        } else {
+            document.querySelector('body').classList.remove('sidebar-active-expanded');
         }
     </script>
 
