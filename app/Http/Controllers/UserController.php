@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -28,6 +27,8 @@ class UserController extends Controller
                     ->orderBy('HoraRegistro', 'ASC')
                     ->get();
 
+               
+
                 // Almacenar los datos en caché
                 Cache::put($cacheKey, $usuariosActivos, $cacheDuration);
 
@@ -44,4 +45,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+
 }
+
