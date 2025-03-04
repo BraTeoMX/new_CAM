@@ -19,7 +19,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.4.2/dist/cdn.min.js"></script>
+
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -28,7 +28,7 @@
     @livewireStyles
 
     <script>
-        if (localStorage.getItem('dark-mode') === 'false' || no('dark-mode' in localStorage)) {
+        if (localStorage.getItem('dark-mode') === 'false' || ('dark-mode' in localStorage)) {
             document.querySelector('html').classList.remove('dark');
             document.querySelector('html').style.colorScheme = 'light';
         } else {
@@ -41,14 +41,13 @@
 
 <body class="font-inter antialiased bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400"
     :class="{ 'sidebar-expanded': sidebarExpanded, 'sidebar-active-expanded': sidebarActiveExpanded }"
-    x-data="{ 
-        sidebarOpen: false, 
+    x-data="{
+        sidebarOpen: false,
         sidebarExpanded: localStorage.getItem('sidebar-expanded') == 'true',
-        sidebarOpenActive: false, 
-        sidebarActiveExpanded: localStorage.getItem('sidebar-active-expanded') == 'true' 
-    }" 
-    x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value));
-            $watch('sidebarActiveExpanded', value => localStorage.setItem('sidebar-active-expanded', value))">
+        sidebarOpenActive: false,
+        sidebarActiveExpanded: localStorage.getItem('sidebar-active-expanded') == 'true'
+    }" x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value));
+    $watch('sidebarActiveExpanded', value => localStorage.setItem('sidebar-active-expanded', value))">
 
     <script>
         if (localStorage.getItem('sidebar-expanded') == 'true') {

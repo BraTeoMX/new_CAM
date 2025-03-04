@@ -1,8 +1,6 @@
 import { Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 Livewire.start();
 import './bootstrap';
-import '../css/sweetAlert2.min.css';
-
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
