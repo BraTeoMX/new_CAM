@@ -67,9 +67,9 @@
                     const puestoB = b.despue.toLowerCase();
 
                     if (puestoA.includes("gerente") && !puestoB.includes("gerente"))
-                    return -1;
+                        return -1;
                     if (!puestoA.includes("gerente") && puestoB.includes("gerente"))
-                    return 1;
+                        return 1;
 
                     if (puestoA.includes("jefe") && !puestoB.includes("jefe")) return -1;
                     if (!puestoA.includes("jefe") && puestoB.includes("jefe")) return 1;
@@ -86,12 +86,12 @@
                         <li class="py-3 sm:py-4 relative">
                             <div class="flex items-center space-x-3 rtl:space-x-reverse">
                                 <div class="shrink-0 relative">
-                                    <img class="w-8 h-8 rounded-full cursor-pointer"
-                                         src="${imagePath}"
+                                    <img class="w-10 h-10 rounded-full cursor-pointer"  
+                                    src="${imagePath}"
                                          alt="${user.IdPoblacion} image"
                                          id="user-img-${user.IdPoblacion}"
                                          onerror="this.onerror=null; this.src='/default-avatar.jpg';">
-
+                                <span class="top-0 left-7 absolute  w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
                                     <!-- Tooltip -->
                                     <div id="${tooltipId}" role="tooltip"
                                         class="absolute z-10 hidden md:block px-4 py-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg max-w-xs break-words opacity-0 transition-opacity duration-200 dark:bg-gray-700">
@@ -111,11 +111,7 @@
                                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
                                         ${user.IdPoblacion}
                                     </p>
-                                </div>
-                                <span class="inline-flex items-center bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">
-                                    <span class="w-2 h-2 me-1 bg-green-500 rounded-full"></span>
-                                    Activo
-                                </span>
+                                </div>      
                             </div>
                         </li>`;
 
@@ -137,12 +133,12 @@
                     });
 
                     // Tooltip click (Mobile)
-                    imgElement.addEventListener("click", function() {
+                    imgElement.addEventListener("mouseover", function() {
                         tooltipElement.style.opacity = "1";
                         tooltipElement.style.visibility = "visible";
                     });
 
-                    document.addEventListener("click", function(event) {
+                    document.addEventListener("mouseout", function(event) {
                         if (!imgElement.contains(event.target) && !tooltipElement
                             .contains(event.target)) {
                             tooltipElement.style.opacity = "0";
