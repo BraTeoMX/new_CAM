@@ -1,18 +1,18 @@
 <div class="min-w-fit">
     <!-- Sidebar backdrop (mobile only) -->
     <div class="fixed inset-0 bg-gray-900 bg-opacity-30 z-40 lg:hidden lg:z-auto transition-opacity duration-200"
-        :class="sidebarOpenActive ? 'opacity-100' : 'opacity-0 pointer-events-none'" aria-hidden="true" x-cloak></div>
+        :class="sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'" aria-hidden="true" x-cloak></div>
+
     <!-- Sidebar -->
-    <div id="sidebarActive"
-        class="flex lg:!flex flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-white dark:bg-gray-800 p-4 transition-all duration-200 ease-in-out"
-        :class="sidebarActive ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-64'" @click.outside="sidebarActive = false"
-        @keydown.escape.window="sidebarActive = false">
+    <div id="sidebar"
+        class="flex lg:!flex flex-col absolute z-40 right-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-white dark:bg-gray-800 p-4 transition-all duration-200 ease-in-out transform lg:transform-none"
+        :class="sidebarOpen ? 'translate-x-0' : 'translate-x-full'" @keydown.escape.window="sidebarOpen = false">
+
         <!-- Sidebar header -->
         <div class="flex justify-between mb-10 pr-3 sm:px-2">
             <!-- Close button -->
-            <button class="lg:hidden text-gray-500 hover:text-gray-400"
-                @click.stop="sidebarOpenActive = !sidebarOpenActive" aria-controls="sidebar"
-                :aria-expanded="sidebarOpenActive">
+            <button class="lg:hidden text-gray-500 hover:text-gray-400" @click.stop="sidebarOpen = !sidebarOpen"
+                aria-controls="sidebar" :aria-expanded="sidebarOpen">
                 <span class="sr-only">Close sidebar</span>
                 <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
@@ -51,17 +51,18 @@
 </div>
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
         $.ajax({
             url: '/active-users',
             method: 'GET',
-            success: function (data) {
+            success: function(data) {
                 const userList = $('#active-users-list');
                 userList.empty();
 
                 // Generamos el HTML en un solo paso con .map()
                 const userItems = data.map(user => {
-                    const imagePath = `http://128.150.102.45:8000/fotos/${user.IdPoblacion}.jpg`;
+                    const imagePath =
+                        `http://128.150.102.45:8000/fotos/${user.IdPoblacion}.jpg`;
 
                     return `
                         <li class="py-3 sm:py-4">
@@ -90,10 +91,9 @@
 
                 userList.html(userItems); // Agrega todo de una sola vez al DOM
             },
-            error: function (error) {
+            error: function(error) {
                 console.error('Error obteniendo usuarios:', error);
             }
         });
     });
 </script>
-
