@@ -25,14 +25,14 @@
 
                 data.forEach(function(user) {
                     const imagePath =
-                        `http://128.150.102.45:8000/fotos/${user.IdPoblacion}.jpg`;
+                        `http://128.150.102.45:8000/Intimark/${user.IdPoblacion}.jpg`;
                     const tooltipId = `tooltip-${user.IdPoblacion}`;
 
                     const listItem = `
                         <li class="py-3 sm:py-4 relative">
                             <div class="flex items-center space-x-3 rtl:space-x-reverse">
                                 <div class="shrink-0 relative">
-                                    <img class="w-10 h-10 rounded-full cursor-pointer"  
+                                    <img class="w-10 h-10 rounded-full cursor-pointer"
                                     src="${imagePath}"
                                          alt="${user.IdPoblacion} image"
                                          id="user-img-${user.IdPoblacion}"
@@ -57,7 +57,7 @@
                                      <p class="text-sm text-gray-500 truncate dark:text-gray-400">
                                         ${user.IdPoblacion}
                                     </p>
-                                </div>      
+                                </div>
                             </div>
                         </li>`;
 

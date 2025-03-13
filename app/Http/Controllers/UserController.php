@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -23,11 +24,11 @@ class UserController extends Controller
                 $usuariosActivos = DB::connection('sqlsrv_dev')
                     ->table('Emple_Movimientos')
                     ->whereRaw("CAST(FechaRegistro AS DATE) = CAST(GETDATE() AS DATE)")
-                    ->whereBetween('HoraRegistro', ['07:30:00', '08:40:00'])
+                    ->whereBetween('HoraRegistro', ['07:30:00', '08:50:00'])
                     ->orderBy('HoraRegistro', 'ASC')
                     ->get();
 
-               
+
 
                 // Almacenar los datos en caché
                 Cache::put($cacheKey, $usuariosActivos, $cacheDuration);
@@ -45,7 +46,4 @@ class UserController extends Controller
             ], 500);
         }
     }
-
-
 }
-
