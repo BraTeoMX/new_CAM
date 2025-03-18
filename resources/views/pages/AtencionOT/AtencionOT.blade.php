@@ -9,7 +9,7 @@
             <!-- Sección 2: OT's Sin Asignacion -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Sin asignación</h2>
-                <div id="SIN_ASIGNACION" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <div id="SIN_ASIGNAR" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
@@ -52,7 +52,7 @@
                     .then(response => response.json())
                     .then(data => {
                         const containers = {
-                            SIN_ASIGNACION: document.getElementById('SIN_ASIGNACION'),
+                            SIN_ASIGNAR: document.getElementById('SIN_ASIGNAR'),
                             PENDIENTE: document.getElementById('PENDIENTE'),
                             PROCESO: document.getElementById('PROCESO'),
                             ATENDIDO: document.getElementById('ATENDIDO'),
@@ -78,8 +78,8 @@
                             // Insertar en la sección correspondiente
                             switch (ot.Status) {
                                 case 'ABIERTO':
-                                case 'SIN ASIGNAR':
-                                    containers.SIN_ASIGNACION.appendChild(card);
+                                case 'SIN_ASIGNAR':
+                                    containers.SIN_ASIGNAR.appendChild(card);
                                     break;
                                 case 'PENDIENTE':
                                     containers.PENDIENTE.appendChild(card);
