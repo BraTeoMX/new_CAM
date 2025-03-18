@@ -33,6 +33,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "App\\Livewire\\": "app/Livewire/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
