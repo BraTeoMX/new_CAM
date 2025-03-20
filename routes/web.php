@@ -11,7 +11,7 @@ use App\Http\Controllers\DeepSeekController;
 use App\Http\Controllers\DocumentarController;
 use App\Http\Controllers\OrdenOTController;
 use App\Http\Controllers\OTsProgramController;
-use App\Http\Livewire\SidebarUsuariosActivosNuevo;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
@@ -64,3 +64,12 @@ Route::post('/chat-with-ai', [DeepSeekController::class, 'chatWithAI'])->name('c
 
 
 Route::get('/active-users', [UserController::class, 'getActiveUsers']);
+
+
+Route::get('/events', [EventController::class, 'index']); // Obtener eventos
+Route::get('/responsibles', [EventController::class, 'getResponsibles']);
+Route::get('/priorities', [EventController::class, 'getPriorities']);
+
+Route::post('/events', [EventController::class, 'store']); // Guardar evento
+Route::put('/events/{id}', [EventController::class, 'update']);
+

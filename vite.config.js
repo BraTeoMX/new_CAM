@@ -8,6 +8,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/calendar.js',
+                'resources/js/events.js',
                 'resources/css/sweetAlert2.min.css',
             ],
             refresh: true,
@@ -24,7 +26,7 @@ export default defineConfig({
             'laravel-echo',
             'pusher-js',
             'sweetalert2',
-            
+
         ],
     },
 });

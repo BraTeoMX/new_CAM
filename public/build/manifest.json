@@ -1,21 +1,30 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-Dro0Rwor.css",
+    "file": "assets/app-AJCIc7Td.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/css/sweetAlert2.min.css": {
-    "file": "assets/app-DSdBX5BY.css",
-    "src": "resources/js/app.js",
+    "file": "assets/sweetAlert2-DSdBX5BY.css",
+    "src": "resources/css/sweetAlert2.min.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BNqMobS6.js",
+    "file": "assets/app-BsuhrZUi.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true,
-    "css": [
-      "assets/app-DSdBX5BY.css"
-    ]
+    "isEntry": true
+  },
+  "resources/js/calendar.js": {
+    "file": "assets/calendar-B0qEWeD6.js",
+    "name": "calendar",
+    "src": "resources/js/calendar.js",
+    "isEntry": true
+  },
+  "resources/js/events.js": {
+    "file": "assets/events-Bm3e-4i5.js",
+    "name": "events",
+    "src": "resources/js/events.js",
+    "isEntry": true
   }
 }
