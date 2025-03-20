@@ -29,4 +29,13 @@ export default defineConfig({
 
         ],
     },
+    server: {
+        host: '128.150.102.40',
+        port: 8021,
+        strictPort: true,
+        cors: {
+            origin: 'http://128.150.102.40:8020',
+            credentials: true
+        }
+    }
 });

@@ -1,4 +1,4 @@
-
+<meta name="csrf-token" content="{{ csrf_token() }}">
         <!-- Modal Prioridad -->
         <div id="modalPrioridad"
             class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
