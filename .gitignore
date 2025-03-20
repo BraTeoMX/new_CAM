@@ -3,7 +3,8 @@
 .env.backup
 # Laravel storage exclusions
 /storage/framework/views
-
+vite.config.js
+.gitignore
 # Ignorar todo en storage excepto ciertas carpetas
 /storage/*
 !/storage/app
