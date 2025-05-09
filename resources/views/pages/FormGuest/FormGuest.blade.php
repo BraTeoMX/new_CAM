@@ -129,7 +129,6 @@
         // Captura de datos del formulario
         const formData = {
             modulo: $('#modul').val(), // Select2: módulo seleccionado
-            numeroEmpleado: document.getElementById('numeroEmpleado').value.trim(), // Numero empleado
             subject: document.getElementById('subject').value.trim(), // Asunto
             description: document.getElementById('description').value.trim(), // Descripción
             _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content') // CSRF Token
@@ -141,19 +140,6 @@
                 icon: 'warning',
                 title: 'Datos inválidos',
                 text: 'Por favor, selecciona un módulo válido.',
-                customClass: {
-                    title: 'text-black',
-                    content: 'text-black',
-                    confirmButton: 'border-black',
-                }
-            });
-            return;
-        }
-        if (!formData.numeroEmpleado) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Datos inválidos',
-                text: 'Por favor, selecciona un número de empleado.',
                 customClass: {
                     title: 'text-black',
                     content: 'text-black',

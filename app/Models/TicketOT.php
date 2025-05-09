@@ -14,12 +14,11 @@ class TicketOT extends Model
     protected $table = 'ticketsot';
 
     protected $fillable = [
-        'Folio',
         'Modulo',
-        'Num_empl',
         'Tip_prob',
         'Descrip_prob',
-        'Status',
+        'Folio',
+        'Status'
     ];
 
     // Habilitar manejo de timestamps

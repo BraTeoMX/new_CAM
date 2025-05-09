@@ -7,7 +7,7 @@ use App\Http\Controllers\CatalogosController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormGuestController;
-use App\Http\Controllers\DeepSeekController;
+use App\Http\Controllers\InteractionIA;
 use App\Http\Controllers\DocumentarController;
 use App\Http\Controllers\OrdenOTController;
 use App\Http\Controllers\OTsProgramController;
@@ -57,9 +57,7 @@ Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
 
 
 
-Route::get('/interaction-ia', [DeepSeekController::class, 'index']);
-Route::post('/interact-with-ai', [DeepSeekController::class, 'interactWithAI']);
-Route::post('/chat-with-ai', [DeepSeekController::class, 'chatWithAI'])->name('chat.ai');
+Route::get('/interaction-ia', [InteractionIA::class, 'index']);
 
 
 
@@ -72,4 +70,3 @@ Route::get('/priorities', [EventController::class, 'getPriorities']);
 
 Route::post('/events', [EventController::class, 'store']); // Guardar evento
 Route::put('/events/{id}', [EventController::class, 'update']);
-

@@ -410,8 +410,8 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         ),
         'Spatie\\LaravelIgnition\\' => 
         array (
-            0 => __DIR__ . '/..' . '/spatie/laravel-ignition/src',
-            1 => __DIR__ . '/..' . '/spatie/error-solutions/legacy/laravel-ignition',
+            0 => __DIR__ . '/..' . '/spatie/error-solutions/legacy/laravel-ignition',
+            1 => __DIR__ . '/..' . '/spatie/laravel-ignition/src',
         ),
         'Spatie\\Invade\\' => 
         array (
@@ -419,8 +419,8 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         ),
         'Spatie\\Ignition\\' => 
         array (
-            0 => __DIR__ . '/..' . '/spatie/ignition/src',
-            1 => __DIR__ . '/..' . '/spatie/error-solutions/legacy/ignition',
+            0 => __DIR__ . '/..' . '/spatie/error-solutions/legacy/ignition',
+            1 => __DIR__ . '/..' . '/spatie/ignition/src',
         ),
         'Spatie\\FlareClient\\' => 
         array (
@@ -472,8 +472,8 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            1 => __DIR__ . '/..' . '/psr/http-factory/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -541,8 +541,8 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         ),
         'League\\Uri\\' => 
         array (
-            0 => __DIR__ . '/..' . '/league/uri',
-            1 => __DIR__ . '/..' . '/league/uri-interfaces',
+            0 => __DIR__ . '/..' . '/league/uri-interfaces',
+            1 => __DIR__ . '/..' . '/league/uri',
         ),
         'League\\MimeTypeDetection\\' => 
         array (
@@ -852,6 +852,7 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         'App\\Http\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardController.php',
         'App\\Http\\Controllers\\DeepSeekController' => __DIR__ . '/../..' . '/app/Http/Controllers/DeepSeekController.php',
         'App\\Http\\Controllers\\DocumentarController' => __DIR__ . '/../..' . '/app/Http/Controllers/DocumentarController.php',
+        'App\\Http\\Controllers\\EventController' => __DIR__ . '/../..' . '/app/Http/Controllers/EventController.php',
         'App\\Http\\Controllers\\FormGuestController' => __DIR__ . '/../..' . '/app/Http/Controllers/FormGuestController.php',
         'App\\Http\\Controllers\\OTsProgramController' => __DIR__ . '/../..' . '/app/Http/Controllers/OTsProgramController.php',
         'App\\Http\\Controllers\\OrdenOTController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrdenOTController.php',
@@ -869,6 +870,7 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         'App\\Http\\Middleware\\VerifyCsrfToken' => __DIR__ . '/../..' . '/app/Http/Middleware/VerifyCsrfToken.php',
         'App\\Livewire\\UserController' => __DIR__ . '/../..' . '/app/Livewire/UserController.php',
         'App\\Models\\DataFeed' => __DIR__ . '/../..' . '/app/Models/DataFeed.php',
+        'App\\Models\\Event' => __DIR__ . '/../..' . '/app/Models/Event.php',
         'App\\Models\\TicketOT' => __DIR__ . '/../..' . '/app/Models/TicketOT.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',

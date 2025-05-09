@@ -61,94 +61,69 @@ class FormGuestController extends Controller
         }
     }
 
-        public function ticketsOT(Request $request)
-        {
-            try {
-                // Validar los datos de entrada
-                $validatedData = $request->validate([
-                    'modulo' => 'required|string|max:255',
-                    'numeroEmpleado' => 'required|string|max:255',
-                    'subject' => 'required|string|max:255',
-                    'description' => 'required|string|max:5000',
-                ]);
+    public function ticketsOT(Request $request)
+    {
+        try {
+            Log::info('Datos recibidos:', $request->all());  // Agregar log para debug
 
-                Log::info('Datos validados: ', $validatedData);
+            // Validar los datos de entrada
+            $validatedData = $request->validate([
+                'modulo' => 'required|string|max:255',
+                'problema' => 'required|string|max:255',
+                'descripcion' => 'required|string|max:5000',
+                'status' => 'required|string|in:Autonomo,SIN_ASIGNAR'
+            ]);
 
-                // Generar un folio único más corto (Ejemplo: OT-1A3B6C)
-                $folio = 'OT-' . strtoupper(substr(md5(uniqid()), 0, 6));
+            // Generar un folio único más corto
+            $folio = 'OT-' . strtoupper(substr(md5(uniqid()), 0, 6));
 
-                // Guardar en la base de datos
-                $ticket = TicketOT::create([
-                    'Modulo' => $validatedData['modulo'],
-                    'Num_empl' => $validatedData['numeroEmpleado'],
-                    'Tip_prob' => $validatedData['subject'],
-                    'Descrip_prob' => $validatedData['description'],
-                    'Folio' => $folio,
-                    'Status' => 'SIN ASIGNAR',
-                ]);
+            // Mapear los campos al formato esperado por el modelo
+            $ticketData = [
+                'Modulo' => $validatedData['modulo'],
+                'Tip_prob' => $validatedData['problema'],
+                'Descrip_prob' => $validatedData['descripcion'],
+                'Folio' => $folio,
+                'Status' => $validatedData['status']
+            ];
 
-                Log::info('Ticket creado: ', $ticket->toArray());
+            // Guardar en la base de datos
+            $ticket = TicketOT::create($ticketData);
 
-                // Emitir el evento NewOrderNotification
-                event(new NewOrderNotification($ticket));
-                Log::info('Evento NewOrderNotification emitido', ['ticket' => $ticket]);
+            Log::info('Ticket creado:', $ticket->toArray());
 
-                // Enviar correo electrónico
-                $this->sendTicketCreatedEmail($ticket);
+            // Emitir el evento NewOrderNotification
+            event(new NewOrderNotification($ticket));
 
-                // Respuesta de éxito
-                return response()->json([
-                    'success' => true,
-                    'folio' => $folio,
-                    'message' => 'Ticket creado con éxito.',
-                ]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                // Errores de validación
-                Log::error('Error de validación: ', $e->errors());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error de validación',
-                    'errors' => $e->errors(),
-                ], 422);
-            } catch (\Exception $e) {
-                // Otros errores
-                Log::error('Error inesperado: ' . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ocurrió un error al registrar el ticket',
-                    'error' => $e->getMessage(),
-                ], 500);
-            }
-        }
+            // Enviar correo electrónico
+            $this->sendTicketCreatedEmail($ticket);
 
-        public function updateTicketStatus(Request $request, $folio)
-        {
-            try {
-                $ticket = TicketOT::where('Folio', $folio)->firstOrFail();
-                $ticket->Status = $request->input('status');
-                $ticket->save();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Estado del ticket actualizado con éxito.',
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Error al actualizar el estado del ticket: ' . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ocurrió un error al actualizar el estado del ticket',
-                    'error' => $e->getMessage(),
-                ], 500);
-            }
-        }
-
-        private function sendTicketCreatedEmail($ticket)
-        {
-            $toEmail = 'adejesus@intimark.com.mx'; // Dirección de correo a la que enviar el mensaje
-            Mail::send('emails.ticket_created', ['ticket' => $ticket], function ($message) use ($ticket, $toEmail) {
-                $message->to($toEmail)
-                        ->subject('Nuevo Ticket Creado: ' . $ticket->Folio);
-            });
+            return response()->json([
+                'success' => true,
+                'folio' => $folio,
+                'message' => 'Ticket creado con éxito'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Error de validación:', $e->errors());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error inesperado:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al registrar el ticket: ' . $e->getMessage()
+            ], 500);
         }
     }
-?>
+
+    private function sendTicketCreatedEmail($ticket)
+    {
+        $toEmail = 'adejesus@intimark.com.mx'; // Dirección de correo a la que enviar el mensaje
+        Mail::send('emails.ticket_created', ['ticket' => $ticket], function ($message) use ($ticket, $toEmail) {
+            $message->to($toEmail)
+                ->subject('Nuevo Ticket Creado: ' . $ticket->Folio);
+        });
+    }
+}

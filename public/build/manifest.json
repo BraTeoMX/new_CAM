@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-C9rYpEC6.css",
+    "file": "assets/app-BML8bIf_.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -9,14 +9,20 @@
     "src": "resources/css/sweetAlert2.min.css",
     "isEntry": true
   },
+  "resources/js/IAChat.js": {
+    "file": "assets/IAChat-BI4zUrvK.js",
+    "name": "IAChat",
+    "src": "resources/js/IAChat.js",
+    "isEntry": true
+  },
   "resources/js/app.js": {
-    "file": "assets/app-BsuhrZUi.js",
+    "file": "assets/app-DVr2VzuA.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
   },
   "resources/js/calendar.js": {
-    "file": "assets/calendar-DYILvKvA.js",
+    "file": "assets/calendar-BHT4IWUB.js",
     "name": "calendar",
     "src": "resources/js/calendar.js",
     "isEntry": true
