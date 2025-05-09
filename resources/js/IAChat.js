@@ -73,7 +73,34 @@ class ChatManager {
         return 'Buenas noches';
     }
 
-    handleSubmit(e) {
+    async showTypingIndicator(chatMessages) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'text-left mb-4';
+        const loadingSpan = document.createElement('span');
+        loadingSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%] animate-pulse';
+        loadingSpan.textContent = 'Escribiendo...';
+        loadingDiv.appendChild(loadingSpan);
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Esperar 1.5 segundos
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        loadingDiv.remove();
+    }
+
+    async appendChatMessage(message, chatMessages) {
+        await this.showTypingIndicator(chatMessages);
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'text-left mb-4';
+        const responseSpan = document.createElement('span');
+        responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+        responseSpan.innerHTML = message;
+        loadingDiv.appendChild(responseSpan);
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async handleSubmit(e) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -101,15 +128,15 @@ class ChatManager {
             case 0:
                 if (this.isGreeting(message)) {
                     const greeting = this.getTimeBasedGreeting();
-                    this.appendChatMessage(`${greeting}, ¿en qué puedo ayudarte?`, chatMessages);
-                    this.askProblem(chatMessages);
+                    await this.appendChatMessage(`${greeting}, ¿en qué puedo ayudarte?`, chatMessages);
+                    await this.askProblem(chatMessages);
                 } else {
-                    this.askProblem(chatMessages);
+                    await this.askProblem(chatMessages);
                 }
                 break;
             case 1:
                 this.userProblem = message;
-                this.askDescription(chatMessages);
+                await this.askDescription(chatMessages);
                 break;
             case 2:
                 this.userDescription = message;
@@ -122,14 +149,14 @@ class ChatManager {
         }
     }
 
-    askProblem(chatMessages) {
-        setTimeout(() => {
-            this.appendChatMessage('Antes de continuar por favor ayudame con los siguientes datos por favor...<br><strong>Ingresa que problema tienes:</strong>', chatMessages);
-            window.iaChatStep = 1;
-        }, 1000); // Pequeño delay para mejor experiencia de usuario
+    async askProblem(chatMessages) {
+        await this.showTypingIndicator(chatMessages);
+        this.appendChatMessage('Antes de continuar por favor ayudame con los siguientes datos por favor...<br><strong>Ingresa que problema tienes:</strong>', chatMessages);
+        window.iaChatStep = 1;
     }
 
-    askDescription(chatMessages) {
+    async askDescription(chatMessages) {
+        await this.showTypingIndicator(chatMessages);
         this.appendChatMessage('Ahora describe muy general que está sucediendo:', chatMessages);
         window.iaChatStep = 2;
     }
@@ -315,6 +342,7 @@ class ChatManager {
     }
 
     async handleResponse(wasSuccessful) {
+        const chatMessages = document.getElementById('chat-messages');
         try {
             const formData = {
                 modulo: this.userModule,
@@ -322,8 +350,6 @@ class ChatManager {
                 descripcion: this.userDescription,
                 status: wasSuccessful ? 'Autonomo' : 'SIN_ASIGNAR'
             };
-
-            console.log('Enviando datos:', formData); // Debug
 
             const response = await fetch('/ticketsOT', {
                 method: 'POST',
@@ -336,7 +362,6 @@ class ChatManager {
             });
 
             const data = await response.json();
-            console.log('Respuesta:', data); // Debug
 
             if (!response.ok) {
                 throw new Error(data.message || 'Error en la respuesta del servidor');
@@ -354,7 +379,14 @@ class ChatManager {
                     }
                 });
 
-                this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, document.getElementById('chat-messages'));
+                await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
+                
+                // Mensaje según la respuesta del usuario
+                const message = wasSuccessful 
+                    ? 'Perfecto me alegra mucho que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
+                    : 'Perfecto hemos estamos generando tu ticket de atención, en breve te atenderá el mecánico a cargo de tu sector, que tengas un excelente día';
+                
+                await this.appendChatMessage(message, chatMessages);
                 this.resetChat();
             } else {
                 throw new Error(data.message || 'Error al registrar el ticket');
@@ -379,17 +411,6 @@ class ChatManager {
         this.userDescription = '';
         this.userModule = '';
         window.iaChatStep = 0;
-    }
-
-    appendChatMessage(message, chatMessages) {
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'text-left mb-4';
-        const responseSpan = document.createElement('span');
-        responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
-        responseSpan.innerHTML = message;
-        loadingDiv.appendChild(responseSpan);
-        chatMessages.appendChild(loadingDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     escapeHtml(text) {
