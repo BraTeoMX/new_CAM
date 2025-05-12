@@ -7,7 +7,7 @@
 
         <!-- Chat Formulario -->
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-            <div id="chat-messages" class="mb-4 h-64 overflow-y-auto border-b-2 border-gray-200 dark:border-gray-700">
+            <div id="chat-messages" class="mb-4 h-[500px] overflow-y-auto border-b-2 border-gray-200 dark:border-gray-700">
             </div>
             <form id="chat-form" data-gemini-key="{{ config('services.google.gemini_api_key') }}">
                 <input type="text" id="message"

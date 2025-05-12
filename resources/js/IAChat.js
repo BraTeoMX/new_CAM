@@ -75,28 +75,51 @@ class ChatManager {
 
     async showTypingIndicator(chatMessages) {
         const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'text-left mb-4';
+        loadingDiv.className = 'text-left mb-4 flex items-start gap-2';
+
+        // Agregar avatar
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
+        avatarDiv.innerHTML = `
+            <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                 src="/images/Avatar.webp"
+                 alt="AI Avatar">
+        `;
+
         const loadingSpan = document.createElement('span');
         loadingSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%] animate-pulse';
         loadingSpan.textContent = 'Escribiendo...';
+
+        loadingDiv.appendChild(avatarDiv);
         loadingDiv.appendChild(loadingSpan);
         chatMessages.appendChild(loadingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Esperar 1.5 segundos
+
         await new Promise(resolve => setTimeout(resolve, 1500));
         loadingDiv.remove();
     }
 
     async appendChatMessage(message, chatMessages) {
         await this.showTypingIndicator(chatMessages);
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'text-left mb-4';
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'text-left mb-4 flex items-start gap-2';
+
+        // Agregar avatar
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
+        avatarDiv.innerHTML = `
+            <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                 src="/images/Avatar.webp"
+                 alt="AI Avatar">
+        `;
+
         const responseSpan = document.createElement('span');
         responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
         responseSpan.innerHTML = message;
-        loadingDiv.appendChild(responseSpan);
-        chatMessages.appendChild(loadingDiv);
+
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(responseSpan);
+        chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -254,36 +277,41 @@ class ChatManager {
         });
     }
 
-    showSteps(machineIndex) {
+    async showSteps(machineIndex) {
         const chatMessages = document.getElementById('chat-messages');
-
         this.cleanup();
 
-        this.appendChatMessage('Perfecto por favor sigue estos pasos antes de que escalemos con la generacion de una orden', chatMessages);
+        // Primero mostrar el mensaje y esperar a que termine
+        await this.appendChatMessage('Gracias por favor sigue estos pasos antes de que escalemos con la generacion de un ticket de atención', chatMessages);
 
-        let stepIndex = 0;
-        const showNextStep = () => {
-            if (stepIndex >= STEPS.length) {
-                this.showFinalQuestion();
-                return;
-            }
+        // Función para mostrar los pasos secuencialmente
+        const showStepsSequentially = () => {
+            let stepIndex = 0;
+            const showNextStep = () => {
+                if (stepIndex >= STEPS.length) {
+                    this.showFinalQuestion();
+                    return;
+                }
 
-            const step = STEPS[stepIndex];
-            const min = step.times[machineIndex];
+                const step = STEPS[stepIndex];
+                const min = step.times[machineIndex];
 
-            if (min === null) {
-                stepIndex++;
-                showNextStep();
-                return;
-            }
+                if (min === null) {
+                    stepIndex++;
+                    showNextStep();
+                    return;
+                }
 
-            this.showStep(step, min, stepIndex, () => {
-                stepIndex++;
-                showNextStep();
-            });
+                this.showStep(step, min, stepIndex, () => {
+                    stepIndex++;
+                    showNextStep();
+                });
+            };
+            showNextStep();
         };
 
-        showNextStep();
+        // Empezar a mostrar los pasos después de un pequeño delay
+        setTimeout(showStepsSequentially, 500);
     }
 
     showStep(step, minutes, index, onComplete) {
@@ -372,20 +400,20 @@ class ChatManager {
                     icon: 'success',
                     title: 'Ticket registrado',
                     text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`,
+                    confirmButtonText: 'OK',
+                    buttonsStyling: true,
                     customClass: {
-                        title: 'text-black',
-                        content: 'text-black',
-                        confirmButton: 'border-black',
+                        confirmButton: 'swal2-confirm'
                     }
                 });
 
                 await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
-                
+
                 // Mensaje según la respuesta del usuario
-                const message = wasSuccessful 
-                    ? 'Perfecto me alegra mucho que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
-                    : 'Perfecto hemos estamos generando tu ticket de atención, en breve te atenderá el mecánico a cargo de tu sector, que tengas un excelente día';
-                
+                const message = wasSuccessful
+                    ? 'Gracias me alegra mucho que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
+                    : 'Gracias hemos estamos generando tu ticket de atención, en breve te atenderá el mecánico a cargo de tu sector, que tengas un excelente día';
+
                 await this.appendChatMessage(message, chatMessages);
                 this.resetChat();
             } else {

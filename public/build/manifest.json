@@ -1,16 +1,21 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-BML8bIf_.css",
+    "file": "assets/app-BOmLJFNM.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
-  "resources/css/sweetAlert2.min.css": {
-    "file": "assets/sweetAlert2-DSdBX5BY.css",
-    "src": "resources/css/sweetAlert2.min.css",
+  "resources/css/select2tailwind.css": {
+    "file": "assets/select2tailwind-BLe76tkX.css",
+    "src": "resources/css/select2tailwind.css",
+    "isEntry": true
+  },
+  "resources/css/sweetalert.css": {
+    "file": "assets/sweetalert-BnoSfoMZ.css",
+    "src": "resources/css/sweetalert.css",
     "isEntry": true
   },
   "resources/js/IAChat.js": {
-    "file": "assets/IAChat-BI4zUrvK.js",
+    "file": "assets/IAChat-C5-qOPG2.js",
     "name": "IAChat",
     "src": "resources/js/IAChat.js",
     "isEntry": true
