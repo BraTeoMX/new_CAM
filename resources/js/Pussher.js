@@ -38,14 +38,28 @@ $(document).ready(function () {
         `);
     });
 });
+
 window.Echo.channel('notifications')
-    .listen('NewOrderNotification', (e) => {
+    .listen('NewOrderNotification', async (e) => {
         console.log('Notificación recibida:', e);
 
-        // Crear y mostrar el toast
+        // Reproducir sonido de notificación de manera más robusta
+        try {
+            const audio = new Audio('/sound/notification.mp3');
+            audio.volume = 0.5;
+            await audio.play().catch(error => console.log('Error reproduciendo audio:', error));
+        } catch (error) {
+            console.log('Error al cargar el audio:', error);
+        }
+
+        // Primero verificar si la notificación ya existe
+        const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+        const notificationExists = storedNotifications.some(notification => notification.folio === e.folio);
+
+        // Crear el toast primero
         const toast = document.createElement('div');
         toast.innerHTML = `
-            <div id="toast-notification" class="fixed top-5 right-5 w-full max-w-xs p-4 text-gray-900 bg-white rounded-lg shadow-sm dark:bg-gray-800 dark:text-gray-300 animate-slide-in" role="alert">
+            <div id="toast-notification" class="fixed top-5 right-5 w-full max-w-xs p-4 text-gray-900 bg-white rounded-lg shadow-sm dark:bg-gray-800 dark:text-gray-300 animate-slide-in transition-opacity duration-300 opacity-0" role="alert">
                 <div class="flex items-center mb-3">
                     <span class="mb-1 text-sm font-semibold text-gray-900 dark:text-white">Nueva notificación</span>
                     <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-white justify-center items-center shrink-0 text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-notification" aria-label="Close">
@@ -69,52 +83,63 @@ window.Echo.channel('notifications')
                     <div class="ms-3 text-sm font-normal">
                         <div class="text-sm font-semibold text-gray-900 dark:text-white">Asistente IA</div>
                         <div class="text-sm font-normal">Nuevo ticket generado: ${e.folio}</div>
-                        <span class="text-xs font-medium text-blue-600 dark:text-blue-500">hace unos segundos</span>
+                        <span class="text-xs font-medium text-blue-600 dark:text-blue-500">${timeAgo(e.created_at)}</span>
                     </div>
                 </div>
             </div>
         `;
 
-        // Agregar el toast al body
-        document.body.appendChild(toast.firstElementChild);
-
-        // Configurar el botón de cierre
-        const closeButton = toast.querySelector('[data-dismiss-target="#toast-notification"]');
+        // Agregar el toast al DOM
         const toastElement = toast.firstElementChild;
+        document.body.appendChild(toastElement);
 
-        closeButton.addEventListener('click', () => {
-            toastElement.classList.add('animate-fade-out');
-            setTimeout(() => toastElement.remove(), 300);
+        // Forzar un reflow para asegurar la transición
+        toastElement.offsetHeight;
+
+        // Hacer visible el toast
+        requestAnimationFrame(() => {
+            toastElement.style.opacity = '1';
         });
 
-        // Auto-cerrar después de 5 segundos
+        // Configurar el botón de cierre después de que el toast esté en el DOM
+        const closeButton = toastElement.querySelector('[data-dismiss-target="#toast-notification"]');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                toastElement.style.opacity = '0';
+                setTimeout(() => toastElement.remove(), 500);
+            });
+        }
+
+        // Auto-cerrar después de 3 segundos
         setTimeout(() => {
-            if (toastElement.parentElement) {
-                toastElement.classList.add('animate-fade-out');
-                setTimeout(() => toastElement.remove(), 300);
+            if (toastElement && toastElement.parentElement) {
+                toastElement.style.opacity = '0';
+                setTimeout(() => {
+                    if (toastElement.parentElement) {
+                        toastElement.remove();
+                    }
+                }, 500);
             }
         }, 5000);
 
-        // Continuar con el código existente para almacenar la notificación
-        const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
-        const notificationExists = storedNotifications.some(notification => notification.folio === e.folio);
-
+        // Actualizar las notificaciones solo si es nueva
         if (!notificationExists) {
-            // Agregar la notificación al DOM usando jQuery al principio de la lista
+            // Actualizar el contador y la lista primero
+            notificationCount++;
+            $('#notificationCount').text(notificationCount).show();
+
+            // Agregar la notificación al DOM
             $('#notificationList').prepend(`
                 <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${e.folio}">
-                    <div>
+                <img class="w-12 h-12 rounded-full" src="/images/Avatar.webp" alt="AvatarIA"/>
+                <div>
                         <strong>Nueva OT: ${e.folio}</strong><br>Modulo: ${e.modulo}
                     </div>
                     <div class="text-xs text-gray-500">${timeAgo(e.created_at)}</div>
                 </li>
             `);
 
-            // Actualizar el contador de notificaciones
-            notificationCount++;
-            $('#notificationCount').text(notificationCount).show();
-
-            // Guardar la notificación en localStorage
+            // Guardar en localStorage
             storedNotifications.push(e);
             localStorage.setItem('notifications', JSON.stringify(storedNotifications));
         }

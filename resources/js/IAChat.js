@@ -399,7 +399,9 @@ class ChatManager {
                 await Swal.fire({
                     icon: 'success',
                     title: 'Ticket registrado',
-                    text: `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`,
+                    text: wasSuccessful
+                        ? `Gracias por haberlo resulto de forma autonoma, se igual manera se hara llegar una notificacion como historial que hubo una posible falla, folio: ${data.folio}`
+                        : `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`,
                     confirmButtonText: 'OK',
                     buttonsStyling: true,
                     customClass: {
@@ -409,15 +411,14 @@ class ChatManager {
 
                 await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
 
-                // Mensaje según la respuesta del usuario
                 const message = wasSuccessful
                     ? 'Gracias me alegra mucho que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
                     : 'Gracias hemos estamos generando tu ticket de atención, en breve te atenderá el mecánico a cargo de tu sector, que tengas un excelente día';
 
                 await this.appendChatMessage(message, chatMessages);
-                this.resetChat();
-            } else {
-                throw new Error(data.message || 'Error al registrar el ticket');
+
+                // Agregar la pregunta final después de un breve delay
+                setTimeout(() => this.showFinalResetQuestion(chatMessages), 1000);
             }
         } catch (error) {
             console.error('Error completo:', error);
@@ -431,6 +432,49 @@ class ChatManager {
                     confirmButton: 'border-black',
                 }
             });
+        }
+    }
+
+    showFinalResetQuestion(chatMessages) {
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'text-left mb-4';
+        const questionSpan = document.createElement('span');
+        questionSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+
+        questionSpan.innerHTML = `
+            <p>¿Quieres generar una nueva asistencia?</p>
+            <div class="flex gap-4 mt-3">
+                <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResetResponse(true)">
+                    SI
+                </button>
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResetResponse(false)">
+                    NO
+                </button>
+            </div>
+        `;
+
+        questionDiv.appendChild(questionSpan);
+        chatMessages.appendChild(questionSpan);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    handleResetResponse(wantsNewChat) {
+        const chatMessages = document.getElementById('chat-messages');
+        if (wantsNewChat) {
+            // Limpiar el chat y reiniciar
+            chatMessages.innerHTML = '';
+            this.resetChat();
+            // Iniciar nueva conversación mostrando el saludo
+            this.appendChatMessage(`${this.getTimeBasedGreeting()}, ¿en qué puedo ayudarte?`, chatMessages);
+        } else {
+            // Mostrar mensaje de despedida y limpiar
+            this.appendChatMessage('Gracias por usar nuestro servicio. ¡Hasta pronto!', chatMessages)
+                .then(() => {
+                    setTimeout(() => {
+                        chatMessages.innerHTML = '';
+                        this.resetChat();
+                    }, 2000);
+                });
         }
     }
 
