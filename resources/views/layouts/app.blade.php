@@ -22,7 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://unpkg.com/flowbite@1.5.4/dist/flowbite.js"></script>
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css', 'resources/js/app.js', 'resources/js/Sortable.js', 'resources/js/Pussher.js'])
 
     <!-- Styles -->
     @livewireStyles
