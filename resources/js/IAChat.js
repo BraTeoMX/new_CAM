@@ -1,6 +1,11 @@
 // Importar la biblioteca de Google AI
 import { GoogleGenAI } from '@google/genai';
 
+// Variables globales para garantizar persistencia de datos seleccionados
+window.GLOBAL_CHAT_MODULE = null;
+window.GLOBAL_CHAT_MACHINE_INDEX = null;
+window.GLOBAL_CHAT_PROBLEM = null;
+
 // Constantes globales
 const MACHINES = [
     'RECTA 1 AGUJA',
@@ -16,7 +21,6 @@ const MACHINES = [
     'FLAT SEAMER',
     'SUPREME'
 ];
-
 const STEPS = [
     { name: 'TENSIÓN', key: 'tension', times: [2, 2, 3, 3, 2, 3, 3, 3, 3, 3, 5, 2] },
     { name: 'TIPO Y POSICIÓN DE AGUJAS', key: 'agujas', times: [1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 1] },
@@ -24,41 +28,92 @@ const STEPS = [
     { name: 'PRESIÓN PRENSATELAS', key: 'prensatelas', times: [0.5, 1, 0.5, 0.5, null, 0.5, null, null, 0.5, 0.5, 1, null] },
     { name: 'PPP', key: 'ppp', times: [1, 1, 1, 1, null, 1, null, null, 1, 1, null, null] }
 ];
-
-const GREETINGS = [
-    'hola', 'buenos dias', 'buenos días', 'buenas tardes',
-    'buenas noches', 'hello', 'hi', 'hey', 'saludos'
-];
-
 class ChatManager {
     constructor() {
-        this.ai = null;
-        this.modelName = 'gemini-2.5-pro-exp-03-25';
-        this.userProblem = '';
-        this.userDescription = '';
-        this.userModule = '';
+        // Estado centralizado
+        this.state = {
+            ai: null,
+            modelName: 'gemini-2.5-pro-exp-03-25',
+            userProblem: '',
+            userModule: '',
+            selectedMachineIndex: null,
+            nextResponseHandler: null,
+            currentStep: null
+        };
+
+        // Cache de elementos DOM
+        this.elements = {
+            chatMessages: null,
+            messageInput: null,
+            form: null
+        };
+
         this.activeIntervals = [];
+
+        // Bind de métodos críticos
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.cleanup = this.cleanup.bind(this);
+    }
+
+    /**
+     * Inicializa elementos DOM frecuentemente usados
+     */
+    initializeElements() {
+        this.elements = {
+            chatMessages: document.getElementById('chat-messages'),
+            messageInput: document.getElementById('message'),
+            form: document.getElementById('chat-form')
+        };
     }
 
     init() {
-        const chatForm = document.getElementById('chat-form');
-        if (!chatForm) {
-            console.error('Chat form not found');
-            return;
-        }
+        try {
+            this.initializeElements();
 
-        const apiKey = chatForm.getAttribute('data-gemini-key');
-        if (!apiKey) {
-            console.error('Gemini API key not found');
-            return;
-        }
+            if (!this.elements.form) {
+                throw new Error('Chat form not found');
+            }
 
-        this.ai = new GoogleGenAI({ apiKey });
-        this.setupEventListeners();
+            const apiKey = this.elements.form.getAttribute('data-gemini-key');
+            if (!apiKey) {
+                throw new Error('Gemini API key not found');
+            }
+
+            this.state.ai = new GoogleGenAI({ apiKey });
+            this.setupEventListeners();
+            this.startConversation(this.elements.chatMessages);
+        } catch (error) {
+            console.error('Initialization error:', error);
+            this.showError('Error al inicializar el chat');
+        }
+    }
+
+    /**
+     * Manejo centralizado de errores
+     */
+    showError(message) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: message,
+            customClass: { container: 'z-50' }
+        });
+    }
+
+    async startConversation(chatMessages) {
+        const greeting = this.getTimeBasedGreeting();
+        await this.appendChatMessage(`${greeting}`, chatMessages);
+        await this.askModule(chatMessages);
     }
 
     setupEventListeners() {
-        document.getElementById('chat-form').addEventListener('submit', this.handleSubmit.bind(this));
+        this.elements.form.addEventListener('submit', this.handleSubmit);
+
+        // Observador para el scroll automático
+        const observer = new MutationObserver(() => {
+            this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+        });
+        observer.observe(this.elements.chatMessages, { childList: true, subtree: true });
     }
 
     isGreeting(message) {
@@ -68,9 +123,9 @@ class ChatManager {
 
     getTimeBasedGreeting() {
         const hour = new Date().getHours();
-        if (hour >= 5 && hour < 12) return 'Buenos días';
-        if (hour >= 12 && hour < 19) return 'Buenas tardes';
-        return 'Buenas noches';
+        if (hour >= 5 && hour < 12) return 'Hola, buenos días ☀ !';
+        if (hour >= 12 && hour < 19) return 'Hola, buenas tardes 🌤 !';
+        return 'Hola, buenas noches 🌕!';
     }
 
     async showTypingIndicator(chatMessages) {
@@ -127,61 +182,30 @@ class ChatManager {
         e.preventDefault();
         e.stopPropagation();
 
-        const messageInput = document.getElementById('message');
-        const chatMessages = document.getElementById('chat-messages');
-        const message = messageInput.value.trim();
+        try {
+            const message = this.elements.messageInput.value.trim();
+            if (!message) return;
 
-        if (!message) return;
-
-        // Estado de la conversación
-        if (!window.iaChatStep) window.iaChatStep = 0;
-
-        // Mostrar mensaje del usuario
-        chatMessages.innerHTML += `
-            <div class="text-right mb-4">
-                <span class="bg-blue-500 text-white p-3 rounded-lg inline-block max-w-[70%]">
+            // Mostrar mensaje del usuario
+            this.elements.chatMessages.innerHTML += `
+                <div class="text-right mb-4">
+                    <span class="bg-blue-500 text-white p-3 rounded-lg inline-block max-w-[70%]">
                     ${this.escapeHtml(message)}
-                </span>
-            </div>`;
+                    </span>
+                </div>`;
 
-        // Limpiar input
-        messageInput.value = '';
+            this.elements.messageInput.value = '';
 
-        switch (window.iaChatStep) {
-            case 0:
-                if (this.isGreeting(message)) {
-                    const greeting = this.getTimeBasedGreeting();
-                    await this.appendChatMessage(`${greeting}, ¿en qué puedo ayudarte?`, chatMessages);
-                    await this.askProblem(chatMessages);
-                } else {
-                    await this.askProblem(chatMessages);
-                }
-                break;
-            case 1:
-                this.userProblem = message;
-                await this.askDescription(chatMessages);
-                break;
-            case 2:
-                this.userDescription = message;
-                this.askModule(chatMessages);
-                break;
-            case 3:
-                this.showMachineSelect();
-                window.iaChatStep = 0; // Resetear para el siguiente ciclo
-                break;
+            // Si hay un manejador específico para la siguiente respuesta, usarlo
+            if (this.state.nextResponseHandler) {
+                const handler = this.state.nextResponseHandler;
+                this.state.nextResponseHandler = null;
+                await handler(message);
+            }
+        } catch (error) {
+            this.showError('Error al procesar el mensaje');
+            console.error(error);
         }
-    }
-
-    async askProblem(chatMessages) {
-        await this.showTypingIndicator(chatMessages);
-        this.appendChatMessage('Antes de continuar por favor ayudame con los siguientes datos por favor...<br><strong>Ingresa que problema tienes:</strong>', chatMessages);
-        window.iaChatStep = 1;
-    }
-
-    async askDescription(chatMessages) {
-        await this.showTypingIndicator(chatMessages);
-        this.appendChatMessage('Ahora describe muy general que está sucediendo:', chatMessages);
-        window.iaChatStep = 2;
     }
 
     askModule(chatMessages) {
@@ -189,7 +213,7 @@ class ChatManager {
         loadingDiv.className = 'text-left mb-4';
         const responseSpan = document.createElement('span');
         responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
-        responseSpan.innerHTML = `Ahora por último selecciona a qué módulo se refiere:<br>
+        responseSpan.innerHTML = `Por favor selecciona el modulo que se atendera:<br>
             <select id="modul" style="width:100%"></select>`;
         loadingDiv.appendChild(responseSpan);
         chatMessages.appendChild(loadingDiv);
@@ -218,10 +242,9 @@ class ChatManager {
                 });
 
                 $('#modul').on('select2:select', (e) => {
-                    this.userModule = e.params.data.text;
+                    this.state.userModule = e.params.data.text || '';
+                    window.GLOBAL_CHAT_MODULE = this.state.userModule; // Guardar globalmente
                     window.iaChatStep = 3;
-
-                    this.showSummary(chatMessages);
                     this.showMachineSelect();
                 });
             }
@@ -229,21 +252,8 @@ class ChatManager {
         window.iaChatStep = 99; // Esperar selección de módulo
     }
 
-    showSummary(chatMessages) {
-        const resumenDiv = document.createElement('div');
-        resumenDiv.className = 'text-left mb-4';
-        const resumenSpan = document.createElement('span');
-        resumenSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
-        resumenSpan.innerHTML = `<strong>Resumen:</strong><br>
-            <b>Problema:</b> ${this.escapeHtml(this.userProblem)}<br>
-            <b>Descripción:</b> ${this.escapeHtml(this.userDescription)}<br>
-            <b>Módulo:</b> ${this.escapeHtml(this.userModule)}`;
-        resumenDiv.appendChild(resumenSpan);
-        chatMessages.appendChild(resumenDiv);
-    }
-
     showMachineSelect() {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.elements.chatMessages;
         const machineDiv = document.createElement('div');
         machineDiv.className = 'text-left mb-4';
         const machineSpan = document.createElement('span');
@@ -273,22 +283,67 @@ class ChatManager {
             const idx = parseInt(e.target.value);
             if (isNaN(idx)) return;
 
-            this.showSteps(idx);
+            this.state.selectedMachineIndex = idx;
+            window.GLOBAL_CHAT_MACHINE_INDEX = idx; // Guardar globalmente
+            this.askUserProblem(idx);
         });
     }
 
+    async askUserProblem(machineIndex) {
+        const chatMessages = this.elements.chatMessages;
+        await this.appendChatMessage('Por favor, describe el problema que estás teniendo con la máquina:', chatMessages);
+
+        // Habilitar input para la respuesta
+        this.elements.messageInput.disabled = false;
+        this.elements.messageInput.focus();
+
+        this.state.selectedMachineIndex = machineIndex;
+        window.GLOBAL_CHAT_MACHINE_INDEX = machineIndex; // Guardar globalmente
+
+        // Configurar el manejador para la siguiente respuesta
+        this.state.nextResponseHandler = async (message) => {
+            this.state.userProblem = message || '';
+            window.GLOBAL_CHAT_PROBLEM = this.state.userProblem; // Guardar globalmente
+
+            // Mostrar el resumen antes de los pasos
+            await this.showSummary(chatMessages);
+
+            // Continuar con los pasos después de un breve delay
+            setTimeout(() => {
+                this.showSteps(this.state.selectedMachineIndex);
+            }, 1000);
+        };
+    }
+
+    showSummary(chatMessages) {
+        const resumenDiv = document.createElement('div');
+        resumenDiv.className = 'text-left mb-4';
+        const resumenSpan = document.createElement('span');
+        resumenSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+        resumenSpan.innerHTML = `<strong>Resumen de la solicitud:</strong><br>
+            <b>Módulo:</b> ${this.escapeHtml(this.state.userModule)}<br>
+            <b>Máquina:</b> ${this.escapeHtml(MACHINES[this.state.selectedMachineIndex])}<br>
+            <b>Problema/Descripción:</b> ${this.escapeHtml(this.state.userProblem)}`;
+        resumenDiv.appendChild(resumenSpan);
+        chatMessages.appendChild(resumenDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     async showSteps(machineIndex) {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.elements.chatMessages;
         this.cleanup();
 
-        // Primero mostrar el mensaje y esperar a que termine
-        await this.appendChatMessage('Gracias por favor sigue estos pasos antes de que escalemos con la generacion de un ticket de atención', chatMessages);
+        // Deshabilitar input durante los pasos
+        this.elements.messageInput.disabled = true;
 
-        // Función para mostrar los pasos secuencialmente
+        await this.appendChatMessage('Por favor sigue estos pasos:', chatMessages);
+
         const showStepsSequentially = () => {
             let stepIndex = 0;
             const showNextStep = () => {
                 if (stepIndex >= STEPS.length) {
+                    this.elements.messageInput.disabled = false;
                     this.showFinalQuestion();
                     return;
                 }
@@ -310,43 +365,63 @@ class ChatManager {
             showNextStep();
         };
 
-        // Empezar a mostrar los pasos después de un pequeño delay
         setTimeout(showStepsSequentially, 500);
     }
 
-    showStep(step, minutes, index, onComplete) {
-        const chatMessages = document.getElementById('chat-messages');
+    async showStep(step, minutes, index, onComplete) {
+        const chatMessages = this.elements.chatMessages;
         const stepDivWrapper = document.createElement('div');
         stepDivWrapper.className = 'text-left mb-4';
         const stepDiv = document.createElement('span');
         stepDiv.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%] flex flex-col';
-        stepDivWrapper.appendChild(stepDiv);
-        chatMessages.appendChild(stepDivWrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         let tiempoFijo = minutes >= 1 ? `${Math.round(minutes)} min` : `${Math.round(minutes * 60)} seg`;
         let seconds = Math.round(minutes * 60);
 
-        stepDiv.innerHTML = `<strong>Paso ${index + 1}:</strong> ${step.name}
+        stepDiv.innerHTML = `
+            <strong>Paso ${index + 1}:</strong> ${step.name}
             <span class="ml-2 text-xs text-gray-500">
                 (<span class="timer">${this.formatTime(seconds)}</span> restante | <span class="timer-num">${tiempoFijo}</span>)
-            </span>`;
+            </span>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2 next-step-btn">
+                Siguiente paso
+            </button>`;
 
-        const timerSpan = stepDiv.querySelector('.timer');
-        const interval = setInterval(() => {
-            seconds--;
-            timerSpan.textContent = this.formatTime(seconds);
-            if (seconds <= 0) {
-                clearInterval(interval);
-                onComplete();
-            }
-        }, 1000);
+        stepDivWrapper.appendChild(stepDiv);
+        chatMessages.appendChild(stepDivWrapper);
 
-        this.activeIntervals.push(interval);
+        // Deshabilitar input
+        this.elements.messageInput.disabled = true;
+
+        // Configurar timer y botón
+        this.state.currentStep = {
+            interval: setInterval(() => {
+                seconds--;
+                stepDiv.querySelector('.timer').textContent = this.formatTime(seconds);
+                if (seconds <= 0) {
+                    this.clearCurrentStep();
+                }
+            }, 1000),
+            element: stepDiv
+        };
+
+        // Configurar botón siguiente
+        stepDiv.querySelector('.next-step-btn').addEventListener('click', () => {
+            this.clearCurrentStep();
+            onComplete();
+        });
+    }
+
+    clearCurrentStep() {
+        if (this.state.currentStep) {
+            clearInterval(this.state.currentStep.interval);
+            this.state.currentStep.element.querySelector('.next-step-btn').disabled = true;
+            this.state.currentStep = null;
+        }
     }
 
     showFinalQuestion() {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.elements.chatMessages;
         const questionDiv = document.createElement('div');
         questionDiv.className = 'text-left mb-4';
         const questionSpan = document.createElement('span');
@@ -365,19 +440,50 @@ class ChatManager {
         `;
 
         questionDiv.appendChild(questionSpan);
-        chatMessages.appendChild(questionDiv);
+        chatMessages.appendChild(questionSpan);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     async handleResponse(wasSuccessful) {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.elements.chatMessages;
         try {
+            // Usar los valores globales si los del state están vacíos
+            const modulo = this.state.userModule || window.GLOBAL_CHAT_MODULE;
+            const problema = this.state.userProblem || window.GLOBAL_CHAT_PROBLEM;
+            const selectedMachineIndex =
+                (typeof this.state.selectedMachineIndex === 'number' && !isNaN(this.state.selectedMachineIndex))
+                ? this.state.selectedMachineIndex
+                : window.GLOBAL_CHAT_MACHINE_INDEX;
+
+            console.log('Valores antes de enviar:', {
+                modulo,
+                problema,
+                selectedMachineIndex
+            });
+
+            if (
+                !modulo ||
+                !problema ||
+                selectedMachineIndex === null ||
+                typeof selectedMachineIndex === 'undefined'
+            ) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Por favor, selecciona el módulo, la máquina y describe el problema antes de continuar.'
+                });
+                return;
+            }
+
             const formData = {
-                modulo: this.userModule,
-                problema: this.userProblem,
-                descripcion: this.userDescription,
-                status: wasSuccessful ? 'Autonomo' : 'SIN_ASIGNAR'
+                modulo: modulo,
+                problema: problema,
+                descripcion: problema,
+                status: wasSuccessful ? 'Autonomo' : 'SIN_ASIGNAR',
+                maquina: MACHINES[selectedMachineIndex] // Enviar el nombre de la máquina seleccionada
             };
+
+            console.log('Enviando datos al backend:', formData);
 
             const response = await fetch('/ticketsOT', {
                 method: 'POST',
@@ -391,46 +497,34 @@ class ChatManager {
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Error en la respuesta del servidor');
-            }
-
             if (data.success) {
                 await Swal.fire({
                     icon: 'success',
                     title: 'Ticket registrado',
                     text: wasSuccessful
-                        ? `Gracias por haberlo resulto de forma autonoma, se igual manera se hara llegar una notificacion como historial que hubo una posible falla, folio: ${data.folio}`
-                        : `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}.`,
-                    confirmButtonText: 'OK',
-                    buttonsStyling: true,
-                    customClass: {
-                        confirmButton: 'swal2-confirm'
-                    }
+                        ? `Gracias por haberlo resuelto de forma autónoma. Folio: ${data.folio}`
+                        : `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}`,
+                    confirmButtonText: 'OK'
                 });
 
                 await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
+                await this.appendChatMessage(
+                    wasSuccessful
+                        ? 'Me alegra que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
+                        : 'Se ha generado tu ticket, en breve te atenderá el mecánico.',
+                    chatMessages
+                );
 
-                const message = wasSuccessful
-                    ? 'Gracias me alegra mucho que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
-                    : 'Gracias hemos estamos generando tu ticket de atención, en breve te atenderá el mecánico a cargo de tu sector, que tengas un excelente día';
-
-                await this.appendChatMessage(message, chatMessages);
-
-                // Agregar la pregunta final después de un breve delay
                 setTimeout(() => this.showFinalResetQuestion(chatMessages), 1000);
+            } else {
+                throw new Error(data.message || 'Error al procesar la solicitud');
             }
         } catch (error) {
-            console.error('Error completo:', error);
+            console.error('Error en handleResponse:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: error.message || 'Error inesperado. Inténtalo de nuevo.',
-                customClass: {
-                    title: 'text-black',
-                    content: 'text-black',
-                    confirmButton: 'border-black',
-                }
+                text: 'Hubo un error al procesar la solicitud'
             });
         }
     }
@@ -459,29 +553,19 @@ class ChatManager {
     }
 
     handleResetResponse(wantsNewChat) {
-        const chatMessages = document.getElementById('chat-messages');
-        if (wantsNewChat) {
-            // Limpiar el chat y reiniciar
-            chatMessages.innerHTML = '';
-            this.resetChat();
-            // Iniciar nueva conversación mostrando el saludo
-            this.appendChatMessage(`${this.getTimeBasedGreeting()}, ¿en qué puedo ayudarte?`, chatMessages);
-        } else {
-            // Mostrar mensaje de despedida y limpiar
-            this.appendChatMessage('Gracias por usar nuestro servicio. ¡Hasta pronto!', chatMessages)
-                .then(() => {
-                    setTimeout(() => {
-                        chatMessages.innerHTML = '';
-                        this.resetChat();
-                    }, 2000);
-                });
-        }
+        const chatMessages = this.elements.chatMessages;
+        // Limpiar el chat y reiniciar siempre
+        chatMessages.innerHTML = '';
+        this.resetChat();
+        // Iniciar nueva conversación mostrando el saludo y el flujo inicial
+        this.startConversation(chatMessages);
     }
 
     resetChat() {
-        this.userProblem = '';
-        this.userDescription = '';
-        this.userModule = '';
+        this.state.userProblem = '';
+        this.state.userModule = '';
+        this.state.selectedMachineIndex = null;
+        this.state.nextResponseHandler = null;
         window.iaChatStep = 0;
     }
 
@@ -498,15 +582,28 @@ class ChatManager {
     }
 
     cleanup() {
-        this.activeIntervals.forEach(interval => clearInterval(interval));
-        this.activeIntervals = [];
+        try {
+            this.activeIntervals.forEach(interval => clearInterval(interval));
+            this.activeIntervals = [];
+
+            // Limpiar estado
+            Object.keys(this.state).forEach(key => {
+                if (typeof this.state[key] !== 'function') {
+                    this.state[key] = null;
+                }
+            });
+        } catch (error) {
+            console.error('Cleanup error:', error);
+        }
     }
 }
 
-// Modificar la inicialización para tener acceso global al chat manager
+// Inicialización segura
 document.addEventListener('DOMContentLoaded', () => {
-    window.chatManager = new ChatManager();
-    window.chatManager.init();
-
-    window.addEventListener('beforeunload', () => window.chatManager.cleanup());
+    try {
+        window.chatManager = new ChatManager();
+        window.chatManager.init();
+    } catch (error) {
+        console.error('Fatal initialization error:', error);
+    }
 });

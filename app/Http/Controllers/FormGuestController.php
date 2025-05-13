@@ -64,56 +64,100 @@ class FormGuestController extends Controller
     public function ticketsOT(Request $request)
     {
         try {
-            Log::info('Datos recibidos:', $request->all());  // Agregar log para debug
+            Log::info('Iniciando creación de ticket:', $request->all());
 
-            // Validar los datos de entrada
+            // Validación actualizada
             $validatedData = $request->validate([
-                'modulo' => 'required|string|max:255',
-                'problema' => 'required|string|max:255',
-                'descripcion' => 'required|string|max:5000',
-                'status' => 'required|string|in:Autonomo,SIN_ASIGNAR'
+                'modulo' => ['required', 'string', 'max:255'],
+                'problema' => ['required', 'string', 'max:255'],
+                'maquina' => ['required', 'string', 'max:255'],
+                'descripcion' => ['required', 'string', 'max:255'],
+                'status' => ['required', 'string', 'in:Autonomo,SIN_ASIGNAR'],
             ]);
 
-            // Generar un folio único más corto
-            $folio = 'OT-' . strtoupper(substr(md5(uniqid()), 0, 6));
+            // Sanitizar datos
+            $sanitizedData = array_map(function($value) {
+                return trim(strip_tags($value));
+            }, $validatedData);
 
-            // Mapear los campos al formato esperado por el modelo
+            // Verificar existencia del módulo
+            $moduloExists = DB::connection('sqlsrv')
+                ->table('CatModuloOperario_View')
+                ->where('MODULEID', $sanitizedData['modulo'])
+                ->exists();
+
+            if (!$moduloExists) {
+                Log::warning('Módulo no encontrado:', ['modulo' => $sanitizedData['modulo']]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El módulo especificado no existe'
+                ], 422);
+            }
+
+            // Generar folio único
+            $timestamp = now()->format('ymd');
+            $folio = 'OT-' . $timestamp . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+
+            // Preparar datos para el registro
             $ticketData = [
-                'Modulo' => $validatedData['modulo'],
-                'Tip_prob' => $validatedData['problema'],
-                'Descrip_prob' => $validatedData['descripcion'],
+                'Modulo' => $sanitizedData['modulo'],
+                'Tip_prob' => $sanitizedData['problema'],
+                'Descrip_prob' => $sanitizedData['problema'],
+                'Maquina' => $sanitizedData['maquina'],
                 'Folio' => $folio,
-                'Status' => $validatedData['status']
+                'Status' => $sanitizedData['status'],
+                'created_at' => now(),
+                'updated_at' => now()
             ];
 
-            // Guardar en la base de datos
-            $ticket = TicketOT::create($ticketData);
+            Log::info('Preparando para crear ticket:', $ticketData);
 
-            Log::info('Ticket creado:', $ticket->toArray());
+            // Crear el ticket dentro de una transacción
+            $ticket = DB::transaction(function () use ($ticketData) {
+                $newTicket = TicketOT::create($ticketData);
+                Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
+                return $newTicket;
+            });
 
-            // Emitir el evento NewOrderNotification
-            event(new NewOrderNotification($ticket));
+            // Emitir evento y enviar email solo si se creó el ticket
+            if ($ticket) {
+                event(new NewOrderNotification($ticket));
+                $this->sendTicketCreatedEmail($ticket);
 
-            // Enviar correo electrónico
-            $this->sendTicketCreatedEmail($ticket);
+                return response()->json([
+                    'success' => true,
+                    'folio' => $folio,
+                    'message' => 'Ticket creado con éxito',
+                    'data' => [
+                        'modulo' => $ticket->Modulo,
+                        'status' => $ticket->Status,
+                        'created_at' => $ticket->created_at
+                    ]
+                ], 201);
+            }
 
-            return response()->json([
-                'success' => true,
-                'folio' => $folio,
-                'message' => 'Ticket creado con éxito'
-            ]);
+            throw new \Exception('No se pudo crear el ticket');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Error de validación:', $e->errors());
+            Log::error('Error de validación:', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación',
+                'message' => 'Error de validación. Por favor, verifica todos los campos.',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Error inesperado:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Error inesperado:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->all()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error al registrar el ticket: ' . $e->getMessage()
+                'message' => 'Error al procesar la solicitud',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

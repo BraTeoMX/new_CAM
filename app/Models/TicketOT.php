@@ -18,7 +18,8 @@ class TicketOT extends Model
         'Tip_prob',
         'Descrip_prob',
         'Folio',
-        'Status'
+        'Status',
+        'Maquina',
     ];
 
     // Habilitar manejo de timestamps
