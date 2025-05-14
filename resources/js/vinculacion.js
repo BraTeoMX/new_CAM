@@ -140,65 +140,54 @@ document.addEventListener('DOMContentLoaded', function() {
         animation: 150,
         onAdd: function (evt) {
             const item = evt.item;
-            console.log('Elemento arrastrado:', item.classList.contains('draggable-mecanico') ? 'Mecánico' : 'Supervisor');
 
-            // Crear nueva fila
-            let tr = document.createElement('tr');
-            tr.className = "bg-white dark:bg-gray-800 border-b dark:border-gray-700";
-            tr.innerHTML = `
-                <td class="px-4 py-2"></td>
-                <td class="px-4 py-2"></td>
-                <td class="px-4 py-2"></td>
-                <td class="px-4 py-2" contenteditable="true"></td>
-                <td class="px-4 py-2" contenteditable="true"></td>
-                <td class="px-4 py-2" contenteditable="true"></td>
-                <td class="px-4 py-2">
-                    <button class="text-red-500 hover:text-red-700" onclick="this.closest('tr').remove()">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </td>
-            `;
-
-            // Asignar valores según el tipo de elemento
-            if (item.classList.contains('draggable-mecanico')) {
-                // Solo asignar el mecánico, manteniendo otros valores
-                const nombre = item.getAttribute('data-nombre');
-                const existingRow = vinculacionTbody.querySelector('tr:not(.filled-mecanico)');
-
-                if (existingRow) {
-                    // Si hay una fila existente sin mecánico, usar esa
-                    existingRow.cells[1].textContent = nombre;
-                    existingRow.classList.add('filled-mecanico');
-                    item.remove();
-                    return;
-                } else {
-                    // Si no hay fila existente, crear una nueva solo con el mecánico
-                    tr.cells[1].textContent = nombre;
-                }
-            } else if (item.classList.contains('draggable-supervisor')) {
-                // Asignar supervisor y módulo, manteniendo otros valores
-                const supervisor = item.getAttribute('data-supervisor');
-                const modulo = item.getAttribute('data-modulo');
-                const existingRow = vinculacionTbody.querySelector('tr:not(.filled-supervisor)');
-
-                if (existingRow) {
-                    // Si hay una fila existente sin supervisor, usar esa
-                    existingRow.cells[0].textContent = supervisor;
-                    existingRow.cells[2].textContent = modulo;
-                    existingRow.classList.add('filled-supervisor');
-                    item.remove();
-                    return;
-                } else {
-                    // Si no hay fila existente, crear una nueva con supervisor y módulo
-                    tr.cells[0].textContent = supervisor;
-                    tr.cells[2].textContent = modulo;
-                }
+            // Buscar la fila seleccionada (o la última si no hay selección)
+            let tr = vinculacionTbody.querySelector('tr.selected');
+            if (!tr) {
+                // Si no hay fila seleccionada, usar la última fila existente
+                tr = vinculacionTbody.querySelector('tr:last-child');
+            }
+            if (!tr) {
+                // Si no hay filas, crear una nueva
+                tr = document.createElement('tr');
+                tr.className = "bg-white dark:bg-gray-800 border-b dark:border-gray-700 selected";
+                tr.innerHTML = `
+                    <td id="td-supervisor" name="supervisor" class="px-4 py-2"></td>
+                    <td id="td-mecanico" name="mecanico" class="px-4 py-2"></td>
+                    <td id="td-modulo" name="modulo" class="px-4 py-2"></td>
+                    <td id="td-comida" name="comida" class="px-4 py-2" contenteditable="true"></td>
+                    <td id="td-break-lj" name="break-lj" class="px-4 py-2" contenteditable="true"></td>
+                    <td id="td-break-v" name="break-v" class="px-4 py-2" contenteditable="true"></td>
+                    <td class="px-4 py-2">
+                        <button class="text-red-500 hover:text-red-700" onclick="this.closest('tr').remove()">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                vinculacionTbody.appendChild(tr);
             }
 
-            // Insertar la nueva fila solo si no se usó una existente
-            vinculacionTbody.appendChild(tr);
+            // Forzar la colocación en la columna correcta según el tipo
+            if (item.classList.contains('draggable-mecanico')) {
+                const nombre = item.getAttribute('data-nombre');
+                // Solo colocar en columna Mecánico
+                tr.querySelector('[name="mecanico"]').textContent = nombre;
+            } else if (item.classList.contains('draggable-supervisor')) {
+                const supervisor = item.getAttribute('data-supervisor');
+                const modulo = item.getAttribute('data-modulo');
+                // Solo colocar en columnas Supervisor y Módulo
+                tr.querySelector('[name="supervisor"]').textContent = supervisor;
+                tr.querySelector('[name="modulo"]').textContent = modulo;
+            }
+
+            // Quitar selección para el siguiente arrastre
+            if (tr.classList.contains('selected')) {
+                tr.classList.remove('selected');
+            }
+
+            // Remover el elemento arrastrado (clonado)
             item.remove();
         }
     });
