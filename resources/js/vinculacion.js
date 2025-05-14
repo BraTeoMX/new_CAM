@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td name="supervisor-modulo" class="px-4 py-2"></td>
                 <td name="mecanico" class="px-4 py-2 flex items-center gap-2">
                     <div class="flex-shrink-0">
-                        <img class="w-10 h-10 rounded-full ring-2 ring-gray-300" src="/default-avatar.jpg" alt=""/>
+                        <img class="w-10 h-10 rounded-full ring-2 ring-gray-300" alt=""/>
                     </div>
                     <span class="mecanico-nombre"></span>
                 </td>
@@ -231,6 +231,51 @@ document.addEventListener('DOMContentLoaded', function () {
     loadMecanicos();
     loadSupervisores();
 
+    // Hacer la función deleteVinculacion accesible globalmente
+    window.deleteVinculacion = function (button, id) {
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/vinculaciones/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Eliminado',
+                                'El registro ha sido eliminado.',
+                                'success'
+                            );
+                            button.closest('tr').remove();
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Error',
+                            'No se pudo eliminar el registro',
+                            'error'
+                        );
+                    });
+            }
+        });
+    }
+
     // Modificar loadVinculaciones para incluir y remover el loading state
     function loadVinculaciones() {
         // Mostrar estado de carga
@@ -240,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td class="px-4 py-2">
                     <div class="flex items-center gap-2">
                         <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
-                        <div class="h-6 bg-gray-200 rounded w-32"></div>
+                        <div class="h-6 bg-gray-200 rounded w-32"></div></td>
                     </div>
                 </td>
                 <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
@@ -291,9 +336,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${createTimeSelect(vinculacion.Break_Viernes_Inicio, vinculacion.Break_Viernes_Fin)}
                         </td>
                         <td class="px-4 py-2">
-                            <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
+                            <button onclick="window.deleteVinculacion(this, ${vinculacion.id})" 
+                                    class="text-red-500 hover:text-red-700">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
                         </td>

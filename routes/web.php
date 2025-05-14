@@ -53,6 +53,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/Documentar', [DocumentarController::class, 'Documentar'])->name('Documentar');
     Route::get('/vinculaciones', [CatalogosController::class, 'getVinculaciones']);
     Route::post('/vinculaciones', [CatalogosController::class, 'saveVinculaciones']);
+    Route::delete('/vinculaciones/{id}', [CatalogosController::class, 'deleteVinculacion'])->name('vinculacion.delete');
 });
 // Rutas para visitantes (no autenticados)
 Route::middleware(['guest'])->group(function () {

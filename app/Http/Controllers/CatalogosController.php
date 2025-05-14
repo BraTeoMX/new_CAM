@@ -160,4 +160,39 @@ class CatalogosController extends Controller
             ], 500);
         }
     }
+
+    public function deleteVinculacion($id)
+    {
+        try {
+            Log::info('Iniciando eliminación de vinculación:', ['id' => $id]);
+
+            $vinculacion = \App\Models\Vinculacion::find($id);
+
+            if (!$vinculacion) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vinculación no encontrada'
+                ], 404);
+            }
+
+            $vinculacion->delete();
+
+            Log::info('Vinculación eliminada correctamente');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vinculación eliminada correctamente'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar vinculación:', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar la vinculación'
+            ], 500);
+        }
+    }
 }
