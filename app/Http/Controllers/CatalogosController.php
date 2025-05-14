@@ -68,7 +68,19 @@ class CatalogosController extends Controller
     public function getVinculaciones()
     {
         try {
-            $vinculaciones = \App\Models\Vinculacion::all();
+            $vinculaciones = \App\Models\Vinculacion::select(
+                'id',
+                'Supervisor',
+                'Mecanico',
+                'Modulo',
+                'Hora_Comida_Inicio',
+                'Hora_Comida_Fin',
+                'Break_Lun_Jue_Inicio',
+                'Break_Lun_Jue_Fin',
+                'Break_Viernes_Inicio',
+                'Break_Viernes_Fin'
+            )->get();
+
             return response()->json($vinculaciones);
         } catch (\Exception $e) {
             Log::error('Error al obtener vinculaciones: ' . $e->getMessage());
@@ -81,37 +93,69 @@ class CatalogosController extends Controller
 
     public function saveVinculaciones(Request $request)
     {
+        Log::info('Iniciando saveVinculaciones');
+        DB::beginTransaction();
+
         try {
-            $data = $request->input('vinculaciones', []);
-            foreach ($data as $v) {
-                if (!empty($v['id'])) {
-                    // Actualizar si existe
-                    \App\Models\Vinculacion::where('id', $v['id'])->update([
-                        'Supervisor' => $v['Supervisor'],
-                        'Mecanico' => $v['Mecanico'],
-                        'Modulo' => $v['Modulo'],
-                        'Hora_Comida' => $v['Hora_Comida'],
-                        'Break_Lun_Jue' => $v['Break_Lun_Jue'],
-                        'Break_Viernes' => $v['Break_Viernes'],
+            Log::info('Datos recibidos:', ['vinculaciones' => $request->input('vinculaciones')]);
+
+            $vinculacionesNuevas = collect($request->input('vinculaciones', []));
+            $vinculacionesExistentes = \App\Models\Vinculacion::all();
+
+            // Procesar actualizaciones y nuevas vinculaciones
+            foreach ($vinculacionesNuevas as $vinculacion) {
+                Log::info('Procesando vinculación:', $vinculacion);
+
+                // Buscar si existe una vinculación con el mismo mecánico y supervisor
+                $existente = $vinculacionesExistentes->first(function ($item) use ($vinculacion) {
+                    return $item->Mecanico === $vinculacion['Mecanico'] &&
+                        $item->Supervisor === $vinculacion['Supervisor'];
+                });
+
+                if ($existente) {
+                    Log::info('Actualizando vinculación existente:', ['id' => $existente->id]);
+                    $existente->update([
+                        'Hora_Comida_Inicio' => $vinculacion['Hora_Comida_Inicio'],
+                        'Hora_Comida_Fin' => $vinculacion['Hora_Comida_Fin'],
+                        'Break_Lun_Jue_Inicio' => $vinculacion['Break_Lun_Jue_Inicio'],
+                        'Break_Lun_Jue_Fin' => $vinculacion['Break_Lun_Jue_Fin'],
+                        'Break_Viernes_Inicio' => $vinculacion['Break_Viernes_Inicio'],
+                        'Break_Viernes_Fin' => $vinculacion['Break_Viernes_Fin']
                     ]);
-                } else {
-                    // Crear nuevo si no existe
+                } else if (!empty($vinculacion['Supervisor']) && !empty($vinculacion['Mecanico'])) {
+                    Log::info('Creando nueva vinculación');
                     \App\Models\Vinculacion::create([
-                        'Supervisor' => $v['Supervisor'],
-                        'Mecanico' => $v['Mecanico'],
-                        'Modulo' => $v['Modulo'],
-                        'Hora_Comida' => $v['Hora_Comida'],
-                        'Break_Lun_Jue' => $v['Break_Lun_Jue'],
-                        'Break_Viernes' => $v['Break_Viernes'],
+                        'Supervisor' => $vinculacion['Supervisor'],
+                        'Mecanico' => $vinculacion['Mecanico'],
+                        'Modulo' => $vinculacion['Modulo'],
+                        'Hora_Comida_Inicio' => $vinculacion['Hora_Comida_Inicio'],
+                        'Hora_Comida_Fin' => $vinculacion['Hora_Comida_Fin'],
+                        'Break_Lun_Jue_Inicio' => $vinculacion['Break_Lun_Jue_Inicio'],
+                        'Break_Lun_Jue_Fin' => $vinculacion['Break_Lun_Jue_Fin'],
+                        'Break_Viernes_Inicio' => $vinculacion['Break_Viernes_Inicio'],
+                        'Break_Viernes_Fin' => $vinculacion['Break_Viernes_Fin']
                     ]);
                 }
             }
-            return response()->json(['success' => true, 'message' => 'Vinculaciones guardadas correctamente']);
+
+            DB::commit();
+            Log::info('Transacción completada exitosamente');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vinculaciones actualizadas correctamente'
+            ]);
         } catch (\Exception $e) {
-            Log::error('Error al guardar vinculaciones: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error en saveVinculaciones:', [
+                'mensaje' => $e->getMessage(),
+                'linea' => $e->getLine(),
+                'archivo' => $e->getFile()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error al guardar las vinculaciones.',
+                'message' => 'Error al procesar las vinculaciones',
                 'error' => $e->getMessage()
             ], 500);
         }

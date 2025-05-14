@@ -22,6 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://unpkg.com/flowbite@1.5.4/dist/flowbite.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css', 'resources/js/app.js', 'resources/js/Sortable.js', 'resources/js/Pussher.js'])
 

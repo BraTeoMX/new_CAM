@@ -1,27 +1,44 @@
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Arrays para almacenar los datos
+    // Variables globales para mecánicos
     let mecanicosData = [];
     let supervisoresData = [];
+    let mecanicoMap = new Map(); // Mapa para búsqueda rápida de mecánicos por nombre
 
     const mecanicosList = document.getElementById('mecanicos-list');
     const supervisoresList = document.getElementById('supervisores-list');
     const vinculacionTbody = document.getElementById('vinculacion-tbody');
 
-    // Función para cargar mecánicos
+    // Función auxiliar para obtener cvetra por nombre
+    function getCvetraByNombre(nombre) {
+        return mecanicoMap.get(nombre)?.cvetra || '';
+    }
+
+    // Función para obtener URL de imagen
+    function getMecanicoImageUrl(nombre) {
+        const cvetra = getCvetraByNombre(nombre);
+        return cvetra ? `http://128.150.102.45:8000/Intimark/${cvetra}.jpg` : '/default-avatar.jpg';
+    }
+
+    // Modificar loadMecanicos para crear el mapa
     function loadMecanicos() {
         fetch('/mecanicos')
             .then(response => response.json())
             .then(data => {
-                mecanicosData = data; // Guardamos los datos en el array
+                mecanicosData = data;
+                // Crear mapa de mecánicos por nombre
+                mecanicoMap.clear();
+                mecanicosData.forEach(mecanico => {
+                    mecanicoMap.set(mecanico.nombre, mecanico);
+                });
                 mecanicosList.innerHTML = mecanicosData.map(mecanico => `
                     <div class="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md cursor-move draggable-mecanico"
                          data-nombre="${mecanico.nombre || ''}"
                          data-cvetra="${mecanico.cvetra || ''}"
                          data-index="${mecanicosData.indexOf(mecanico)}">
                         <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
-                             src="http://128.150.102.45:8000/Intimark/${mecanico.cvetra}.jpg"
+                             src="${getMecanicoImageUrl(mecanico.nombre)}"
                              onerror="this.src='/default-avatar.jpg';"
                              alt="${mecanico.cvetra}"/>
                         <div>
@@ -55,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Función para inicializar Sortable
+    // Modificar la función onAdd del Sortable
     function initializeSortable() {
         // Solo inicializar si ambos arrays tienen datos
         if (mecanicosData.length && supervisoresData.length) {
@@ -99,7 +116,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (item.classList.contains('draggable-mecanico')) {
                         const mecanico = mecanicosData[index];
                         if (mecanico) {
-                            row.querySelector('[name="mecanico"]').textContent = mecanico.nombre;
+                            const mecanicoCell = row.querySelector('[name="mecanico"]');
+                            mecanicoCell.querySelector('.mecanico-nombre').textContent = mecanico.nombre;
+                            mecanicoCell.querySelector('img').src = getMecanicoImageUrl(mecanico.nombre);
+                            mecanicoCell.querySelector('img').alt = mecanico.cvetra;
                             row.setAttribute('data-cvetra', mecanico.cvetra);
                         }
                     }
@@ -107,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const supervisor = supervisoresData[index];
                         if (supervisor) {
                             const cell = row.querySelector('[name="supervisor-modulo"]');
-                            cell.innerHTML = `Sup: ${supervisor.Nombre}<br>Mod: ${supervisor.Modulo}`;
+                            cell.innerHTML = `Mod: ${supervisor.Modulo}<br>Sup: ${supervisor.Nombre}`;
                             row.setAttribute('data-supervisor', supervisor.Nombre);
                             row.setAttribute('data-modulo', supervisor.Modulo);
                         }
@@ -117,6 +137,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
+    }
+
+    function createTimeSelect(startValue = '', endValue = '') {
+        // Crear array de horas desde 8:00 hasta 17:45
+        const times = [];
+        for (let hour = 8; hour <= 17; hour++) {
+            ['00', '15', '30', '45'].forEach(minute => {
+                // No incluir tiempos después de 17:45
+                if (hour !== 17 || (hour === 17 && minute <= '45')) {
+                    times.push(`${String(hour).padStart(2, '0')}:${minute}`);
+                }
+            });
+        }
+
+        return `<div class="flex items-center gap-1">
+            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2">
+                <option value="">Inicio</option>
+                ${times.map(time =>
+            `<option value="${time}" ${time === startValue ? 'selected' : ''}>${time}</option>`
+        ).join('')}
+            </select>
+            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2">
+                <option value="">Fin</option>
+                ${times.map(time =>
+            `<option value="${time}" ${time === endValue ? 'selected' : ''}>${time}</option>`
+        ).join('')}
+            </select>
+        </div>`;
     }
 
     // Función para obtener o crear una fila vacía
@@ -131,10 +179,15 @@ document.addEventListener('DOMContentLoaded', function () {
             row.className = "bg-white dark:bg-gray-800 border-b dark:border-gray-700";
             row.innerHTML = `
                 <td name="supervisor-modulo" class="px-4 py-2"></td>
-                <td name="mecanico" class="px-4 py-2"></td>
-                <td name="comida" class="px-4 py-2" contenteditable="true"></td>
-                <td name="break-lj" class="px-4 py-2" contenteditable="true"></td>
-                <td name="break-v" class="px-4 py-2" contenteditable="true"></td>
+                <td name="mecanico" class="px-4 py-2 flex items-center gap-2">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full ring-2 ring-gray-300" src="/default-avatar.jpg" alt=""/>
+                    </div>
+                    <span class="mecanico-nombre"></span>
+                </td>
+                <td name="comida" class="px-4 py-2">${createTimeSelect()}</td>
+                <td name="break-lj" class="px-4 py-2">${createTimeSelect()}</td>
+                <td name="break-v" class="px-4 py-2">${createTimeSelect()}</td>
                 <td class="px-4 py-2">
                     <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,18 +205,36 @@ document.addEventListener('DOMContentLoaded', function () {
     loadMecanicos();
     loadSupervisores();
 
-    // Función para cargar vinculaciones
+    // Modificar loadVinculaciones para usar el mapa
     function loadVinculaciones() {
         fetch('/vinculaciones')
             .then(response => response.json())
             .then(data => {
                 vinculacionTbody.innerHTML = data.map(vinculacion => `
-                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-                        <td name="supervisor-modulo" class="px-4 py-2">Sup: ${vinculacion.Supervisor}<br>Mod: ${vinculacion.Modulo}</td>
-                        <td name="mecanico" class="px-4 py-2">${vinculacion.Mecanico}</td>
-                        <td name="comida" class="px-4 py-2" contenteditable="true">${vinculacion.Hora_Comida}</td>
-                        <td name="break-lj" class="px-4 py-2" contenteditable="true">${vinculacion.Break_Lun_Jue}</td>
-                        <td name="break-v" class="px-4 py-2" contenteditable="true">${vinculacion.Break_Viernes}</td>
+                    <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700"
+                        data-id="${vinculacion.id}"
+                        data-modulo="${vinculacion.Modulo}"
+                        data-supervisor="${vinculacion.Supervisor}"
+                        data-cvetra="${vinculacion.Mecanico}">
+                        <td name="supervisor-modulo" class="px-4 py-2">Mod:${vinculacion.Modulo}<br>Sup:<br>${vinculacion.Supervisor}</td>
+                        <td name="mecanico" class="px-4 py-2 flex items-center gap-2">
+                            <div class="flex-shrink-0">
+                                <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
+                                     src="${getMecanicoImageUrl(vinculacion.Mecanico)}"
+                                     onerror="this.src='/default-avatar.jpg';"
+                                     alt="${vinculacion.Mecanico}"/>
+                            </div>
+                            <span class="mecanico-nombre">${vinculacion.Mecanico}</span>
+                        </td>
+                        <td name="comida" class="px-4 py-2">
+                            ${createTimeSelect(vinculacion.Hora_Comida_Inicio, vinculacion.Hora_Comida_Fin)}
+                        </td>
+                        <td name="break-lj" class="px-4 py-2">
+                            ${createTimeSelect(vinculacion.Break_Lun_Jue_Inicio, vinculacion.Break_Lun_Jue_Fin)}
+                        </td>
+                        <td name="break-v" class="px-4 py-2">
+                            ${createTimeSelect(vinculacion.Break_Viernes_Inicio, vinculacion.Break_Viernes_Fin)}
+                        </td>
                         <td class="px-4 py-2">
                             <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,31 +250,61 @@ document.addEventListener('DOMContentLoaded', function () {
     // Función para guardar vinculaciones
     document.getElementById('guardar-vinculacion').addEventListener('click', function () {
         const vinculaciones = Array.from(vinculacionTbody.children).map(row => ({
+            id: row.getAttribute('data-id'), // Agregamos el id si existe
             Supervisor: row.getAttribute('data-supervisor'),
             Modulo: row.getAttribute('data-modulo'),
-            Mecanico: row.querySelector('[name="mecanico"]').textContent.trim(),
-            Hora_Comida: row.querySelector('[name="comida"]').textContent.trim(),
-            Break_Lun_Jue: row.querySelector('[name="break-lj"]').textContent.trim(),
-            Break_Viernes: row.querySelector('[name="break-v"]').textContent.trim()
+            Mecanico: row.querySelector('[name="mecanico"] .mecanico-nombre').textContent.trim(),
+            Hora_Comida_Inicio: row.querySelector('[name="comida"] select:first-child').value,
+            Hora_Comida_Fin: row.querySelector('[name="comida"] select:last-child').value,
+            Break_Lun_Jue_Inicio: row.querySelector('[name="break-lj"] select:first-child').value,
+            Break_Lun_Jue_Fin: row.querySelector('[name="break-lj"] select:last-child').value,
+            Break_Viernes_Inicio: row.querySelector('[name="break-v"] select:first-child').value,
+            Break_Viernes_Fin: row.querySelector('[name="break-v"] select:last-child').value
         }));
-
-        fetch('/vinculaciones', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({ vinculaciones })
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message || 'Vinculaciones guardadas correctamente');
-                loadVinculaciones();
-            })
-            .catch(error => {
-                console.error('Error al guardar vinculaciones:', error);
-                alert('Error al guardar vinculaciones');
-            });
+        Swal.fire({
+            title: '¿Desear guardar la información?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/vinculaciones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ vinculaciones })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: data.message || 'Vinculaciones guardadas correctamente',
+                                icon: 'success',
+                                confirmButtonColor: '#3085d6'
+                            }).then(() => {
+                                loadVinculaciones();
+                            });
+                        } else {
+                            throw new Error(data.message || 'Error al guardar');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al guardar vinculaciones:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Error al guardar las vinculaciones',
+                            icon: 'error',
+                            confirmButtonColor: '#d33'
+                        });
+                    });
+            }
+        });
     });
 
     // Cargar vinculaciones iniciales
