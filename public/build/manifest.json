@@ -4,12 +4,12 @@
     "name": "_commonjsHelpers"
   },
   "resources/css/app.css": {
-    "file": "assets/app-YAICzOEI.css",
+    "file": "assets/app-BbbgnWz2.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/css/select2tailwind.css": {
-    "file": "assets/select2tailwind-BLe76tkX.css",
+    "file": "assets/select2tailwind-DPmYMS9I.css",
     "src": "resources/css/select2tailwind.css",
     "isEntry": true
   },
@@ -19,7 +19,7 @@
     "isEntry": true
   },
   "resources/js/IAChat.js": {
-    "file": "assets/IAChat-DS-oUx_4.js",
+    "file": "assets/IAChat-BAroXPZm.js",
     "name": "IAChat",
     "src": "resources/js/IAChat.js",
     "isEntry": true
@@ -46,7 +46,7 @@
     "isEntry": true
   },
   "resources/js/calendar.js": {
-    "file": "assets/calendar-BHT4IWUB.js",
+    "file": "assets/calendar-DefsuQaZ.js",
     "name": "calendar",
     "src": "resources/js/calendar.js",
     "isEntry": true
@@ -65,5 +65,11 @@
     "imports": [
       "__commonjsHelpers-Cpj98o6Y.js"
     ]
+  },
+  "resources/js/vinculacion.js": {
+    "file": "assets/vinculacion-nj9bY8QP.js",
+    "name": "vinculacion",
+    "src": "resources/js/vinculacion.js",
+    "isEntry": true
   }
 }

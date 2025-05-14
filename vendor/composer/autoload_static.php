@@ -472,8 +472,8 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -541,8 +541,8 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         ),
         'League\\Uri\\' => 
         array (
-            0 => __DIR__ . '/..' . '/league/uri-interfaces',
-            1 => __DIR__ . '/..' . '/league/uri',
+            0 => __DIR__ . '/..' . '/league/uri',
+            1 => __DIR__ . '/..' . '/league/uri-interfaces',
         ),
         'League\\MimeTypeDetection\\' => 
         array (
@@ -850,10 +850,10 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         'App\\Http\\Controllers\\CatalogosController' => __DIR__ . '/../..' . '/app/Http/Controllers/CatalogosController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardController.php',
-        'App\\Http\\Controllers\\DeepSeekController' => __DIR__ . '/../..' . '/app/Http/Controllers/DeepSeekController.php',
         'App\\Http\\Controllers\\DocumentarController' => __DIR__ . '/../..' . '/app/Http/Controllers/DocumentarController.php',
         'App\\Http\\Controllers\\EventController' => __DIR__ . '/../..' . '/app/Http/Controllers/EventController.php',
         'App\\Http\\Controllers\\FormGuestController' => __DIR__ . '/../..' . '/app/Http/Controllers/FormGuestController.php',
+        'App\\Http\\Controllers\\InteractionIA' => __DIR__ . '/../..' . '/app/Http/Controllers/InteractionIA.php',
         'App\\Http\\Controllers\\OTsProgramController' => __DIR__ . '/../..' . '/app/Http/Controllers/OTsProgramController.php',
         'App\\Http\\Controllers\\OrdenOTController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrdenOTController.php',
         'App\\Http\\Controllers\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/UserController.php',
@@ -873,6 +873,7 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         'App\\Models\\Event' => __DIR__ . '/../..' . '/app/Models/Event.php',
         'App\\Models\\TicketOT' => __DIR__ . '/../..' . '/app/Models/TicketOT.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
+        'App\\Models\\Vinculacion' => __DIR__ . '/../..' . '/app/Models/Vinculacion.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\AuthServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AuthServiceProvider.php',
         'App\\Providers\\BroadcastServiceProvider' => __DIR__ . '/../..' . '/app/Providers/BroadcastServiceProvider.php',

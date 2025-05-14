@@ -241,9 +241,19 @@ class ChatManager {
                     }
                 });
 
+                // Evitar mensajes duplicados al cambiar de módulo
                 $('#modul').on('select2:select', (e) => {
-                    this.state.userModule = e.params.data.text || '';
-                    window.GLOBAL_CHAT_MODULE = this.state.userModule; // Guardar globalmente
+                    const newModule = e.params.data.text || '';
+                    // Si ya hay un módulo seleccionado y el usuario cambia, solo actualiza el valor
+                    if (this.state.userModule && this.state.userModule !== newModule) {
+                        this.state.userModule = newModule;
+                        window.GLOBAL_CHAT_MODULE = newModule;
+                        // No mostrar mensajes ni reiniciar flujo
+                        return;
+                    }
+                    // Si es la primera vez, sí mostrar el flujo normal
+                    this.state.userModule = newModule;
+                    window.GLOBAL_CHAT_MODULE = newModule;
                     window.iaChatStep = 3;
                     this.showMachineSelect();
                 });
@@ -282,9 +292,20 @@ class ChatManager {
         select.addEventListener('change', (e) => {
             const idx = parseInt(e.target.value);
             if (isNaN(idx)) return;
-
+            // Si ya hay una máquina seleccionada y el usuario cambia, solo actualiza el valor
+            if (
+                typeof this.state.selectedMachineIndex === 'number' &&
+                this.state.selectedMachineIndex !== null &&
+                this.state.selectedMachineIndex !== idx
+            ) {
+                this.state.selectedMachineIndex = idx;
+                window.GLOBAL_CHAT_MACHINE_INDEX = idx;
+                // No mostrar mensajes ni reiniciar flujo
+                return;
+            }
+            // Si es la primera vez, sí mostrar el flujo normal
             this.state.selectedMachineIndex = idx;
-            window.GLOBAL_CHAT_MACHINE_INDEX = idx; // Guardar globalmente
+            window.GLOBAL_CHAT_MACHINE_INDEX = idx;
             this.askUserProblem(idx);
         });
     }

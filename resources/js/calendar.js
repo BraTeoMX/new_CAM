@@ -1,5 +1,7 @@
 import { Calendar } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -11,8 +13,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (calendarEl) {
         calendar = new Calendar(calendarEl, {
-            plugins: [dayGridPlugin, interactionPlugin],
+            plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
             initialView: "dayGridMonth",
+            headerToolbar: {
+                left: "prev,next today",
+                center: "title",
+                right: "timeGridDay,timeGridWeek,dayGridMonth,listYear"
+            },
+            buttonText: {
+                today: "Hoy",
+                month: "Mes",
+                week: "Semana",
+                day: "Horas",
+                list: "Año"
+            },
             events: async function (fetchInfo, successCallback, failureCallback) {
                 try {
                     let response = await fetch("/events");
@@ -168,7 +182,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 { text: "Asignar responsable", action: () => assignResponsible(calendarEvent) },
                 { text: "Asignar prioridad", action: () => openPriorityModal(calendarEvent.id) },
             ];
-
             options.forEach((option) => {
                 let item = document.createElement("div");
                 // Tailwind classes for the menu items
@@ -193,8 +206,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.body.appendChild(menu);
             document.addEventListener("click", () => menu.remove(), { once: true });
         }
-
-
             function openPriorityModal(eventId) {
                 selectedEventId = eventId;
                 let modal = document.getElementById("modalPrioridad");
@@ -202,7 +213,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     modal.classList.remove("hidden");
                 }
             }
-
             function closePriorityModal() {
                 let modal = document.getElementById("modalPrioridad");
                 if (modal) {
@@ -230,13 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 });
             }
-
             window.showContextMenu = showContextMenu;
-
-
-
-
-
     function updateEvent(eventId, data) {
         fetch(`/events/${eventId}`, {
             method: "PUT",

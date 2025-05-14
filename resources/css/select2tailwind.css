@@ -1,14 +1,39 @@
 /* resources/css/select2-tailwind.css */
 .select2-container .select2-selection--single {
-    @apply bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm;
+    @apply bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm flex items-center min-h-[2.5rem];
+    min-height: 2.5rem;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    @apply text-gray-800 dark:text-gray-300;
+    line-height: 1.5rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 2.5rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    @apply text-gray-400 dark:text-gray-500;
+    opacity: 1 !important;
+    line-height: 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     @apply text-gray-500;
+    height: 100%;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .select2-dropdown {
     @apply bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg;
+    z-index: 9999 !important;
 }
 
 .select2-results__option {
@@ -17,8 +42,4 @@
 
 .select2-results__option--highlighted[aria-selected] {
     @apply bg-indigo-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    @apply text-gray-800 dark:text-gray-300;
 }

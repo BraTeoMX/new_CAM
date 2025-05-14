@@ -95,8 +95,7 @@ class FormGuestController extends Controller
             }
 
             // Generar folio único
-            $timestamp = now()->format('ymd');
-            $folio = 'OT-' . $timestamp . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
+            $folio = 'OT' .'-'. strtoupper(substr(md5(uniqid()), 0, 6));
 
             // Preparar datos para el registro
             $ticketData = [
