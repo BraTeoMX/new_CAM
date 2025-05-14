@@ -4,7 +4,7 @@
     "name": "_commonjsHelpers"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BbbgnWz2.css",
+    "file": "assets/app-6tvjZSt7.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -65,11 +65,5 @@
     "imports": [
       "__commonjsHelpers-Cpj98o6Y.js"
     ]
-  },
-  "resources/js/vinculacion.js": {
-    "file": "assets/vinculacion-CrgFp_yk.js",
-    "name": "vinculacion",
-    "src": "resources/js/vinculacion.js",
-    "isEntry": true
   }
 }

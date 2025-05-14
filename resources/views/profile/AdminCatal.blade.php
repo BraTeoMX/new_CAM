@@ -8,19 +8,6 @@
 
         <!-- Grid de paneles -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Panel Mecánicos -->
-            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-                <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Mecánicos</h2>
-                <div id="mecanicos-list" class="overflow-y-auto max-h-96">
-                    <!-- La lista de mecánicos se cargará aquí -->
-                    <div class="animate-pulse">
-                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Panel Módulos/Supervisor -->
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
                 <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Módulos/Supervisor</h2>
@@ -33,31 +20,64 @@
                     </div>
                 </div>
             </div>
+            <!-- Panel Mecánicos -->
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Mecánicos</h2>
+                <div id="mecanicos-list" class="overflow-y-auto max-h-96">
+                    <!-- La lista de mecánicos se cargará aquí -->
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div class="h-4 bg-gray-200 rounded w-full mb-4"></div>
+                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Nuevo Panel de Vinculación -->
         <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mt-8">
-            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Mecánico - Módulo/Supervisor</h2>
+            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Mecánico - Módulo/Supervisor
+            </h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700" id="tabla-vinculacion">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th id="col-supervisor" name="supervisor" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Supervisor</th>
-                            <th id="col-mecanico" name="mecanico" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Mecánico</th>
-                            <th id="col-modulo" name="modulo" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Módulo</th>
-                            <th id="col-comida" name="comida" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Hora Comida</th>
-                            <th id="col-break-lj" name="break-lj" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Break Lun-Jue</th>
-                            <th id="col-break-v" name="break-v" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Break Viernes</th>
+                            <th id="col-supervisor-modulo" name="supervisor-modulo"
+                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Supervisor/Módulo</th>
+                            <th id="col-mecanico" name="mecanico"
+                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Mecánico</th>
+                            <th id="col-comida" name="comida"
+                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Hora Comida</th>
+                            <th id="col-break-lj" name="break-lj"
+                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Break Lun-Jue</th>
+                            <th id="col-break-v" name="break-v"
+                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Break Viernes</th>
                             <th class="px-4 py-2"></th>
                         </tr>
                     </thead>
                     <tbody id="vinculacion-tbody">
-                        <!-- Las filas de vinculaciones se cargarán aquí -->
+                        <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+                            <td name="supervisor-modulo" class="px-4 py-2"></td>
+                            <td name="mecanico" class="px-4 py-2"></td>
+                            <td name="comida" class="px-4 py-2" contenteditable="true"></td>
+                            <td name="break-lj" class="px-4 py-2" contenteditable="true"></td>
+                            <td name="break-v" class="px-4 py-2" contenteditable="true"></td>
+                            <td class="px-4 py-2">
+                                <!-- Botón eliminar -->
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <div class="mt-4 flex gap-2">
-                <button id="guardar-vinculacion" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Guardar Vinculaciones</button>
+                <button id="guardar-vinculacion"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Guardar
+                    Vinculaciones</button>
             </div>
         </div>
     </div>
