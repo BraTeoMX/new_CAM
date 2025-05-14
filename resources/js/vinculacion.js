@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
                          data-index="${mecanicosData.indexOf(mecanico)}">
                         <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
                              src="${getMecanicoImageUrl(mecanico.nombre)}"
-                             onerror="this.src='/default-avatar.jpg';"
                              alt="${mecanico.cvetra}"/>
                         <div>
                             <h3 class="font-medium">${mecanico.nombre}</h3>
@@ -139,12 +138,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Hacer la función validateTimeRange accesible globalmente
+    window.validateTimeRange = function (select) {
+        const container = select.closest('div');
+        const startSelect = container.querySelector('select:first-child');
+        const endSelect = container.querySelector('select:last-child');
+        const columnName = select.closest('td').getAttribute('name').replace('-', ' ');
+
+        const startTime = startSelect.value;
+        const endTime = endSelect.value;
+
+        if (startTime && endTime) {
+            if (startTime >= endTime) {
+                Swal.fire({
+                    title: 'Error en horario',
+                    text: `La hora de fin debe ser mayor a la hora de inicio en ${columnName}`,
+                    icon: 'warning',
+                    confirmButtonColor: '#d33'
+                }).then(() => {
+                    select.value = '';
+                });
+                return false;
+            }
+        }
+        return true;
+    }
+
     function createTimeSelect(startValue = '', endValue = '') {
-        // Crear array de horas desde 8:00 hasta 17:45
         const times = [];
         for (let hour = 8; hour <= 17; hour++) {
             ['00', '15', '30', '45'].forEach(minute => {
-                // No incluir tiempos después de 17:45
                 if (hour !== 17 || (hour === 17 && minute <= '45')) {
                     times.push(`${String(hour).padStart(2, '0')}:${minute}`);
                 }
@@ -152,13 +175,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         return `<div class="flex items-center gap-1">
-            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2">
+            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2" 
+                    onchange="validateTimeRange(this)">
                 <option value="">Inicio</option>
                 ${times.map(time =>
             `<option value="${time}" ${time === startValue ? 'selected' : ''}>${time}</option>`
         ).join('')}
             </select>
-            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2">
+            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2"
+                    onchange="validateTimeRange(this)">
                 <option value="">Fin</option>
                 ${times.map(time =>
             `<option value="${time}" ${time === endValue ? 'selected' : ''}>${time}</option>`
@@ -167,11 +192,12 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>`;
     }
 
-    // Función para obtener o crear una fila vacía
+    // Modificar la función getEmptyRow para una mejor validación
     function getEmptyRow() {
         let row = Array.from(vinculacionTbody.getElementsByTagName('tr')).find(row => {
-            return !row.querySelector('[name="mecanico"]').textContent ||
-                !row.querySelector('[name="supervisor-modulo"]').textContent;
+            const mecanicoNombre = row.querySelector('[name="mecanico"] .mecanico-nombre')?.textContent.trim();
+            const supervisorModulo = row.querySelector('[name="supervisor-modulo"]')?.textContent.trim();
+            return !mecanicoNombre || !supervisorModulo || mecanicoNombre === '' || supervisorModulo === '';
         });
 
         if (!row) {
@@ -205,11 +231,41 @@ document.addEventListener('DOMContentLoaded', function () {
     loadMecanicos();
     loadSupervisores();
 
-    // Modificar loadVinculaciones para usar el mapa
+    // Modificar loadVinculaciones para incluir y remover el loading state
     function loadVinculaciones() {
+        // Mostrar estado de carga
+        vinculacionTbody.innerHTML = `
+            <tr class="animate-pulse bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+                <td class="px-4 py-2"><div class="h-6 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div class="h-6 bg-gray-200 rounded w-32"></div>
+                    </div>
+                </td>
+                <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2"><div class="h-6 w-6 bg-gray-200 rounded"></div></td>
+            </tr>
+            <tr class="animate-pulse bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+                <td class="px-4 py-2"><div class="h-6 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        <div class="h-6 bg-gray-200 rounded w-32"></div>
+                    </div>
+                </td>
+                <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2"><div class="h-8 bg-gray-200 rounded"></div></td>
+                <td class="px-4 py-2"><div class="h-6 w-6 bg-gray-200 rounded"></div></td>
+            </tr>`;
+
         fetch('/vinculaciones')
             .then(response => response.json())
             .then(data => {
+                // Reemplazar el loading state con los datos reales
                 vinculacionTbody.innerHTML = data.map(vinculacion => `
                     <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700"
                         data-id="${vinculacion.id}"
@@ -221,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="flex-shrink-0">
                                 <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
                                      src="${getMecanicoImageUrl(vinculacion.Mecanico)}"
-                                     onerror="this.src='/default-avatar.jpg';"
                                      alt="${vinculacion.Mecanico}"/>
                             </div>
                             <span class="mecanico-nombre">${vinculacion.Mecanico}</span>
@@ -244,12 +299,61 @@ document.addEventListener('DOMContentLoaded', function () {
                         </td>
                     </tr>
                 `).join('');
+            })
+            .catch(error => {
+                console.error('Error al cargar vinculaciones:', error);
+                // Mostrar mensaje de error en la tabla
+                vinculacionTbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-4 py-2 text-center text-red-500">
+                            Error al cargar los datos
+                        </td>
+                    </tr>
+                `;
             });
     }
 
     // Función para guardar vinculaciones
     document.getElementById('guardar-vinculacion').addEventListener('click', function () {
-        const vinculaciones = Array.from(vinculacionTbody.children).map(row => ({
+        // Validar todos los horarios antes de proceder
+        const rows = Array.from(vinculacionTbody.children);
+        let isValid = true;
+
+        for (const row of rows) {
+            const timeColumns = ['comida', 'break-lj', 'break-v'];
+            for (const column of timeColumns) {
+                const container = row.querySelector(`[name="${column}"]`);
+                const startSelect = container.querySelector('select:first-child');
+                const endSelect = container.querySelector('select:last-child');
+
+                if (!startSelect.value || !endSelect.value) {
+                    Swal.fire({
+                        title: 'Campos incompletos',
+                        text: `Por favor complete los horarios de ${column.replace('-', ' ')}`,
+                        icon: 'warning',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    isValid = false;
+                    return;
+                }
+
+                if (startSelect.value >= endSelect.value) {
+                    Swal.fire({
+                        title: 'Error en horarios',
+                        text: `La hora de fin debe ser mayor a la hora de inicio en ${column.replace('-', ' ')}`,
+                        icon: 'warning',
+                        confirmButtonColor: '#d33'
+                    });
+                    isValid = false;
+                    return;
+                }
+            }
+        }
+
+        if (!isValid) return;
+
+        // Continuar con el guardado si todas las validaciones pasan
+        const vinculaciones = rows.map(row => ({
             id: row.getAttribute('data-id'), // Agregamos el id si existe
             Supervisor: row.getAttribute('data-supervisor'),
             Modulo: row.getAttribute('data-modulo'),
@@ -261,8 +365,9 @@ document.addEventListener('DOMContentLoaded', function () {
             Break_Viernes_Inicio: row.querySelector('[name="break-v"] select:first-child').value,
             Break_Viernes_Fin: row.querySelector('[name="break-v"] select:last-child').value
         }));
+
         Swal.fire({
-            title: '¿Desear guardar la información?',
+            title: '¿Desea guardar la información?',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
