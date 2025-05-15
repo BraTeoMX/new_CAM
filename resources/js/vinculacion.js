@@ -71,71 +71,134 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Modificar la función onAdd del Sortable
+    // Modificar la función getEmptyRow para insertar al inicio
+    function getEmptyRow() {
+        let row = Array.from(vinculacionTbody.getElementsByTagName('tr')).find(row => {
+            const mecanicoNombre = row.querySelector('[name="mecanico"] .mecanico-nombre')?.textContent.trim();
+            const supervisorModulo = row.querySelector('[name="supervisor-modulo"]')?.textContent.trim();
+            return !mecanicoNombre || !supervisorModulo || mecanicoNombre === '' || supervisorModulo === '';
+        });
+
+        if (!row) {
+            row = document.createElement('tr');
+            row.className = "bg-white dark:bg-gray-800 border-b dark:border-gray-700";
+            row.innerHTML = `
+                <td name="supervisor-modulo" class="px-4 py-2"></td>
+                <td name="mecanico" class="px-4 py-2 flex items-center gap-2">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full ring-2 ring-gray-300" alt=""/>
+                    </div>
+                    <span class="mecanico-nombre"></span>
+                </td>
+                <td name="comida" class="px-4 py-2">${createTimeSelect()}</td>
+                <td name="break-lj" class="px-4 py-2">${createTimeSelect()}</td>
+                <td name="break-v" class="px-4 py-2">${createTimeSelect()}</td>
+                <td class="px-4 py-2">
+                    <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            vinculacionTbody.insertBefore(row, vinculacionTbody.firstChild);
+        }
+        return row;
+    }
+
+    // Modificar la función initializeSortable para optimizar el rendimiento
     function initializeSortable() {
-        // Solo inicializar si ambos arrays tienen datos
         if (mecanicosData.length && supervisoresData.length) {
-            // Configurar Sortable para mecánicos
+            // Optimizar las opciones de Sortable
+            const commonOptions = {
+                animation: 150,
+                forceFallback: false, // Usar HTML5 DnD cuando sea posible
+                delayOnTouchOnly: true,
+                delay: 100, // Pequeño retraso para táctil
+                touchStartThreshold: 5,
+                fallbackTolerance: 3,
+                ghostClass: 'bg-blue-100'
+            };
+
+            // Configurar Sortable para mecánicos con opciones optimizadas
             new Sortable(mecanicosList, {
+                ...commonOptions,
                 group: {
                     name: 'shared',
                     pull: 'clone',
                     put: false
                 },
                 sort: false,
-                animation: 150,
-                ghostClass: 'bg-blue-100'
+                onClone: (evt) => {
+                    requestAnimationFrame(() => {
+                        evt.item.style.transform = 'translate3d(0, 0, 0)';
+                    });
+                }
             });
 
             // Configurar Sortable para supervisores
             new Sortable(supervisoresList, {
+                ...commonOptions,
                 group: {
                     name: 'shared',
                     pull: 'clone',
                     put: false
                 },
-                sort: false,
-                animation: 150,
-                ghostClass: 'bg-blue-100'
+                sort: false
             });
 
-            // Configurar Sortable para la tabla
+            // Configurar Sortable para la tabla con opciones de rendimiento
             new Sortable(vinculacionTbody, {
+                ...commonOptions,
                 group: {
                     name: 'shared',
                     pull: false,
                     put: true
                 },
-                animation: 150,
                 onAdd: function (evt) {
-                    const item = evt.item;
-                    const index = parseInt(item.getAttribute('data-index'));
-                    let row = getEmptyRow();
+                    requestAnimationFrame(() => {
+                        const item = evt.item;
+                        const index = parseInt(item.getAttribute('data-index'));
+                        let row = getEmptyRow();
 
-                    if (item.classList.contains('draggable-mecanico')) {
-                        const mecanico = mecanicosData[index];
-                        if (mecanico) {
-                            const mecanicoCell = row.querySelector('[name="mecanico"]');
-                            mecanicoCell.querySelector('.mecanico-nombre').textContent = mecanico.nombre;
-                            mecanicoCell.querySelector('img').src = getMecanicoImageUrl(mecanico.nombre);
-                            mecanicoCell.querySelector('img').alt = mecanico.cvetra;
-                            row.setAttribute('data-cvetra', mecanico.cvetra);
+                        if (row !== vinculacionTbody.firstChild) {
+                            vinculacionTbody.insertBefore(row, vinculacionTbody.firstChild);
                         }
-                    }
-                    else if (item.classList.contains('draggable-supervisor')) {
-                        const supervisor = supervisoresData[index];
-                        if (supervisor) {
-                            const cell = row.querySelector('[name="supervisor-modulo"]');
-                            cell.innerHTML = `Mod: ${supervisor.Modulo}<br>Sup: ${supervisor.Nombre}`;
-                            row.setAttribute('data-supervisor', supervisor.Nombre);
-                            row.setAttribute('data-modulo', supervisor.Modulo);
-                        }
-                    }
 
-                    item.remove();
+                        if (item.classList.contains('draggable-mecanico')) {
+                            const mecanico = mecanicosData[index];
+                            if (mecanico) {
+                                updateMecanicoCell(row, mecanico);
+                            }
+                        } else if (item.classList.contains('draggable-supervisor')) {
+                            const supervisor = supervisoresData[index];
+                            if (supervisor) {
+                                updateSupervisorCell(row, supervisor);
+                            }
+                        }
+
+                        item.remove();
+                    });
                 }
             });
         }
+    }
+
+    // Separar la actualización de celdas en funciones independientes
+    function updateMecanicoCell(row, mecanico) {
+        const mecanicoCell = row.querySelector('[name="mecanico"]');
+        const img = mecanicoCell.querySelector('img');
+        img.src = getMecanicoImageUrl(mecanico.nombre);
+        img.alt = mecanico.cvetra;
+        mecanicoCell.querySelector('.mecanico-nombre').textContent = mecanico.nombre;
+        row.setAttribute('data-cvetra', mecanico.cvetra);
+    }
+
+    function updateSupervisorCell(row, supervisor) {
+        const cell = row.querySelector('[name="supervisor-modulo"]');
+        cell.innerHTML = `Mod: ${supervisor.Modulo}<br>Sup: ${supervisor.Nombre}`;
+        row.setAttribute('data-supervisor', supervisor.Nombre);
+        row.setAttribute('data-modulo', supervisor.Modulo);
     }
 
     // Hacer la función validateTimeRange accesible globalmente
@@ -190,41 +253,6 @@ document.addEventListener('DOMContentLoaded', function () {
         ).join('')}
             </select>
         </div>`;
-    }
-
-    // Modificar la función getEmptyRow para una mejor validación
-    function getEmptyRow() {
-        let row = Array.from(vinculacionTbody.getElementsByTagName('tr')).find(row => {
-            const mecanicoNombre = row.querySelector('[name="mecanico"] .mecanico-nombre')?.textContent.trim();
-            const supervisorModulo = row.querySelector('[name="supervisor-modulo"]')?.textContent.trim();
-            return !mecanicoNombre || !supervisorModulo || mecanicoNombre === '' || supervisorModulo === '';
-        });
-
-        if (!row) {
-            row = document.createElement('tr');
-            row.className = "bg-white dark:bg-gray-800 border-b dark:border-gray-700";
-            row.innerHTML = `
-                <td name="supervisor-modulo" class="px-4 py-2"></td>
-                <td name="mecanico" class="px-4 py-2 flex items-center gap-2">
-                    <div class="flex-shrink-0">
-                        <img class="w-10 h-10 rounded-full ring-2 ring-gray-300" alt=""/>
-                    </div>
-                    <span class="mecanico-nombre"></span>
-                </td>
-                <td name="comida" class="px-4 py-2">${createTimeSelect()}</td>
-                <td name="break-lj" class="px-4 py-2">${createTimeSelect()}</td>
-                <td name="break-v" class="px-4 py-2">${createTimeSelect()}</td>
-                <td class="px-4 py-2">
-                    <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </td>
-            `;
-            vinculacionTbody.appendChild(row);
-        }
-        return row;
     }
 
     // Iniciar carga de datos
