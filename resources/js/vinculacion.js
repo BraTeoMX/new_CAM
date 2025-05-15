@@ -167,8 +167,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function createTimeSelect(startValue = '', endValue = '') {
         const times = [];
         for (let hour = 8; hour <= 17; hour++) {
-            ['00', '15', '30', '45'].forEach(minute => {
-                if (hour !== 17 || (hour === 17 && minute <= '45')) {
+            ['00', '10', '15', '20', '25', '30', '35', '40', '45', '50'].forEach(minute => {
+                if (hour !== 17 || (hour === 17 && minute <= '50')) {
                     times.push(`${String(hour).padStart(2, '0')}:${minute}`);
                 }
             });
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Modificar loadVinculaciones para incluir y remover el loading state
+    // Modificar la función loadVinculaciones para incluir los IDs al agrupar
     function loadVinculaciones() {
         // Mostrar estado de carga
         vinculacionTbody.innerHTML = `
@@ -310,21 +310,50 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/vinculaciones')
             .then(response => response.json())
             .then(data => {
-                // Reemplazar el loading state con los datos reales
-                vinculacionTbody.innerHTML = data.map(vinculacion => `
+                // Agrupar vinculaciones por horarios y supervisor
+                const grouped = data.reduce((acc, curr) => {
+                    const key = `${curr.Supervisor}-${curr.Modulo}-${curr.Hora_Comida_Inicio}-${curr.Hora_Comida_Fin}-${curr.Break_Lun_Jue_Inicio}-${curr.Break_Lun_Jue_Fin}-${curr.Break_Viernes_Inicio}-${curr.Break_Viernes_Fin}`;
+
+                    if (!acc[key]) {
+                        acc[key] = {
+                            ...curr,
+                            mecanicos: [{
+                                id: curr.id,
+                                nombre: curr.Mecanico,
+                                cvetra: curr.Mecanico
+                            }]
+                        };
+                    } else {
+                        acc[key].mecanicos.push({
+                            id: curr.id,
+                            nombre: curr.Mecanico,
+                            cvetra: curr.Mecanico
+                        });
+                    }
+                    return acc;
+                }, {});
+
+                vinculacionTbody.innerHTML = Object.values(grouped).map(vinculacion => `
                     <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700"
-                        data-id="${vinculacion.id}"
+                        data-ids="${vinculacion.mecanicos.map(m => m.id).join(',')}"
                         data-modulo="${vinculacion.Modulo}"
-                        data-supervisor="${vinculacion.Supervisor}"
-                        data-cvetra="${vinculacion.Mecanico}">
-                        <td name="supervisor-modulo" class="px-4 py-2">Mod:${vinculacion.Modulo}<br>Sup:<br>${vinculacion.Supervisor}</td>
-                        <td name="mecanico" class="px-4 py-2 flex items-center gap-2">
-                            <div class="flex-shrink-0">
-                                <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
-                                     src="${getMecanicoImageUrl(vinculacion.Mecanico)}"
-                                     alt="${vinculacion.Mecanico}"/>
+                        data-supervisor="${vinculacion.Supervisor}">
+                        <td name="supervisor-modulo" class="px-4 py-2">
+                            Mod: ${vinculacion.Modulo}<br>Sup: ${vinculacion.Supervisor}
+                        </td>
+                        <td name="mecanico" class="px-4 py-2">
+                            <div class="flex flex-col gap-2">
+                                ${vinculacion.mecanicos.map(mec => `
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-shrink-0">
+                                            <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
+                                                 src="${getMecanicoImageUrl(mec.nombre)}"
+                                                 alt="${mec.nombre}"/>
+                                        </div>
+                                        <span class="mecanico-nombre">${mec.nombre}</span>
+                                    </div>
+                                `).join('')}
                             </div>
-                            <span class="mecanico-nombre">${vinculacion.Mecanico}</span>
                         </td>
                         <td name="comida" class="px-4 py-2">
                             ${createTimeSelect(vinculacion.Hora_Comida_Inicio, vinculacion.Hora_Comida_Fin)}
@@ -336,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${createTimeSelect(vinculacion.Break_Viernes_Inicio, vinculacion.Break_Viernes_Fin)}
                         </td>
                         <td class="px-4 py-2">
-                            <button onclick="window.deleteVinculacion(this, ${vinculacion.id})" 
+                            <button onclick="deleteGroupedVinculaciones(this, '${vinculacion.mecanicos.map(m => m.id).join(',')}')" 
                                     class="text-red-500 hover:text-red-700">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -360,7 +389,50 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Función para guardar vinculaciones
+    // Nueva función para eliminar grupo de vinculaciones
+    window.deleteGroupedVinculaciones = function (button, ids) {
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: "Se eliminarán todas las vinculaciones de este grupo",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const idArray = ids.split(',');
+                Promise.all(idArray.map(id =>
+                    fetch(`/vinculaciones/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    }).then(response => response.json())
+                ))
+                    .then(() => {
+                        Swal.fire(
+                            'Eliminado',
+                            'Los registros han sido eliminados.',
+                            'success'
+                        );
+                        button.closest('tr').remove();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Error',
+                            'No se pudieron eliminar los registros',
+                            'error'
+                        );
+                    });
+            }
+        });
+    }
+
+    // Modificar la función que mapea las vinculaciones para guardar
     document.getElementById('guardar-vinculacion').addEventListener('click', function () {
         // Validar todos los horarios antes de proceder
         const rows = Array.from(vinculacionTbody.children);
@@ -399,19 +471,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!isValid) return;
 
-        // Continuar con el guardado si todas las validaciones pasan
-        const vinculaciones = rows.map(row => ({
-            id: row.getAttribute('data-id'), // Agregamos el id si existe
-            Supervisor: row.getAttribute('data-supervisor'),
-            Modulo: row.getAttribute('data-modulo'),
-            Mecanico: row.querySelector('[name="mecanico"] .mecanico-nombre').textContent.trim(),
-            Hora_Comida_Inicio: row.querySelector('[name="comida"] select:first-child').value,
-            Hora_Comida_Fin: row.querySelector('[name="comida"] select:last-child').value,
-            Break_Lun_Jue_Inicio: row.querySelector('[name="break-lj"] select:first-child').value,
-            Break_Lun_Jue_Fin: row.querySelector('[name="break-lj"] select:last-child').value,
-            Break_Viernes_Inicio: row.querySelector('[name="break-v"] select:first-child').value,
-            Break_Viernes_Fin: row.querySelector('[name="break-v"] select:last-child').value
-        }));
+        // Modificar cómo se obtienen los datos para enviar
+        const vinculaciones = Array.from(vinculacionTbody.children).flatMap(row => {
+            const ids = row.getAttribute('data-ids')?.split(',') || [];
+            const mecanicosElements = row.querySelectorAll('[name="mecanico"] .mecanico-nombre');
+            const supervisor = row.getAttribute('data-supervisor');
+            const modulo = row.getAttribute('data-modulo');
+            const horarios = {
+                Hora_Comida_Inicio: row.querySelector('[name="comida"] select:first-child').value,
+                Hora_Comida_Fin: row.querySelector('[name="comida"] select:last-child').value,
+                Break_Lun_Jue_Inicio: row.querySelector('[name="break-lj"] select:first-child').value,
+                Break_Lun_Jue_Fin: row.querySelector('[name="break-lj"] select:last-child').value,
+                Break_Viernes_Inicio: row.querySelector('[name="break-v"] select:first-child').value,
+                Break_Viernes_Fin: row.querySelector('[name="break-v"] select:last-child').value
+            };
+
+            return Array.from(mecanicosElements).map((mecElement, index) => ({
+                id: ids[index] || null,
+                Supervisor: supervisor,
+                Modulo: modulo,
+                Mecanico: mecElement.textContent.trim(),
+                ...horarios
+            }));
+        });
 
         Swal.fire({
             title: '¿Desea guardar la información?',
