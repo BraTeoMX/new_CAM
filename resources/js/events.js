@@ -7,6 +7,7 @@ const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute
             const containers = {
                 SIN_ASIGNAR: document.getElementById('SIN_ASIGNAR'),
                 PENDIENTE: document.getElementById('PENDIENTE'),
+                ASIGNADO: document.getElementById('ASIGNADO'),
                 PROCESO: document.getElementById('PROCESO'),
                 ATENDIDO: document.getElementById('ATENDIDO'),
                 FINALIZADO: document.getElementById('FINALIZADO'),
@@ -107,6 +108,7 @@ const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute
                     const containers = {
                         SIN_ASIGNAR: document.getElementById('SIN_ASIGNAR'),
                         PENDIENTE: document.getElementById('PENDIENTE'),
+                         ASIGNADO: document.getElementById('ASIGNADO'),
                         PROCESO: document.getElementById('PROCESO'),
                         ATENDIDO: document.getElementById('ATENDIDO'),
                         FINALIZADO: document.getElementById('FINALIZADO'),
@@ -147,11 +149,11 @@ const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute
                                 containers.PENDIENTE.appendChild(card);
                                 break;
                             case 'ASIGNADO':
-                            case 'RE-ASIGNADO':
+                                containers.ASIGNADO.appendChild(card);
+                                break;
                             case 'PROCESO':
                                 containers.PROCESO.appendChild(card);
                                 break;
-                            case 'AUTONOMO':
                             case 'ATENDIDO':
                                 containers.ATENDIDO.appendChild(card);
                                 break;
@@ -179,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const containers = {
             SIN_ASIGNAR: document.getElementById('SIN_ASIGNAR'),
             PENDIENTE: document.getElementById('PENDIENTE'),
+            ASIGNADO: document.getElementById('ASIGNADO'),
             PROCESO: document.getElementById('PROCESO'),
             ATENDIDO: document.getElementById('ATENDIDO'),
             FINALIZADO: document.getElementById('FINALIZADO'),

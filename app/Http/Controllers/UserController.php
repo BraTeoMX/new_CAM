@@ -28,9 +28,6 @@ class UserController extends Controller
                     ->whereBetween('HoraRegistro', ['07:30:00', '08:50:00'])
                     ->orderBy('HoraRegistro', 'ASC')
                     ->get();
-
-
-
                 // Almacenar los datos en caché
                 Cache::put($cacheKey, $usuariosActivos, $cacheDuration);
 

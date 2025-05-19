@@ -16,6 +16,9 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://unpkg.com/flowbite@1.5.4/dist/flowbite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo/dist/echo.iife.js"></script>
+    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
     <!-- Styles -->
     @livewireStyles
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -12,6 +12,7 @@ use App\Http\Controllers\OrdenOTController;
 use App\Http\Controllers\OTsProgramController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AsignationOTController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -61,4 +62,5 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
     Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
     Route::post('/ticketsOT', [FormGuestController::class, 'ticketsOT']);
+    Route::get('/asignaciones-ot', [AsignationOTController::class, 'getAsignaciones']);
 });

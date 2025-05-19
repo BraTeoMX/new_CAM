@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Models\TicketOT;
+use App\Models\AsignationOT;
 
 class AtencionOT extends Controller
 {
@@ -29,7 +29,7 @@ class AtencionOT extends Controller
     {
         try {
             // Obtener todas las OTs
-            $ots = TicketOT::all();
+            $ots = AsignationOT::all();
             return response()->json($ots);
         } catch (\Exception $e) {
             // Manejar la excepción, por ejemplo, loguear el error
@@ -51,7 +51,7 @@ class AtencionOT extends Controller
             ]);
             Log::info('Datos validados: ' . json_encode($validated));
             // Buscar la OT y actualizar el estatus
-            $ot = TicketOT::find($validated['id']);
+            $ot = AsignationOT::find($validated['id']);
             $ot->Status = $validated['status'];
             $ot->save();
             Log::info('OT encontrada: ' . json_encode($ot));

@@ -500,7 +500,7 @@ class ChatManager {
                 modulo: modulo,
                 problema: problema,
                 descripcion: problema,
-                status: wasSuccessful ? 'Autonomo' : 'SIN_ASIGNAR',
+                status: wasSuccessful ? 'AUTONOMO' : 'SIN_ASIGNAR',
                 maquina: MACHINES[selectedMachineIndex] // Enviar el nombre de la máquina seleccionada
             };
 

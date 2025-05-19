@@ -15,6 +15,13 @@
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
+            <!-- Sección 2: OT's Asignadas -->
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Asignadas</h2>
+                <div id="ASIGNADO" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                    <!-- Cards dinámicas se insertarán aquí -->
+                </div>
+            </div>
             <!-- Sección 2: OT's Proceso -->
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Proceso</h2>

@@ -3,8 +3,15 @@
     "file": "assets/_commonjsHelpers-Cpj98o6Y.js",
     "name": "_commonjsHelpers"
   },
+  "_pusher-RuRbGOpv.js": {
+    "file": "assets/pusher-RuRbGOpv.js",
+    "name": "pusher",
+    "imports": [
+      "__commonjsHelpers-Cpj98o6Y.js"
+    ]
+  },
   "resources/css/app.css": {
-    "file": "assets/app-6tvjZSt7.css",
+    "file": "assets/app-CNxsmZu6.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -14,23 +21,34 @@
     "isEntry": true
   },
   "resources/css/sweetalert.css": {
-    "file": "assets/sweetalert-84-eiS0H.css",
+    "file": "assets/sweetalert-DEQEcw-f.css",
     "src": "resources/css/sweetalert.css",
     "isEntry": true
   },
+  "resources/js/AsignationOt.js": {
+    "file": "assets/AsignationOt-V6O3RFFO.js",
+    "name": "AsignationOt",
+    "src": "resources/js/AsignationOt.js",
+    "isEntry": true,
+    "imports": [
+      "_pusher-RuRbGOpv.js",
+      "__commonjsHelpers-Cpj98o6Y.js"
+    ]
+  },
   "resources/js/IAChat.js": {
-    "file": "assets/IAChat-BAroXPZm.js",
+    "file": "assets/IAChat-ayN_5S1X.js",
     "name": "IAChat",
     "src": "resources/js/IAChat.js",
     "isEntry": true
   },
   "resources/js/Pussher.js": {
-    "file": "assets/Pussher-C8aqyWw5.js",
+    "file": "assets/Pussher-Cv0KgPF_.js",
     "name": "Pussher",
     "src": "resources/js/Pussher.js",
     "isEntry": true,
     "imports": [
-      "__commonjsHelpers-Cpj98o6Y.js"
+      "__commonjsHelpers-Cpj98o6Y.js",
+      "_pusher-RuRbGOpv.js"
     ]
   },
   "resources/js/Sortable.js": {
@@ -52,7 +70,7 @@
     "isEntry": true
   },
   "resources/js/events.js": {
-    "file": "assets/events-Bm3e-4i5.js",
+    "file": "assets/events-P99IGRM1.js",
     "name": "events",
     "src": "resources/js/events.js",
     "isEntry": true
@@ -65,5 +83,11 @@
     "imports": [
       "__commonjsHelpers-Cpj98o6Y.js"
     ]
+  },
+  "resources/js/vinculacion.js": {
+    "file": "assets/vinculacion-oOqRispS.js",
+    "name": "vinculacion",
+    "src": "resources/js/vinculacion.js",
+    "isEntry": true
   }
 }

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Events\NewOrderNotification;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\AsignationOTController;
 
 class FormGuestController extends Controller
 {
@@ -72,7 +73,7 @@ class FormGuestController extends Controller
                 'problema' => ['required', 'string', 'max:255'],
                 'maquina' => ['required', 'string', 'max:255'],
                 'descripcion' => ['required', 'string', 'max:255'],
-                'status' => ['required', 'string', 'in:Autonomo,SIN_ASIGNAR'],
+                'status' => ['required', 'string', 'in:AUTONOMO,SIN_ASIGNAR'],
             ]);
 
             // Sanitizar datos
@@ -123,6 +124,19 @@ class FormGuestController extends Controller
                 event(new NewOrderNotification($ticket));
                 $this->sendTicketCreatedEmail($ticket);
 
+                // Llamar a la asignación de OT
+                $asignacionController = new AsignationOTController();
+                $asignacionRequest = new Request([
+                    'folio' => $ticket->Folio,
+                    'modulo' => $ticket->Modulo,
+                    'maquina' => $ticket->Maquina,
+                    'status' => $ticket->Status,
+                    'descripcion' => $ticket->Descrip_prob,
+                    'created_at' => $ticket->created_at->toDateTimeString(),
+                ]);
+                $asignacionResponse = $asignacionController->asignarOT($asignacionRequest);
+                $asignacionData = $asignacionResponse->getData(true);
+
                 return response()->json([
                     'success' => true,
                     'folio' => $folio,
@@ -130,7 +144,8 @@ class FormGuestController extends Controller
                     'data' => [
                         'modulo' => $ticket->Modulo,
                         'status' => $ticket->Status,
-                        'created_at' => $ticket->created_at
+                        'created_at' => $ticket->created_at,
+                        'asignacion' => $asignacionData
                     ]
                 ], 201);
             }
