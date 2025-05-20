@@ -1,52 +1,55 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+    <div class="px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 w-full max-w-9xl mx-auto">
         <!-- Título -->
-        <div class="sm:flex sm:justify-between sm:items-center mb-8">
-            <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Atención OT</h1>
+        <div class="sm:flex sm:justify-between sm:items-center mb-6 md:mb-8">
+            <h1 class="text-xl sm:text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Atención OT</h1>
         </div>
         <!-- Contenedor Principal -->
-        <div class="grid grid-cols-5 gap-4">
-            <!-- Sección 2: OT's Sin Asignacion -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+            <!-- Sección 1: OT's Asignadas -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Sin asignación</h2>
-                <div id="SIN_ASIGNAR" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
-                    <!-- Cards dinámicas se insertarán aquí -->
-                </div>
-            </div>
-            <!-- Sección 2: OT's Asignadas -->
-            <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Asignadas</h2>
-                <div id="ASIGNADO" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Asignadas
+                </h2>
+                <div id="ASIGNADO"
+                    class="space-y-4 bg-gray-850 p-2 md:p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
             <!-- Sección 2: OT's Proceso -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Proceso</h2>
-                <div id="PROCESO" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Proceso
+                </h2>
+                <div id="PROCESO"
+                    class="space-y-4 bg-gray-850 p-2 md:p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
-            <!-- Sección 1: OT's Pendientes -->
+            <!-- Sección 3: OT's Pendientes -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Pendientes</h2>
-                <div id="PENDIENTE" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Pendientes
+                </h2>
+                <div id="PENDIENTE"
+                    class="space-y-4 bg-gray-850 p-2 md:p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
-            <!-- Sección 3: OT's Cerradas -->
+            <!-- Sección 4: OT's Atendidas -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Atendidas</h2>
-                <div id="ATENDIDO" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Atendidas
+                </h2>
+                <div id="ATENDIDO"
+                    class="space-y-4 bg-gray-850 p-2 md:p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>
-            <!-- Sección 4: OT's Finalizadas -->
+            <!-- Sección 5: OT's Finalizadas -->
             <div>
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Finalizadas</h2>
-                <div id="FINALIZADO" class="space-y-4 bg-gray-850 p-4 rounded-lg shadow-md">
+                <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Finalizadas
+                </h2>
+                <div id="FINALIZADO"
+                    class="space-y-4 bg-gray-850 p-2 md:p-4 rounded-lg shadow-md">
                     <!-- Cards dinámicas se insertarán aquí -->
                 </div>
             </div>

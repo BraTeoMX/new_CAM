@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
     Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
     Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
+    Route::post('/broadcast-status-ot', [AtencionOT::class, 'broadcastStatusOT']);
     Route::get('/events', [EventController::class, 'index']);
     Route::get('/responsibles', [EventController::class, 'getResponsibles']);
     Route::get('/priorities', [EventController::class, 'getPriorities']);
@@ -55,6 +56,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/vinculaciones', [CatalogosController::class, 'getVinculaciones']);
     Route::post('/vinculaciones', [CatalogosController::class, 'saveVinculaciones']);
     Route::delete('/vinculaciones/{id}', [CatalogosController::class, 'deleteVinculacion'])->name('vinculacion.delete');
+    Route::post('/reasignar-ot', [AtencionOT::class, 'reasignarOT']);
 });
 // Rutas para visitantes (no autenticados)
 Route::middleware(['guest'])->group(function () {

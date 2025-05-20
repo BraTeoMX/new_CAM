@@ -11,7 +11,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-CNxsmZu6.css",
+    "file": "assets/app-CA4Pkh6U.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -26,7 +26,7 @@
     "isEntry": true
   },
   "resources/js/AsignationOt.js": {
-    "file": "assets/AsignationOt-V6O3RFFO.js",
+    "file": "assets/AsignationOt-DwqnHl1N.js",
     "name": "AsignationOt",
     "src": "resources/js/AsignationOt.js",
     "isEntry": true,
@@ -36,7 +36,7 @@
     ]
   },
   "resources/js/IAChat.js": {
-    "file": "assets/IAChat-ayN_5S1X.js",
+    "file": "assets/IAChat-NL5ELjQA.js",
     "name": "IAChat",
     "src": "resources/js/IAChat.js",
     "isEntry": true
@@ -70,7 +70,7 @@
     "isEntry": true
   },
   "resources/js/events.js": {
-    "file": "assets/events-P99IGRM1.js",
+    "file": "assets/events-BfZ9cku9.js",
     "name": "events",
     "src": "resources/js/events.js",
     "isEntry": true

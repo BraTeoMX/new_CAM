@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\AsignationOT;
+use App\Events\AsignacionOTReasignada;
+use App\Models\Vinculacion;
+use App\Events\StatusOTUpdated;
 
 class AtencionOT extends Controller
 {
@@ -46,7 +49,7 @@ class AtencionOT extends Controller
         try {
             // Validar los datos recibidos
             $validated = $request->validate([
-                'id' => 'required|integer|exists:ticketsot,id', // Verifica que el ID exista en la tabla 'ots'
+                'id' => 'required|integer|exists:asignation_ots,id', // Verifica que el ID exista en la tabla 'ots'
                 'status' => 'required|string',
             ]);
             Log::info('Datos validados: ' . json_encode($validated));
@@ -59,5 +62,37 @@ class AtencionOT extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
+    }
+    public function reasignarOT(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:asignation_ots,id',
+            'num_mecanico' => 'required|string',
+            'nombre' => 'required|string',
+        ]);
+        $ot = AsignationOT::findOrFail($validated['id']);
+        $ot->Num_Mecanico = $validated['num_mecanico'];
+        $ot->Mecanico = $validated['nombre'];
+        $ot->save();
+
+        // Emitir evento broadcast para que lo escuche AsignationOt.js
+        broadcast(new AsignacionOTReasignada($ot))->toOthers();
+
+        return response()->json(['success' => true, 'ot' => $ot]);
+    }
+    public function broadcastStatusOT(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:asignation_ots,id',
+            'status' => 'required|string',
+        ]);
+        $ot = AsignationOT::findOrFail($validated['id']);
+        $ot->Status = $validated['status'];
+        $ot->save();
+
+        // Emitir evento broadcast para que lo escuchen ambos scripts
+        broadcast(new StatusOTUpdated($ot))->toOthers();
+
+        return response()->json(['success' => true, 'ot' => $ot]);
     }
 }

@@ -39,9 +39,9 @@ class FormGuestController extends Controller
                 $modulos = cache()->get($cacheKey);
             } else {
                 Log::info('Cargando módulos desde la base de datos...');
-                $modulos = DB::connection('sqlsrv')
-                    ->table('CatModuloOperario_View')
-                    ->select('MODULEID')
+                $modulos = DB::connection('sqlsrv_dev')
+                    ->table('Supervisores_views')
+                    ->select('Modulo')
                     ->distinct()
                     ->get();
 

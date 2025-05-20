@@ -232,8 +232,8 @@ class ChatManager {
                             return {
                                 results: $.map(data, function (item) {
                                     return {
-                                        id: item.MODULEID,
-                                        text: item.MODULEID
+                                        id: item.Modulo,
+                                        text: item.Modulo
                                     };
                                 })
                             };
