@@ -516,8 +516,18 @@ async function renderAndFilterOTs(data) {
 
     const search = document.getElementById('search-ot')?.value?.toLowerCase() || '';
     const status = document.getElementById('filter-status')?.value || '';
-    let filtered = data.filter(ot => ot.Status !== "FINALIZADO");
+    let filtered = data.slice(); // copia
 
+    // --- Orden personalizado de status ---
+    const statusOrder = ['AUTONOMO', 'ASIGNADO', 'PROCESO', 'PENDIENTE', 'ATENDIDO'];
+    filtered.sort((a, b) => {
+        const idxA = statusOrder.indexOf(a.Status);
+        const idxB = statusOrder.indexOf(b.Status);
+        // Si no está en la lista, lo manda al final
+        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+    });
+
+    // Filtros
     if (search) {
         filtered = filtered.filter(ot =>
             (ot.Folio && ot.Folio.toLowerCase().includes(search)) ||
@@ -553,7 +563,7 @@ async function renderAndFilterOTs(data) {
     if (document.getElementById("ot-autonomas")) document.getElementById("ot-autonomas").textContent = counts.AUTONOMO;
     if (document.getElementById("ot-total")) document.getElementById("ot-total").textContent = counts.total;
 
-    // Render cards (ahora sí, ya con los datos de seguimiento)
+    // Render cards (ya ordenadas)
     const cont = document.getElementById('seguimiento-ot-container');
     cont.innerHTML = filtered.length ?
         filtered.map(renderOTCard).join('') :

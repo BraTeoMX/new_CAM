@@ -87,10 +87,20 @@ function renderAsignacionesFiltradas(data) {
     const search =
         document.getElementById("search-ot")?.value?.toLowerCase() || "";
     const status = document.getElementById("filter-status")?.value || "";
-    // No mostrar AUTONOMO ni FINALIZADO
-    let filtered = data.filter(
-        (asig) => asig.Status !== "AUTONOMO" && asig.Status !== "FINALIZADO"
-    );
+
+    // --- Orden personalizado de status ---
+    const statusOrder = ['ASIGNADO', 'PROCESO', 'PENDIENTE', 'ATENDIDO', 'FINALIZADO' ];
+    // Excluir AUTONOMO y FINALIZADO siempre
+    let filtered = data.filter(asig => asig.Status !== "AUTONOMO");
+
+    // Ordenar por status personalizado
+    filtered.sort((a, b) => {
+        const idxA = statusOrder.indexOf(a.Status);
+        const idxB = statusOrder.indexOf(b.Status);
+        return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+    });
+
+    // Filtros de búsqueda y status
     if (search) {
         filtered = filtered.filter(
             (asig) =>
@@ -115,9 +125,9 @@ function renderAsignacionesFiltradas(data) {
         PROCESO: 0,
         ATENDIDO: 0,
         FINALIZADO: 0,
-        total: data.filter((asig) => asig.Status !== "AUTONOMO").length,
+        total: filtered.length,
     };
-    data.forEach((asig) => {
+    filtered.forEach((asig) => {
         if (counts[asig.Status] !== undefined) counts[asig.Status]++;
     });
     if (document.getElementById("ot-pendientes"))
@@ -128,10 +138,12 @@ function renderAsignacionesFiltradas(data) {
         document.getElementById("ot-proceso").textContent = counts.PROCESO;
     if (document.getElementById("ot-atendidas"))
         document.getElementById("ot-atendidas").textContent = counts.ATENDIDO;
+    if (document.getElementById("ot-finalizadas"))
+        document.getElementById("ot-finalizadas").textContent = counts.FINALIZADO;
     if (document.getElementById("ot-total"))
         document.getElementById("ot-total").textContent = counts.total;
 
-    // Render cards
+    // Render cards (ya ordenadas)
     const cont = document.getElementById("asignaciones-container");
     cont.innerHTML = filtered.length
         ? filtered.map(renderAsignacion).join("")

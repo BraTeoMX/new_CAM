@@ -414,23 +414,31 @@ class ChatManager {
         // Deshabilitar input
         this.elements.messageInput.disabled = true;
 
-        // Configurar timer y botón
+        // --- Corrección aquí ---
+        let completed = false;
+        const nextStepBtn = stepDiv.querySelector('.next-step-btn');
+        const finishStep = () => {
+            if (completed) return;
+            completed = true;
+            clearInterval(this.state.currentStep.interval);
+            nextStepBtn.disabled = true;
+            this.state.currentStep = null;
+            onComplete();
+        };
+
         this.state.currentStep = {
             interval: setInterval(() => {
                 seconds--;
                 stepDiv.querySelector('.timer').textContent = this.formatTime(seconds);
                 if (seconds <= 0) {
-                    this.clearCurrentStep();
+                    finishStep(); // Llama a onComplete automáticamente al terminar el tiempo
                 }
             }, 1000),
             element: stepDiv
         };
 
-        // Configurar botón siguiente
-        stepDiv.querySelector('.next-step-btn').addEventListener('click', () => {
-            this.clearCurrentStep();
-            onComplete();
-        });
+        nextStepBtn.addEventListener('click', finishStep);
+        // --- Fin de la corrección ---
     }
 
     clearCurrentStep() {
@@ -569,7 +577,7 @@ class ChatManager {
         `;
 
         questionDiv.appendChild(questionSpan);
-        chatMessages.appendChild(questionSpan);
+        chatMessages.appendChild(questionDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 

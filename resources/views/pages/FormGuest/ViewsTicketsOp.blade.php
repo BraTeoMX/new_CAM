@@ -45,6 +45,15 @@
                 <span class="text-xs font-semibold mt-1">Atendidas</span>
             </div>
         </div>
+        <div class="bg-blue-800 text-blue-100 rounded-lg p-4 flex items-center justify-center gap-3">
+            <span class="material-symbols-outlined text-4xl md:text-5xl">
+                fact_check
+            </span>
+            <div class="flex flex-col items-start">
+                <span class="text-2xl font-bold" id="ot-finalizadas">0</span>
+                <span class="text-xs font-semibold mt-1">Finalizadas</span>
+            </div>
+        </div>
         <div class="bg-gray-100 text-gray-800 rounded-lg p-4 flex items-center justify-center gap-3">
             <span class="material-symbols-outlined text-4xl md:text-5xl">
                 numbers
