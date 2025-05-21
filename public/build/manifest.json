@@ -11,7 +11,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-DWfoXyHD.css",
+    "file": "assets/app-CDzRWDj3.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -80,7 +80,7 @@
     "isEntry": true
   },
   "resources/js/events.js": {
-    "file": "assets/events-C4kE3w4C.js",
+    "file": "assets/events-BPxjxVbB.js",
     "name": "events",
     "src": "resources/js/events.js",
     "isEntry": true

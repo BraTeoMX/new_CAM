@@ -17,15 +17,15 @@ function initContainers() {
 function getStatusColor(status) {
     switch (status) {
         case 'FINALIZADO':
-            return 'bg-blue-100 text-blue-800';
+            return 'bg-blue-800 text-blue-100';
         case 'ASIGNADO':
-            return 'bg-green-100 text-green-800';
+            return 'bg-blue-100 text-blue-800';
         case 'PROCESO':
             return 'bg-yellow-100 text-yellow-800';
         case 'PENDIENTE':
-            return 'bg-orange-100 text-orange-800';
-        case 'ATENDIDO':
             return 'bg-red-100 text-red-800';
+        case 'ATENDIDO':
+            return 'bg-green-100 text-green-800';
         default:
             return 'bg-gray-100 text-gray-800';
     }
