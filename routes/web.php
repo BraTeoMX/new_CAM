@@ -80,3 +80,7 @@ Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
 Route::post('/update-status', [AtencionOT::class, 'updateStatus'])->middleware('web');
 Route::post('/broadcast-status-ot', [AtencionOT::class, 'broadcastStatusOT'])->middleware('web');
 Route::get('/api/follow-atention/{folio}', [\App\Http\Controllers\FollowAtentionController::class, 'getFollowAtentionByFolio']);
+Route::post('/api/finalizar-atencion', [\App\Http\Controllers\FollowAtentionController::class, 'finalizarAtencion']);
+Route::get('/api/fallas', [FollowAtentionController::class, 'getFallas']);
+Route::get('/api/causas', [FollowAtentionController::class, 'getCausas']);
+Route::get('/api/acciones', [FollowAtentionController::class, 'getAcciones']);

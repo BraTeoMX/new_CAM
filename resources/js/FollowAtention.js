@@ -30,9 +30,10 @@ const STATUS_LABELS = {
     FINALIZADO: 'Finalizada'
 };
 
-const activeTimers = new Map();
-// Nuevo: almacena datos de seguimiento por folio
-const followAtentionMap = new Map();
+// Mapas globales para OTs y seguimiento
+const otMap = new Map(); // folio -> OT
+const followAtentionMap = new Map(); // folio -> seguimiento
+const activeTimers = new Map(); // folio -> timerId
 
 // --- ECHO INIT ---
 window.Pusher = Pusher;
@@ -53,8 +54,21 @@ function formatDateTime(dateStr) {
     return dateStr ? new Date(dateStr).toLocaleString() : '';
 }
 
-// Obtener datos de FollowAtention por folio (AJAX GET) y guardar en el mapa global
+// Utilidad para convertir "H:i" o número a minutos
+function parseEstimadoToMinutes(estimado) {
+    if (!estimado) return 0;
+    if (typeof estimado === 'number') return estimado;
+    if (/^\d+$/.test(estimado)) return parseInt(estimado); // solo minutos
+    if (/^\d{2}:\d{2}$/.test(estimado)) {
+        const [h, m] = estimado.split(':').map(Number);
+        return h * 60 + m;
+    }
+    return 0;
+}
+
+// --- DATOS DE SEGUIMIENTO ---
 async function fetchAndStoreFollowAtention(folio) {
+    if (followAtentionMap.has(folio)) return followAtentionMap.get(folio);
     try {
         const response = await fetch(`/api/follow-atention/${encodeURIComponent(folio)}`, {
             headers: {
@@ -66,6 +80,25 @@ async function fetchAndStoreFollowAtention(folio) {
         const data = await response.json();
         if (data.success) {
             followAtentionMap.set(folio, data.data);
+
+            // Extra: Si ya existe la tarjeta en pantalla, vuelve a renderizar solo esa tarjeta y reinicia su temporizador
+            const timerDiv = document.querySelector(`.timer-countdown[data-folio="${folio}"]`);
+            if (timerDiv) {
+                // Busca la OT en el mapa global
+                const ot = otMap.get(folio);
+                if (ot) {
+                    // Renderiza solo la tarjeta de esa OT
+                    const container = timerDiv.closest('.bg-white, .dark\\:bg-gray-800');
+                    if (container) {
+                        container.outerHTML = renderOTCard(ot);
+                        // Re-inicializa los temporizadores solo para esa tarjeta
+                        setTimeout(() => {
+                            initializeTimers();
+                        }, 10);
+                    }
+                }
+            }
+
             return data.data;
         }
         return null;
@@ -76,39 +109,73 @@ async function fetchAndStoreFollowAtention(folio) {
 }
 
 // --- RENDERIZADO DE CARDS ---
-// Ahora toma los datos de seguimiento del mapa global si existen
 function renderOTCard(ot) {
     const statusColor = getStatusColor(ot.Status);
     let timerHtml = '';
-
     let followData = followAtentionMap.get(ot.Folio);
 
-    // Si la OT está en PROCESO, intenta usar los datos de seguimiento reales
+    let timeInicio = '';
+    let timeEstimado = '';
+    let timeEjecucion = '';
+    let timerLabel = 'Tiempo restante:';
+    let timerValue = '';
+    let timerClass = 'timer-countdown';
+
     if (ot.Status === 'PROCESO' && followData) {
+        timeInicio = followData.TimeInicio || '';
+        timeEstimado = parseEstimadoToMinutes(followData.TimeEstimado);
+    }
+
+    // Si la OT ya fue atendida, muestra el tiempo total de atención en minutos
+    if (ot.Status === 'ATENDIDO' && followData && followData.TimeEjecucion != null) {
+        timerLabel = 'Tiempo total de atención:';
+        timerValue = `${parseInt(followData.TimeEjecucion)} minutos`;
+        timerClass = 'timer-finalizado';
         timerHtml = `
             <div class="mt-3 text-center">
-                <div class="font-mono text-2xl font-bold timer-countdown"
-                     data-folio="${ot.Folio}"
-                     data-inicio="${followData.TimeInicio || ''}"
-                     data-estimado="${followData.TimeEstimado || ''}">
+                <div class="font-mono text-2xl font-bold">
+                    <span class="material-symbols-outlined">timer</span>
+                    <span class="text-gray-800 dark:text-gray-100">${timerLabel}</span>
+                </div>
+                <div class="font-mono text-2xl font-bold text-blue-700 ${timerClass}">
+                    ${timerValue}
                 </div>
                 <div class="text-sm text-gray-500">
-                    Tiempo estimado: ${followData.TimeEstimado || ''} minutos
+                    Tiempo estimado: ${timeEstimado ? timeEstimado : '...'} minutos
                 </div>
             </div>
         `;
     } else if (ot.Status === 'PROCESO') {
-        // Si no hay datos aún, deja el temporizador vacío (se actualizará después)
         timerHtml = `
             <div class="mt-3 text-center">
+                <div class="font-mono text-2xl font-bold">
+                    <span class="material-symbols-outlined">timer</span>
+                    <span class="text-gray-800 dark:text-gray-100">${timerLabel}</span>
+                </div>
                 <div class="font-mono text-2xl font-bold timer-countdown"
                      data-folio="${ot.Folio}"
-                     data-inicio=""
-                     data-estimado="">
+                     data-inicio="${timeInicio}"
+                     data-estimado="${timeEstimado}">
+                    <span class="text-gray-400">Cargando...</span>
                 </div>
                 <div class="text-sm text-gray-500">
-                    Tiempo estimado: ... minutos
+                    Tiempo estimado: ${timeEstimado ? timeEstimado : '...'} minutos
                 </div>
+            </div>
+        `;
+    }
+
+    let finalizarBtn = '';
+    if (ot.Status === 'PROCESO') {
+        finalizarBtn = `
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
+                <button class="finalizar-proceso-btn text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                    type="button"
+                    data-folio="${ot.Folio}"
+                    data-inicio="${timeInicio}"
+                    data-estimado="${timeEstimado}">
+                    Finalizar Proceso
+                </button>
             </div>
         `;
     }
@@ -127,10 +194,10 @@ function renderOTCard(ot) {
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-5">
             <div class="flex items-center justify-between mb-4">
                 <span class="px-3 py-1 text-sm font-semibold rounded ${statusColor}">${ot.Status}</span>
-                <span class="text-lg font-bold">Folio: ${ot.Folio}</span>
+                <span class="text-lg font-bold text-gray-800 dark:text-gray-100">Folio: ${ot.Folio}</span>
             </div>
             <div class="space-y-3">
-                <p class="font-medium">${ot.Problema}</p>
+                <p class="font-bold text-gray-800 dark:text-gray-100">${ot.Problema}</p>
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>Módulo: <span class="font-semibold">${ot.Modulo}</span></div>
                     <div>Máquina: <span class="font-semibold">${ot.Maquina}</span></div>
@@ -143,31 +210,222 @@ function renderOTCard(ot) {
                 </div>
             </div>
             ${timerHtml}
+            ${finalizarBtn}
             ${footer}
         </div>
     `;
 }
 
-// --- TEMPORIZADORES ---
-function initializeTimers() {
-    activeTimers.forEach(timerId => clearInterval(timerId));
-    activeTimers.clear();
+// Utilidad para convertir minutos a "H:i"
+function minutosAHoraMinutos(mins) {
+    mins = parseInt(mins) || 0;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}:${m.toString().padStart(2, '0')}`;
+}
 
+// --- DRAWER HTML (agrega esto una sola vez al final del body de tu HTML principal) ---
+if (!document.getElementById('drawer-form-finalizar')) {
+    const drawerHtml = `
+    <div id="drawer-form-finalizar" class="fixed top-0 left-0 z-40 h-screen p-4 overflow-y-auto transition-transform -translate-x-full bg-white w-80 dark:bg-gray-800" tabindex="-1" aria-labelledby="drawer-form-label">
+        <h5 class="inline-flex items-center mb-6 text-base font-semibold text-gray-500 uppercase dark:text-gray-400">
+            <span class="material-symbols-outlined mr-2">assignment_turned_in</span>Finalizar Atención
+        </h5>
+        <button type="button" data-drawer-hide="drawer-form-finalizar" aria-controls="drawer-form-finalizar" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 absolute top-2.5 end-2.5 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white" >
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+            <span class="sr-only">Close menu</span>
+        </button>
+        <form id="finalizar-atencion-form" class="mb-6">
+            <div class="mb-6">
+                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Seleccione que falla tenía:</label>
+                <select id="falla-select" class="swal2-select w-full"></select>
+            </div>
+            <div class="mb-6">
+                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Seleccione la causa de la falla:</label>
+                <select id="causa-select" class="swal2-select w-full"></select>
+            </div>
+            <div class="mb-6">
+                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Seleccione la acción que implementó:</label>
+                <select id="accion-select" class="swal2-select w-full"></select>
+            </div>
+            <div class="mb-6">
+                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Comentarios adicionales (opcional):</label>
+                <textarea id="comentarios-finalizar" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"></textarea>
+            </div>
+            <button type="submit" class="text-white justify-center flex items-center bg-blue-700 hover:bg-blue-800 w-full focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                Finalizar Atención
+            </button>
+        </form>
+    </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', drawerHtml);
+}
+
+// --- EVENTO PARA ABRIR EL DRAWER Y CARGAR CATALOGOS ---
+document.addEventListener('click', async function(e) {
+    if (e.target && e.target.classList.contains('finalizar-proceso-btn')) {
+        const folio = e.target.getAttribute('data-folio');
+        const timeInicio = e.target.getAttribute('data-inicio');
+        const timeEstimado = e.target.getAttribute('data-estimado');
+        // Guarda en variable global para usar al enviar
+        window.finalizarAtencionFolio = folio;
+        window.finalizarAtencionTimeInicio = timeInicio;
+        window.finalizarAtencionTimeEstimado = timeEstimado;
+
+        // Cargar catálogos
+        await cargarCatalogoSelect2('/api/fallas', '#falla-select', 'Fallas');
+        await cargarCatalogoSelect2('/api/causas', '#causa-select', 'Causa');
+        await cargarCatalogoSelect2('/api/acciones', '#accion-select', 'Accion');
+
+        // Abre el drawer
+        window.dispatchEvent(new CustomEvent('open-drawer', { detail: { id: 'drawer-form-finalizar' } }));
+        document.getElementById('drawer-form-finalizar').classList.remove('-translate-x-full');
+    }
+});
+
+// --- FUNCION PARA CARGAR CATALOGOS EN SELECT2 ---
+async function cargarCatalogoSelect2(url, selector, textKey) {
+    const res = await fetch(url);
+    const data = await res.json();
+    const select = document.querySelector(selector);
+    select.innerHTML = `<option value="">Seleccione una opción</option>` + data.map(item => `<option value="${item[textKey]}">${item[textKey]}</option>`).join('');
+    $(select).val('').trigger('change');
+    $(select).select2({ dropdownParent: $('#drawer-form-finalizar'), width: '100%' });
+}
+
+// --- SUBMIT FINALIZAR ATENCION ---
+document.getElementById('finalizar-atencion-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const folio = window.finalizarAtencionFolio;
+    const falla = $('#falla-select').val();
+    const causa = $('#causa-select').val();
+    const accion = $('#accion-select').val();
+    const comentarios = $('#comentarios-finalizar').val();
+
+    if (!falla || !causa || !accion) {
+        Swal.fire('Error', 'Debe seleccionar una opción en cada catálogo.', 'error');
+        return;
+    }
+
+    // Tiempos
+    const now = new Date();
+    const timeFinal = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    const timerDiv = document.querySelector(`.timer-countdown[data-folio="${folio}"], .timer-finalizado[data-folio="${folio}"]`);
+    let timeReal = '00:00';
+    if (timerDiv) {
+        timeReal = timerDiv.textContent.replace('-', '').trim();
+    }
+    const followData = followAtentionMap.get(folio);
+    let timeInicio = followData?.TimeInicio || window.finalizarAtencionTimeInicio || '';
+    let timeEstimado = parseEstimadoToMinutes(followData?.TimeEstimado || window.finalizarAtencionTimeEstimado || '');
+    let timeEjecucion = 0;
+    if (timeInicio && timeFinal) {
+        const [h1, m1] = timeInicio.split(':').map(Number);
+        const [h2, m2] = timeFinal.split(':').map(Number);
+        timeEjecucion = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (timeEjecucion < 0) timeEjecucion += 24 * 60;
+    }
+
+    // --- Detener el cronómetro de inmediato y actualizar el valor en la variable global ---
+    if (activeTimers.has(folio)) {
+        clearInterval(activeTimers.get(folio));
+        activeTimers.delete(folio);
+    }
+    if (followData) {
+        followData.TimeEjecucion = timeEjecucion;
+    }
+
+    // --- Mostrar el valor de TimeEjecucion en el cronómetro y cambiar el label ---
+    if (timerDiv) {
+        const labelSpan = timerDiv.parentElement?.previousElementSibling?.querySelector('span.text-gray-800');
+        if (labelSpan) labelSpan.textContent = 'Tiempo total de atención:';
+        timerDiv.classList.remove('text-green-600', 'text-orange-500', 'text-red-600', 'timer-countdown');
+        timerDiv.classList.add('text-blue-700', 'timer-finalizado');
+        timerDiv.textContent = minutosAHoraMinutos(timeEjecucion);
+    }
+
+    // Enviar datos al backend
+    const res = await fetch('/api/finalizar-atencion', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            folio,
+            falla,
+            causa,
+            accion,
+            comentarios,
+            time_final: timeFinal,
+            time_real: timeReal,
+            time_ejecucion: timeEjecucion
+        })
+    });
+    const data = await res.json();
+    if (data.success) {
+        // Cambia status a ATENDIDO usando la ruta correcta y activa Echo
+        // Necesita el id de la OT (asignation_ots.id)
+        let otId = null;
+        if (otMap.has(folio)) {
+            otId = otMap.get(folio).id;
+            otMap.get(folio).Status = 'ATENDIDO';
+        }
+        if (otId) {
+            await fetch('/broadcast-status-ot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    id: otId,
+                    status: 'ATENDIDO'
+                })
+            });
+        }
+        // Forzar recarga de la lista para reflejar el cambio y detener cualquier cronómetro remanente
+        const modulo = document.getElementById('modulo-select').value;
+        if (modulo) await cargarSeguimientoOTs(modulo);
+        Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success');
+        document.getElementById('drawer-form-finalizar').classList.add('-translate-x-full');
+    } else {
+        Swal.fire('Error', 'No se pudo finalizar la atención', 'error');
+    }
+});
+
+// --- DRAWER FLOWBITE CONTROL ---
+window.addEventListener('open-drawer', function(e) {
+    const id = e.detail.id;
+    document.getElementById(id).classList.remove('-translate-x-full');
+});
+document.querySelectorAll('[data-drawer-hide]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = btn.getAttribute('aria-controls');
+        document.getElementById(id).classList.add('-translate-x-full');
+    });
+});
+
+// --- TEMPORIZADORES ---
+function clearAllTimers() {
+    for (const timerId of activeTimers.values()) {
+        clearInterval(timerId);
+    }
+    activeTimers.clear();
+}
+
+function initializeTimers() {
+    clearAllTimers();
     document.querySelectorAll('.timer-countdown').forEach(timer => {
         const folio = timer.dataset.folio;
         let inicio = timer.dataset.inicio;
         let estimado = timer.dataset.estimado;
 
-        // Si no hay datos, intenta obtenerlos del mapa global
-        if ((!inicio || !estimado) && folio && followAtentionMap.has(folio)) {
-            const followData = followAtentionMap.get(folio);
-            inicio = followData.TimeInicio;
-            estimado = followData.TimeEstimado;
-            timer.dataset.inicio = inicio;
-            timer.dataset.estimado = estimado;
-        }
-
-        estimado = parseInt(estimado);
+        estimado = parseEstimadoToMinutes(estimado);
         if (!inicio || !estimado) return;
 
         // Si el formato es H:i, conviértelo a hoy
@@ -214,17 +472,14 @@ function initializeTimers() {
             const timeString = `${isNegative ? '-' : ''}${minutes}:${seconds.toString().padStart(2, '0')}`;
 
             // Cambiar color según el tiempo restante
+            timer.classList.remove('text-green-600', 'text-orange-500', 'text-red-600');
             if (isNegative) {
-                timer.classList.remove('text-green-600', 'text-orange-500');
                 timer.classList.add('text-red-600');
             } else if (timeLeft <= estimado * 60 * 1000 * 0.25) {
-                timer.classList.remove('text-green-600', 'text-orange-500');
                 timer.classList.add('text-red-600');
             } else if (timeLeft <= estimado * 60 * 1000 * 0.5) {
-                timer.classList.remove('text-green-600', 'text-red-600');
                 timer.classList.add('text-orange-500');
             } else {
-                timer.classList.remove('text-orange-500', 'text-red-600');
                 timer.classList.add('text-green-600');
             }
 
@@ -238,8 +493,10 @@ function initializeTimers() {
 }
 
 // --- RENDER Y FILTRO PRINCIPAL ---
-// Ahora espera a que todos los datos de seguimiento estén cargados antes de renderizar
 async function renderAndFilterOTs(data) {
+    otMap.clear();
+    data.forEach(ot => otMap.set(ot.Folio, ot));
+
     const search = document.getElementById('search-ot')?.value?.toLowerCase() || '';
     const status = document.getElementById('filter-status')?.value || '';
     let filtered = data.filter(ot => ot.Status !== "FINALIZADO");
@@ -258,10 +515,9 @@ async function renderAndFilterOTs(data) {
         filtered = filtered.filter(ot => ot.Status === status);
     }
 
-    // Cargar datos de seguimiento para todas las OTs en PROCESO
-    const fetchPromises = filtered
-        .filter(ot => ot.Status === 'PROCESO')
-        .map(ot => followAtentionMap.has(ot.Folio) ? null : fetchAndStoreFollowAtention(ot.Folio));
+    // --- ESPERAR a que TODOS los datos de seguimiento estén cargados antes de renderizar ---
+    const procesos = filtered.filter(ot => ot.Status === 'PROCESO');
+    const fetchPromises = procesos.map(ot => fetchAndStoreFollowAtention(ot.Folio));
     await Promise.all(fetchPromises);
 
     // Contadores
@@ -281,13 +537,13 @@ async function renderAndFilterOTs(data) {
     if (document.getElementById("ot-finalizadas")) document.getElementById("ot-finalizadas").textContent = counts.FINALIZADO;
     if (document.getElementById("ot-total")) document.getElementById("ot-total").textContent = counts.total;
 
-    // Render cards
+    // Render cards (ahora sí, ya con los datos de seguimiento)
     const cont = document.getElementById('seguimiento-ot-container');
     cont.innerHTML = filtered.length ?
         filtered.map(renderOTCard).join('') :
         `<div class="col-span-full text-center text-gray-400 py-8">No hay OTs para mostrar.</div>`;
 
-    // Siempre inicializa los temporizadores después de renderizar
+    // Inicializa los temporizadores después de renderizar
     initializeTimers();
 }
 

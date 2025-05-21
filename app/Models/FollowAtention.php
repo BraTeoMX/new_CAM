@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class FollowAtention extends Model
 {
     use HasFactory;
-     protected $table = 'followatention';
+    protected $table = 'followatention';
 
     protected $fillable = [
         'id',
@@ -24,13 +24,16 @@ class FollowAtention extends Model
         'TimeInicio',
         'TimeFinal',
         'TimeReal',
+        'TimeEjecucion',
+        'Falla',
+        'Causa',
+        'Accion',
+        'Comentarios',
         'Classe',
-
     ];
-      protected $casts = [
-        'TimeEstimado' => 'datetime:H:i',
-         'TimeReal' => 'datetime:H:i',
-         'TimeInicio' => 'datetime:H:i',
-        'TimeFinal' => 'datetime:H:i',
+
+    // Solo castea TimeInicio si es necesario, NO TimeEstimado, TimeReal, TimeFinal, TimeEjecucion
+    protected $casts = [
+        'TimeInicio' => 'datetime:H:i',
     ];
 }

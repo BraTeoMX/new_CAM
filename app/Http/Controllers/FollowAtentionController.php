@@ -9,6 +9,9 @@ use App\Models\AsignationOT;
 use App\Events\StatusOTUpdated;
 use Illuminate\Support\Facades\DB;
 use App\Models\FollowAtention;
+use App\Models\Falla;
+use App\Models\Causa;
+use App\Models\Accion;
 
 class FollowAtentionController extends Controller
 {
@@ -90,5 +93,44 @@ class FollowAtentionController extends Controller
                 'message' => 'No se encontró el registro'
             ], 404);
         }
+    }
+
+    public function finalizarAtencion(Request $request)
+    {
+        try {
+            $follow = FollowAtention::where('Folio', $request->folio)->firstOrFail();
+            $follow->TimeFinal = $request->time_final;
+            $follow->TimeReal = $request->time_real;
+            $follow->TimeEjecucion = $request->time_ejecucion;
+            $follow->Falla = $request->falla;
+            $follow->Causa = $request->causa;
+            $follow->Accion = $request->accion;
+            $follow->Comentarios = $request->comentarios ?: null;
+            $follow->save();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Error en finalizarAtencion: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Endpoints de catálogos
+    public function getFallas()
+    {
+        $fallas = Falla::select('id', 'Fallas')->orderBy('Fallas')->get();
+        return response()->json($fallas);
+    }
+
+    public function getCausas()
+    {
+        $causas = Causa::select('id', 'Causa')->orderBy('Causa')->get();
+        return response()->json($causas);
+    }
+
+    public function getAcciones()
+    {
+        $acciones = Accion::select('id', 'Accion')->orderBy('Accion')->get();
+        return response()->json($acciones);
     }
 }
