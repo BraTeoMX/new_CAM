@@ -71,6 +71,7 @@ class CatalogosController extends Controller
             $vinculaciones = \App\Models\Vinculacion::select(
                 'id',
                 'Supervisor',
+                'Num_Mecanico',
                 'Mecanico',
                 'Modulo',
                 'Hora_Comida_Inicio',
@@ -110,6 +111,7 @@ class CatalogosController extends Controller
                     \App\Models\Vinculacion::where('id', $vinculacion['id'])
                         ->update([
                             'Supervisor' => $vinculacion['Supervisor'],
+                            'Num_Mecanico' => $vinculacion['Num_Mecanico'],
                             'Mecanico' => $vinculacion['Mecanico'],
                             'Modulo' => $vinculacion['Modulo'],
                             'Hora_Comida_Inicio' => $vinculacion['Hora_Comida_Inicio'],
@@ -124,6 +126,7 @@ class CatalogosController extends Controller
                     Log::info('Creando nueva vinculación');
                     \App\Models\Vinculacion::create([
                         'Supervisor' => $vinculacion['Supervisor'],
+                        'Num_Mecanico' => $vinculacion['Num_Mecanico'],
                         'Mecanico' => $vinculacion['Mecanico'],
                         'Modulo' => $vinculacion['Modulo'],
                         'Hora_Comida_Inicio' => $vinculacion['Hora_Comida_Inicio'],

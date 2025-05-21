@@ -13,6 +13,7 @@ use App\Http\Controllers\OTsProgramController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AsignationOTController;
+use App\Http\Controllers\FollowAtentionController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -40,7 +41,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/supervisores', [CatalogosController::class, 'getSupervisores']);
     });
 
-    // Rutas para cualquier usuario autenticado
+
+});
+// Rutas para visitantes (no autenticados)
+Route::middleware(['guest'])->group(function () {
+
+});
+ // Rutas para cualquier usuario autenticado
     Route::get('/active-users', [UserController::class, 'getActiveUsers']);
     Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
     Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
@@ -57,12 +64,19 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/vinculaciones', [CatalogosController::class, 'saveVinculaciones']);
     Route::delete('/vinculaciones/{id}', [CatalogosController::class, 'deleteVinculacion'])->name('vinculacion.delete');
     Route::post('/reasignar-ot', [AtencionOT::class, 'reasignarOT']);
-});
-// Rutas para visitantes (no autenticados)
-Route::middleware(['guest'])->group(function () {
+
+
+// Rutas para usuarios sin autenticados
     Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
     Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
     Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
     Route::post('/ticketsOT', [FormGuestController::class, 'ticketsOT']);
     Route::get('/asignaciones-ot', [AsignationOTController::class, 'getAsignaciones']);
-});
+//Otras rutas
+ Route::get('/FollowOT', [FollowAtentionController::class, 'FollowOT']);
+Route::get('/api/clases-maquina/{maquina}', [FollowAtentionController::class, 'getClasesMaquina']);
+Route::post('/api/iniciar-atencion', [FollowAtentionController::class, 'iniciarAtencion'])->middleware('web');
+Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
+Route::post('/update-status', [AtencionOT::class, 'updateStatus'])->middleware('web');
+Route::post('/broadcast-status-ot', [AtencionOT::class, 'broadcastStatusOT'])->middleware('web');
+Route::get('/api/follow-atention/{folio}', [\App\Http\Controllers\FollowAtentionController::class, 'getFollowAtentionByFolio']);

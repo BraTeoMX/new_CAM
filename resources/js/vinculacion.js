@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         return `<div class="flex items-center gap-1">
-            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2" 
+            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2"
                     onchange="validateTimeRange(this)">
                 <option value="">Inicio</option>
                 ${times.map(time =>
@@ -393,10 +393,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${createTimeSelect(vinculacion.Break_Viernes_Inicio, vinculacion.Break_Viernes_Fin)}
                         </td>
                         <td class="px-4 py-2">
-                            <button onclick="deleteGroupedVinculaciones(this, '${vinculacion.mecanicos.map(m => m.id).join(',')}')" 
+                            <button onclick="deleteGroupedVinculaciones(this, '${vinculacion.mecanicos.map(m => m.id).join(',')}')"
                                     class="text-red-500 hover:text-red-700">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
@@ -514,11 +514,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 Break_Viernes_Fin: row.querySelector('[name="break-v"] select:last-child').value
             };
 
+            // Obtener los cvetra de los mecanicos de la fila
+            const cvetras = [];
+            row.querySelectorAll('[name="mecanico"] .mecanico-nombre').forEach(mecElement => {
+                const nombre = mecElement.textContent.trim();
+                const cvetra = mecanicoMap.get(nombre)?.cvetra || '';
+                cvetras.push(cvetra);
+            });
+
             return Array.from(mecanicosElements).map((mecElement, index) => ({
                 id: ids[index] || null,
                 Supervisor: supervisor,
                 Modulo: modulo,
                 Mecanico: mecElement.textContent.trim(),
+                Num_Mecanico: cvetras[index] || '', // <-- Agrega el número del mecánico aquí
                 ...horarios
             }));
         });

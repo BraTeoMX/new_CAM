@@ -10,6 +10,7 @@ class Vinculacion extends Model
 
     protected $fillable = [
         'Supervisor',
+        'Num_Mecanico',
         'Mecanico',
         'Modulo',
         'Hora_Comida_Inicio',

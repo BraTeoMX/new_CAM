@@ -218,7 +218,7 @@ function createContextMenuAndModal() {
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Reasignar OT</h2>
             <div id="mecanicos-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"></div>
             <div class="flex justify-end space-x-4">
-                <button type="button" class="px-4 py-2 text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 rounded-md" id="cancelReasignar">Cancelar</button>
+                <button type="button" class="px-4 py-2 text-white dark:text-white bg-red-500 dark:bg-red-500 hover:bg-red-300 rounded-md" id="cancelReasignar">Cancelar</button>
             </div>
         </div>
     `;
@@ -248,11 +248,19 @@ function showReasignarModal() {
             const list = document.getElementById('mecanicos-list');
             list.innerHTML = '';
             mecanicos.forEach(mec => {
+                const imagePath = `http://128.150.102.45:8000/Intimark/${mec.cvetra}.jpg`;
                 const card = document.createElement('div');
-                card.className = 'bg-gray-100 dark:bg-gray-700 rounded-lg p-4 cursor-pointer hover:ring-2 hover:ring-blue-500';
+                card.className = 'bg-gray-100 dark:bg-gray-700 rounded-lg p-4 cursor-pointer hover:ring-2 hover:ring-blue-500 flex items-center gap-4';
                 card.innerHTML = `
-                    <p class="font-bold text-gray-900 dark:text-white">${mec.nombre}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">Clave: ${mec.cvetra}</p>
+                    <img class="w-10 h-10 rounded-full cursor-pointer"
+                        src="${imagePath}"
+                        alt="${mec.cvetra} image"
+                        id="user-img-${mec.cvetra}"
+                        onerror="this.onerror=null; this.src='/default-avatar.jpg';">
+                    <div>
+                        <p class="font-bold text-gray-900 dark:text-white">${mec.nombre}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Clave: ${mec.cvetra}</p>
+                    </div>
                 `;
                 card.onclick = () => reasignarOt(selectedCardId, mec.cvetra, mec.nombre);
                 list.appendChild(card);

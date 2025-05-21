@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\Vinculacion;
 use App\Models\AsignationOT;
 use Carbon\Carbon;
@@ -19,34 +20,66 @@ class AsignationOTController extends Controller
      */
     public function asignarOT(Request $request)
     {
-        // Espera: folio, modulo, descripcion, created_at
+        Log::info('--- INICIO asignarOT ---');
+        Log::info('Datos recibidos:', $request->all());
+
         $modulo = $request->input('modulo');
         $createdAt = $request->input('created_at') ?? now();
 
-        // Obtener todos los mecánicos vinculados al módulo
+        Log::info("Buscando mecánicos vinculados al módulo: $modulo");
         $mecanicos = Vinculacion::where('Modulo', $modulo)->get();
 
         if ($mecanicos->isEmpty()) {
+            Log::info("No hay mecánicos asignados al módulo: $modulo");
             return response()->json([
                 'success' => false,
                 'message' => 'No hay mecánicos asignados a este módulo.'
             ], 404);
         }
 
+        Log::info("Mecánicos vinculados encontrados: " . $mecanicos->pluck('Num_Mecanico')->implode(', '));
+
+        // Validar que los mecánicos hayan llegado a la planta hoy (comparando por IdPoblacion)
+        Log::info("Consultando Emple_Movimientos para asistencia del día...");
+        $usuariosActivos = DB::connection('sqlsrv_dev')
+            ->table('Emple_Movimientos')
+            ->whereRaw("CAST(FechaRegistro AS DATE) = CAST(GETDATE() AS DATE)")
+            ->whereBetween('HoraRegistro', ['07:00:00', '08:50:00'])
+            ->orderBy('HoraRegistro', 'ASC')
+            ->get();
+
+        $idsPresentes = $usuariosActivos->pluck('IdPoblacion')->map(function($id) {
+            return trim($id);
+        })->toArray();
+
+        Log::info("IdPoblacion presentes hoy: " . implode(', ', $idsPresentes));
+
+        $mecanicos = $mecanicos->filter(function($mec) use ($idsPresentes) {
+            return in_array(trim($mec->Num_Mecanico), $idsPresentes);
+        });
+
+        Log::info("Mecánicos presentes tras filtro asistencia: " . $mecanicos->pluck('Num_Mecanico')->implode(', '));
+
+        if ($mecanicos->isEmpty()) {
+            Log::info("No hay mecánicos presentes en planta para el módulo: $modulo");
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay mecánicos presentes en planta para este módulo.'
+            ], 404);
+        }
+
         $now = Carbon::parse($createdAt);
 
         // Filtrar mecánicos disponibles (no en break/comida)
+        Log::info("Filtrando mecánicos disponibles (no en break/comida)...");
         $disponibles = $mecanicos->filter(function ($mec) use ($now) {
-            // Revisar break/comida según el día
-            $dia = $now->englishDayOfWeek; // Monday, Tuesday, etc.
-
+            $dia = $now->englishDayOfWeek;
             // Comida
             if ($mec->Hora_Comida_Inicio && $mec->Hora_Comida_Fin) {
                 $inicio = Carbon::parse($mec->Hora_Comida_Inicio);
                 $fin = Carbon::parse($mec->Hora_Comida_Fin);
                 if ($now->between($inicio, $fin)) return false;
             }
-
             // Breaks
             if (in_array($dia, ['Monday','Tuesday','Wednesday','Thursday'])) {
                 if ($mec->Break_Lun_Jue_Inicio && $mec->Break_Lun_Jue_Fin) {
@@ -65,11 +98,14 @@ class AsignationOTController extends Controller
             return true;
         });
 
+        Log::info("Mecánicos disponibles tras filtro de horario: " . $disponibles->pluck('Num_Mecanico')->implode(', '));
+
         if ($disponibles->isNotEmpty()) {
             $asignado = $disponibles->random();
             $asignacionHora = $now;
+            Log::info("Mecánico asignado aleatoriamente de los disponibles: " . $asignado->Num_Mecanico);
         } else {
-            // Todos están en break/comida, buscar el más próximo disponible
+            Log::info("Todos los mecánicos están en break/comida, buscando el más próximo disponible...");
             $proximos = [];
             foreach ($mecanicos as $mec) {
                 $horas = [];
@@ -90,46 +126,61 @@ class AsignationOTController extends Controller
                 }
             }
             if (empty($proximos)) {
-                // No hay break/comida próximos, asignar cualquiera
                 $asignado = $mecanicos->random();
                 $asignacionHora = $now;
+                Log::info("No hay break/comida próximos, asignando aleatoriamente: " . $asignado->Num_Mecanico);
             } else {
-                // Asignar al mecánico que antes quede libre
                 $min = collect($proximos)->sortBy('hora')->first();
                 $asignado = $min['mecanico'];
                 $asignacionHora = $min['hora'];
+                Log::info("Asignando al mecánico que antes queda libre: " . $asignado->Num_Mecanico . " a las " . $asignacionHora);
             }
         }
 
-      $cvetra = DB::connection('sqlsrv_dev')
-                ->table('cat_empleados')
-                ->where('nombre', $asignado->Mecanico)
-                ->value('cvetra'); 
+        // Obtener nombre del mecánico por cvetra (Num_Mecanico)
+        Log::info("Buscando nombre del mecánico en cat_empleados por cvetra: " . $asignado->Num_Mecanico);
+        $mecanicoData = DB::connection('sqlsrv_dev')
+            ->table('cat_empleados')
+            ->where('cvetra', $asignado->Num_Mecanico)
+            ->select('cvetra', 'nombre')
+            ->first();
+
+        $cvetra = $mecanicoData ? $mecanicoData->cvetra : $asignado->Num_Mecanico;
+        $nombreMecanico = $mecanicoData ? $mecanicoData->nombre : $asignado->Mecanico;
+
+        Log::info("Datos del mecánico asignado: cvetra=$cvetra, nombre=$nombreMecanico");
 
         $StatusEntrante = strtoupper($request->input('status'));
         $statusAsignar = $StatusEntrante === 'SIN_ASIGNAR' ? 'ASIGNADO' : $StatusEntrante;
+
+        Log::info("Status entrante: $StatusEntrante, status a asignar: $statusAsignar");
 
         // Guardar la asignación en la base de datos
         $asignacion = AsignationOT::create([
             'Folio'     => $request->input('folio'),
             'Modulo'    => $modulo,
             'Num_Mecanico' => $cvetra,
-            'Mecanico'  => $asignado->Mecanico,
+            'Mecanico'  => $nombreMecanico,
             'Supervisor'=> $asignado->Supervisor,
             'Maquina' => $request->input('maquina'),
             'Problema'  => $request->input('descripcion'),
             'Status'    => $statusAsignar,
         ]);
 
+        Log::info("Asignación OT guardada: " . json_encode($asignacion->toArray()));
+
         // Emitir evento broadcast para Echo/Pusher
         broadcast(new AsignacionOTCreated($asignacion))->toOthers();
+        Log::info("Evento AsignacionOTCreated emitido para folio: " . $asignacion->Folio);
+
+        Log::info('--- FIN asignarOT ---');
 
         return response()->json([
             'success' => true,
             'folio' => $request->input('folio'),
             'modulo' => $modulo,
             'cve_mecanico' => $cvetra,
-            'mecanico_asignado' => $asignado->Mecanico,
+            'mecanico_asignado' => $nombreMecanico,
             'supervisor' => $asignado->Supervisor,
             'Maquina' => $request->input('maquina'),
             'problema' => $request->input('descripcion'),

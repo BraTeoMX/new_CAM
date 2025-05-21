@@ -26,6 +26,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css','resources/css/app.css', 'resources/js/app.js', 'resources/js/Sortable.js', 'resources/js/Pussher.js'])
+    <script src="https://unpkg.com/alpinejs" defer></script>
     <script>
         // Cambiar a usar dark-mode-guest para invitados
         if (localStorage.getItem('dark-mode-guest') === 'false' || !('dark-mode-guest' in localStorage)) {
