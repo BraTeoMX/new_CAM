@@ -18,16 +18,14 @@
         </div>
         <!-- Barra de resumen -->
         <div id="resumen-bar" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 hidden">
-            <div class="bg-red-100 text-red-800 rounded-lg p-4 flex items-center justify-center gap-3">
+            <div class="bg-violet-100 text-violet-800 rounded-lg p-4 flex items-center justify-center gap-3">
                 <span class="material-symbols-outlined text-4xl md:text-5xl">
-                    pending_actions
+                    smart_toy
                 </span>
-                <div class="flex flex-col items-start">
-                    <span class="text-2xl font-bold" id="ot-pendientes">0</span>
-                    <span class="text-xs font-semibold mt-1">Pendientes</span>
-                </div>
+                <span class="text-2xl font-bold" id="ot-autonomas">0</span>
+                <span class="text-xs font-semibold mt-1">Autonomas</span>
             </div>
-            <div class="bg-green-100 text-green-800 rounded-lg p-4 flex items-center justify-center gap-3">
+            <div class="bg-blue-100 text-blue-800 rounded-lg p-4 flex items-center justify-center gap-3">
                 <span class="material-symbols-outlined text-4xl md:text-5xl">
                     assignment_ind
                 </span>
@@ -45,7 +43,16 @@
                     <span class="text-xs font-semibold mt-1">En Proceso</span>
                 </div>
             </div>
-            <div class="bg-orange-100 text-orange-800 rounded-lg p-4 flex items-center justify-center gap-3">
+            <div class="bg-red-100 text-red-800 rounded-lg p-4 flex items-center justify-center gap-3">
+                <span class="material-symbols-outlined text-4xl md:text-5xl">
+                    pending_actions
+                </span>
+                <div class="flex flex-col items-start">
+                    <span class="text-2xl font-bold" id="ot-pendientes">0</span>
+                    <span class="text-xs font-semibold mt-1">Pendientes</span>
+                </div>
+            </div>
+            <div class="bg-green-100 text-green-800 rounded-lg p-4 flex items-center justify-center gap-3">
                 <span class="material-symbols-outlined text-4xl md:text-5xl">
                     preliminary
                 </span>
@@ -53,20 +60,6 @@
                     <span class="text-2xl font-bold" id="ot-atendidas">0</span>
                     <span class="text-xs font-semibold mt-1">Atendidas</span>
                 </div>
-            </div>
-            <div class="bg-blue-100 text-blue-800 rounded-lg p-4 flex items-center justify-center gap-3">
-                <span class="material-symbols-outlined text-4xl md:text-5xl">
-                    fact_check
-                </span>
-                <span class="text-2xl font-bold" id="ot-finalizadas">0</span>
-                <span class="text-xs font-semibold mt-1">Finalizadas</span>
-            </div>
-            <div class="bg-violet-100 text-violet-800 rounded-lg p-4 flex items-center justify-center gap-3">
-                <span class="material-symbols-outlined text-4xl md:text-5xl">
-                    smart_toy
-                </span>
-                <span class="text-2xl font-bold" id="ot-autonomas">0</span>
-                <span class="text-xs font-semibold mt-1">Autonomas</span>
             </div>
             <div class="bg-gray-100 text-gray-800 rounded-lg p-4 flex items-center justify-center gap-3">
                 <span class="material-symbols-outlined text-4xl md:text-5xl">
@@ -92,7 +85,6 @@
                     <option value="PROCESO">En Proceso</option>
                     <option value="ATENDIDO">Atendida</option>
                     <option value="AUTONOMO">Autónoma</option>
-                    <option value="FINALIZADO">Finalizada</option>
                 </select>
             </div>
         </div>

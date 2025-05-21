@@ -3,11 +3,10 @@ import Pusher from "pusher-js";
 
 // --- VARIABLES GLOBALES ---
 const COLORS = {
-    FINALIZADO: 'bg-blue-100 text-blue-800',
-    ASIGNADO: 'bg-green-100 text-green-800',
+    ASIGNADO: 'bg-blue-100 text-blue-800',
     PROCESO: 'bg-yellow-100 text-yellow-800',
-    PENDIENTE: 'bg-orange-100 text-orange-800',
-    ATENDIDO: 'bg-red-100 text-red-800',
+    PENDIENTE: 'bg-red-100 text-red-800',
+    ATENDIDO: 'bg-green-100 text-green-800',
     AUTONOMO: 'bg-violet-200 text-violet-800',
     DEFAULT: 'bg-gray-100 text-gray-800'
 };
@@ -18,7 +17,6 @@ const STATUS_LIST = [
     'PROCESO',
     'ATENDIDO',
     'AUTONOMO',
-    'FINALIZADO'
 ];
 
 const STATUS_LABELS = {
@@ -27,7 +25,6 @@ const STATUS_LABELS = {
     PROCESO: 'En Proceso',
     ATENDIDO: 'Atendida',
     AUTONOMO: 'Autónoma',
-    FINALIZADO: 'Finalizada'
 };
 
 // Mapas globales para OTs y seguimiento
@@ -112,24 +109,47 @@ async function fetchAndStoreFollowAtention(folio) {
 function renderOTCard(ot) {
     const statusColor = getStatusColor(ot.Status);
     let timerHtml = '';
-    let followData = followAtentionMap.get(ot.Folio);
+    let followData = followAtentionMap.get(ot.Folio) || {};
 
     let timeInicio = '';
     let timeEstimado = '';
-    let timeEjecucion = '';
     let timerLabel = 'Tiempo restante:';
     let timerValue = '';
     let timerClass = 'timer-countdown';
 
-    if (ot.Status === 'PROCESO' && followData) {
+    if (ot.Status === 'PROCESO') {
         timeInicio = followData.TimeInicio || '';
         timeEstimado = parseEstimadoToMinutes(followData.TimeEstimado);
     }
 
-    // Si la OT ya fue atendida, muestra el tiempo total de atención en minutos
-    if (ot.Status === 'ATENDIDO' && followData && followData.TimeEjecucion != null) {
+    // --- Mostrar SIEMPRE el tiempo de atención en ATENDIDO, aunque sea 0 o null ---
+    if (ot.Status === 'ATENDIDO') {
         timerLabel = 'Tiempo total de atención:';
-        timerValue = `${parseInt(followData.TimeEjecucion)} minutos`;
+        // Si no tenemos el dato, lo consultamos por AJAX y actualizamos la card
+        let minutos = 0;
+        if (
+            typeof followData.TimeEjecucion !== 'undefined' &&
+            followData.TimeEjecucion !== null &&
+            followData.TimeEjecucion !== ''
+        ) {
+            minutos = parseInt(followData.TimeEjecucion, 10);
+            if (isNaN(minutos)) minutos = 0;
+        } else {
+            // AJAX para obtener el dato si no está en el array global
+            fetch(`/api/follow-atention/${encodeURIComponent(ot.Folio)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data && data.data.TimeEjecucion != null) {
+                        followAtentionMap.set(ot.Folio, data.data);
+                        // Vuelve a renderizar solo esta card
+                        const card = document.querySelector(`[data-folio-card="${ot.Folio}"]`);
+                        if (card) {
+                            card.outerHTML = renderOTCard(ot);
+                        }
+                    }
+                });
+        }
+        timerValue = `${minutos} minutos`;
         timerClass = 'timer-finalizado';
         timerHtml = `
             <div class="mt-3 text-center">
@@ -139,9 +159,6 @@ function renderOTCard(ot) {
                 </div>
                 <div class="font-mono text-2xl font-bold text-blue-700 ${timerClass}">
                     ${timerValue}
-                </div>
-                <div class="text-sm text-gray-500">
-                    Tiempo estimado: ${timeEstimado ? timeEstimado : '...'} minutos
                 </div>
             </div>
         `;
@@ -189,9 +206,9 @@ function renderOTCard(ot) {
             </button>
         </div>
     ` : '';
-
+    // --- Agrega un data-folio-card para poder actualizar solo esta card ---
     return `
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-5">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-5" data-folio-card="${ot.Folio}">
             <div class="flex items-center justify-between mb-4">
                 <span class="px-3 py-1 text-sm font-semibold rounded ${statusColor}">${ot.Status}</span>
                 <span class="text-lg font-bold text-gray-800 dark:text-gray-100">Folio: ${ot.Folio}</span>
@@ -523,7 +540,7 @@ async function renderAndFilterOTs(data) {
     // Contadores
     const counts = {};
     STATUS_LIST.forEach(st => counts[st] = 0);
-    counts.total = data.filter(ot => ot.Status !== "AUTONOMO").length;
+    counts.total = data.filter(ot => ot.Status !== "FINALIZADO").length;
     data.forEach(ot => {
         if (counts[ot.Status] !== undefined) counts[ot.Status]++;
     });
@@ -534,7 +551,6 @@ async function renderAndFilterOTs(data) {
     if (document.getElementById("ot-proceso")) document.getElementById("ot-proceso").textContent = counts.PROCESO;
     if (document.getElementById("ot-atendidas")) document.getElementById("ot-atendidas").textContent = counts.ATENDIDO;
     if (document.getElementById("ot-autonomas")) document.getElementById("ot-autonomas").textContent = counts.AUTONOMO;
-    if (document.getElementById("ot-finalizadas")) document.getElementById("ot-finalizadas").textContent = counts.FINALIZADO;
     if (document.getElementById("ot-total")) document.getElementById("ot-total").textContent = counts.total;
 
     // Render cards (ahora sí, ya con los datos de seguimiento)

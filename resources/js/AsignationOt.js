@@ -14,15 +14,15 @@ window.Echo = new Echo({
 function getStatusColor(status) {
     switch (status) {
         case "FINALIZADO":
-            return "bg-blue-100 text-blue-800";
+            return "bg-blue-800 text-blue-100";
         case "ASIGNADO":
-            return "bg-green-100 text-green-800";
+            return "bg-blue-100 text-blue-800";
         case "PROCESO":
             return "bg-yellow-100 text-yellow-800";
         case "PENDIENTE":
-            return "bg-orange-100 text-orange-800";
-        case "ATENDIDO":
             return "bg-red-100 text-red-800";
+        case "ATENDIDO":
+            return "bg-green-100 text-green-800";
         default:
             return "bg-gray-100 text-gray-800";
     }
@@ -34,13 +34,13 @@ function getRingClass(status) {
         case "FINALIZADO":
             return "ring-blue-600 dark:ring-blue-600 bg-blue-600";
         case "ASIGNADO":
-            return "ring-green-600 dark:ring-green-600 bg-green-600";
+            return "ring-blue-400 dark:ring-blue-400 bg-blue-400";
         case "PROCESO":
             return "ring-yellow-400 dark:ring-yellow-400 bg-yellow-400";
         case "PENDIENTE":
-            return "ring-orange-500 dark:ring-orange-500 bg-orange-500";
+            return "ring-red-500 dark:ring-red-500 bg-red-500";
         case "ATENDIDO":
-            return "ring-red-600 dark:ring-red-600 bg-red-600";
+            return "ring-green-600 dark:ring-green-600 bg-green-600";
         default:
             return "ring-gray-400 dark:ring-gray-400 bg-gray-400";
     }
