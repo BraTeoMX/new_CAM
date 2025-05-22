@@ -531,32 +531,30 @@ class ChatManager {
                 return;
             }
 
-            const formData = {
-                modulo: modulo,
-                problema: problema,
-                descripcion: problema,
-                status: wasSuccessful ? 'AUTONOMO' : 'SIN_ASIGNAR',
-                maquina: MACHINES[selectedMachineIndex] // Enviar el nombre de la máquina seleccionada
-            };
-
-            // Si el usuario respondió "NO", agregar el tiempo estimado total de la IA
-            if (!wasSuccessful) {
-                formData.tiempo_estimado_ia = this.state.totalEstimatedIATime;
-
-                // Calcular el tiempo real total pasado en los pasos (en minutos:segundos)
+              // Calcular el tiempo real total pasado en los pasos (en minutos:segundos)
                 let totalActualTimeSeconds = 0;
                 for (const stepKey in this.state.actualStepTimes) {
                     if (this.state.actualStepTimes.hasOwnProperty(stepKey)) {
                         totalActualTimeSeconds += this.state.actualStepTimes[stepKey];
                     }
                 }
+                const tiempo_estimado_ia = this.state.totalEstimatedIATime;
+                console.log(`Tiempo estimado de IA: ${tiempo_estimado_ia} minutos`);
                 // Formato mm:ss
                 const minutos = Math.floor(totalActualTimeSeconds / 60);
                 const segundos = totalActualTimeSeconds % 60;
-                formData.tiempo_real_ia = `${minutos}:${segundos.toString().padStart(2, '0')}`;
-                console.log(`Incluyendo tiempo real de IA: ${formData.tiempo_real_ia} (mm:ss)`);
-            }
+                const tiempo_real_ia = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+                console.log(`Incluyendo tiempo real de IA: ${tiempo_real_ia} (mm:ss)`);
 
+            const formData = {
+                modulo: modulo,
+                problema: problema,
+                descripcion: problema,
+                status: wasSuccessful ? 'AUTONOMO' : 'SIN_ASIGNAR',
+                maquina: MACHINES[selectedMachineIndex], // Enviar el nombre de la máquina seleccionada
+                tiempo_estimado_ia: tiempo_estimado_ia,
+                tiempo_real_ia: tiempo_real_ia,
+            };
 
             console.log('Enviando datos al backend:', formData);
 
