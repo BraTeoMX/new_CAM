@@ -153,6 +153,8 @@ class AsignationOTController extends Controller
             'Modulo'    => $modulo,
             'Num_Mecanico' => $cvetra,
             'Mecanico'  => $nombreMecanico,
+            'TimeAutEst' => $request->input('timeAutonomo'),
+            'TimeAutReal' => $request->input('timerealAutonomo'),
             'Supervisor'=> $supervisor,
             'Maquina' => $request->input('maquina'),
             'Problema'  => $request->input('descripcion'),

@@ -16,6 +16,8 @@ class AsignationOT extends Model
         'Modulo',
         'Num_Mecanico',
         'Mecanico',
+        'TimeAutEst',
+        'TimeAutReal',
         'Maquina',
         'Supervisor',
         'Problema',

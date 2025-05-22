@@ -38,7 +38,9 @@ class ChatManager {
             userModule: '',
             selectedMachineIndex: null,
             nextResponseHandler: null,
-            currentStep: null
+            currentStep: null,
+            totalEstimatedIATime: 0, // Tiempo total estimado de los pasos de la IA
+            actualStepTimes: {} // Nuevo: Para almacenar el tiempo real pasado en cada paso { stepKey: seconds }
         };
 
         // Cache de elementos DOM
@@ -360,6 +362,17 @@ class ChatManager {
 
         await this.appendChatMessage('Por favor sigue estos pasos:', chatMessages);
 
+        // Calcular y almacenar el tiempo total estimado de los pasos que se van a mostrar
+        this.state.totalEstimatedIATime = 0;
+        STEPS.forEach(step => {
+            const minutes = step.times[machineIndex];
+            if (minutes !== null) {
+                this.state.totalEstimatedIATime += minutes;
+            }
+        });
+        console.log(`Tiempo total estimado de pasos de IA para máquina ${MACHINES[machineIndex]}: ${this.state.totalEstimatedIATime} minutos`);
+
+
         const showStepsSequentially = () => {
             let stepIndex = 0;
             const showNextStep = () => {
@@ -397,7 +410,8 @@ class ChatManager {
         stepDiv.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%] flex flex-col';
 
         let tiempoFijo = minutes >= 1 ? `${Math.round(minutes)} min` : `${Math.round(minutes * 60)} seg`;
-        let seconds = Math.round(minutes * 60);
+        let initialSeconds = Math.round(minutes * 60);
+        let seconds = initialSeconds;
 
         stepDiv.innerHTML = `
             <strong>Paso ${index + 1}:</strong> ${step.name}
@@ -414,14 +428,28 @@ class ChatManager {
         // Deshabilitar input
         this.elements.messageInput.disabled = true;
 
-        // --- Corrección aquí ---
         let completed = false;
         const nextStepBtn = stepDiv.querySelector('.next-step-btn');
+
+        // --- CORRECCIÓN: Inicializa actualStepTimes si es null ---
+        if (!this.state.actualStepTimes || typeof this.state.actualStepTimes !== 'object') {
+            this.state.actualStepTimes = {};
+        }
+
         const finishStep = () => {
             if (completed) return;
             completed = true;
             clearInterval(this.state.currentStep.interval);
             nextStepBtn.disabled = true;
+
+            // Calcular y almacenar el tiempo real pasado en este paso (en segundos)
+            const elapsedSeconds = initialSeconds - seconds;
+            // --- CORRECCIÓN: Asegura que this.state.actualStepTimes existe y es objeto ---
+            if (!this.state.actualStepTimes) this.state.actualStepTimes = {};
+            this.state.actualStepTimes[step.key] = elapsedSeconds;
+
+            console.log(`Paso "${step.name}" completado. Tiempo real: ${elapsedSeconds} segundos.`);
+
             this.state.currentStep = null;
             onComplete();
         };
@@ -431,14 +459,13 @@ class ChatManager {
                 seconds--;
                 stepDiv.querySelector('.timer').textContent = this.formatTime(seconds);
                 if (seconds <= 0) {
-                    finishStep(); // Llama a onComplete automáticamente al terminar el tiempo
+                    finishStep();
                 }
             }, 1000),
             element: stepDiv
         };
 
         nextStepBtn.addEventListener('click', finishStep);
-        // --- Fin de la corrección ---
     }
 
     clearCurrentStep() {
@@ -469,7 +496,7 @@ class ChatManager {
         `;
 
         questionDiv.appendChild(questionSpan);
-        chatMessages.appendChild(questionSpan);
+        chatMessages.appendChild(questionDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -512,6 +539,25 @@ class ChatManager {
                 maquina: MACHINES[selectedMachineIndex] // Enviar el nombre de la máquina seleccionada
             };
 
+            // Si el usuario respondió "NO", agregar el tiempo estimado total de la IA
+            if (!wasSuccessful) {
+                formData.tiempo_estimado_ia = this.state.totalEstimatedIATime;
+
+                // Calcular el tiempo real total pasado en los pasos (en minutos:segundos)
+                let totalActualTimeSeconds = 0;
+                for (const stepKey in this.state.actualStepTimes) {
+                    if (this.state.actualStepTimes.hasOwnProperty(stepKey)) {
+                        totalActualTimeSeconds += this.state.actualStepTimes[stepKey];
+                    }
+                }
+                // Formato mm:ss
+                const minutos = Math.floor(totalActualTimeSeconds / 60);
+                const segundos = totalActualTimeSeconds % 60;
+                formData.tiempo_real_ia = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+                console.log(`Incluyendo tiempo real de IA: ${formData.tiempo_real_ia} (mm:ss)`);
+            }
+
+
             console.log('Enviando datos al backend:', formData);
 
             const response = await fetch('/ticketsOT', {
@@ -531,7 +577,7 @@ class ChatManager {
                     icon: 'success',
                     title: 'Ticket registrado',
                     text: wasSuccessful
-                        ? `Gracias por haberlo resuelto de forma autónoma. Folio: ${data.folio}`
+                        ? `Gracias por haberlo resuelto de forma autónoma.`
                         : `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}`,
                     confirmButtonText: 'OK'
                 });
@@ -595,6 +641,8 @@ class ChatManager {
         this.state.userModule = '';
         this.state.selectedMachineIndex = null;
         this.state.nextResponseHandler = null;
+        this.state.totalEstimatedIATime = 0; // Resetear tiempo estimado
+        this.state.actualStepTimes = {}; // Resetear tiempos reales
         window.iaChatStep = 0;
     }
 

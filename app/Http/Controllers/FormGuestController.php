@@ -95,6 +95,8 @@ class FormGuestController extends Controller
                 ], 422);
             }
 
+            $tiempo_estimado = $request->tiempo_estimado_ia;
+            $tiempo_real = $request->tiempo_real_ia;
             // Generar folio único
             $folio = 'OT' .'-'. strtoupper(substr(md5(uniqid()), 0, 6));
 
@@ -130,6 +132,8 @@ class FormGuestController extends Controller
                     'folio' => $ticket->Folio,
                     'modulo' => $ticket->Modulo,
                     'maquina' => $ticket->Maquina,
+                    'timeAutonomo' => $tiempo_estimado,
+                    'timerealAutonomo' => $tiempo_real,
                     'status' => $ticket->Status,
                     'descripcion' => $ticket->Descrip_prob,
                     'created_at' => $ticket->created_at->toDateTimeString(),
