@@ -84,3 +84,4 @@ Route::post('/api/finalizar-atencion', [\App\Http\Controllers\FollowAtentionCont
 Route::get('/api/fallas', [FollowAtentionController::class, 'getFallas']);
 Route::get('/api/causas', [FollowAtentionController::class, 'getCausas']);
 Route::get('/api/acciones', [FollowAtentionController::class, 'getAcciones']);
+Route::post('/asignaciones-ot/limpiar-comida-break-masivo', [AsignationOTController::class, 'limpiarComidaBreakMasivo']);

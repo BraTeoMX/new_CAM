@@ -1,8 +1,8 @@
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 
+// --- Configuración de Echo/Pusher ---
 window.Pusher = Pusher;
-
 window.Echo = new Echo({
     broadcaster: "pusher",
     key: import.meta.env.VITE_PUSHER_APP_KEY,
@@ -11,6 +11,11 @@ window.Echo = new Echo({
     encrypted: true,
 });
 
+// --- Variables globales para seguimiento de comida/break ---
+window.foliosComidaBreak = [];
+window.horasComidaBreak = [];
+
+// --- Utilidades de status y estilos ---
 function getStatusColor(status) {
     switch (status) {
         case "FINALIZADO":
@@ -28,7 +33,6 @@ function getStatusColor(status) {
     }
 }
 
-// Nuevo: función para el contorno de la imagen según status
 function getRingClass(status) {
     switch (status) {
         case "FINALIZADO":
@@ -46,13 +50,38 @@ function getRingClass(status) {
     }
 }
 
-// Renderizar una tarjeta de asignación
+// --- Actualiza arrays globales de comida/break ---
+function actualizarFoliosComidaBreak(data) {
+    window.foliosComidaBreak = [];
+    window.horasComidaBreak = [];
+    data.forEach(asig => {
+        if (asig.ComidaBreak && asig.TerminoComidaBreack) {
+            window.foliosComidaBreak.push(asig.Folio);
+            window.horasComidaBreak.push(asig.TerminoComidaBreack);
+        }
+    });
+}
+
+// --- Renderiza una tarjeta de asignación ---
 function renderAsignacion(asig) {
-    let imgUrl = asig.foto
+    const imgUrl = asig.foto
         ? asig.foto
         : "http://128.150.102.45:8000/Intimark/" + asig.Num_Mecanico + ".jpg";
     const statusColor = getStatusColor(asig.Status);
     const ringClass = getRingClass(asig.Status);
+
+    let comidaBreakHtml = "";
+    if (asig.ComidaBreak && asig.TerminoComidaBreack) {
+        comidaBreakHtml = `
+            <div class="mt-2">
+                <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">
+                    ${asig.ComidaBreak}
+                    Regresa a las: ${new Date(asig.TerminoComidaBreack).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+            </div>
+        `;
+    }
+
     return `
     <div class="relative max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col" data-folio="${asig.Folio}">
         <div class="absolute -top-8 -left-8 z-10">
@@ -72,6 +101,7 @@ function renderAsignacion(asig) {
                 <span>Supervisor: <b>${asig.Supervisor}</b></span>
                 <span>Máquina: <b>${asig.Maquina}</b></span>
             </div>
+            ${comidaBreakHtml}
             <div class="flex items-center justify-between mt-2">
                 <span class="text-xs text-gray-400">Creada: ${asig.created_at ? new Date(asig.created_at).toLocaleString() : ''}</span>
                 <span class="text-xs text-gray-400">Últ. actualización: ${asig.updated_at ? new Date(asig.updated_at).toLocaleString() : ''}</span>
@@ -81,35 +111,29 @@ function renderAsignacion(asig) {
     `;
 }
 
-// Nueva función para renderizar y filtrar asignaciones, y actualizar la barra de resumen
+// --- Renderiza y filtra asignaciones, actualiza barra de resumen y arrays globales ---
 function renderAsignacionesFiltradas(data) {
-    // Filtros
-    const search =
-        document.getElementById("search-ot")?.value?.toLowerCase() || "";
+    actualizarFoliosComidaBreak(data);
+
+    const search = document.getElementById("search-ot")?.value?.toLowerCase() || "";
     const status = document.getElementById("filter-status")?.value || "";
 
-    // --- Orden personalizado de status ---
-    const statusOrder = ['ASIGNADO', 'PROCESO', 'PENDIENTE', 'ATENDIDO', 'FINALIZADO' ];
-    // Excluir AUTONOMO y FINALIZADO siempre
+    const statusOrder = ['ASIGNADO', 'PROCESO', 'PENDIENTE', 'ATENDIDO', 'FINALIZADO'];
     let filtered = data.filter(asig => asig.Status !== "AUTONOMO");
 
-    // Ordenar por status personalizado
     filtered.sort((a, b) => {
         const idxA = statusOrder.indexOf(a.Status);
         const idxB = statusOrder.indexOf(b.Status);
         return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
     });
 
-    // Filtros de búsqueda y status
     if (search) {
         filtered = filtered.filter(
             (asig) =>
                 (asig.Folio && asig.Folio.toLowerCase().includes(search)) ||
                 (asig.Modulo && asig.Modulo.toLowerCase().includes(search)) ||
-                (asig.Mecanico &&
-                    asig.Mecanico.toLowerCase().includes(search)) ||
-                (asig.Supervisor &&
-                    asig.Supervisor.toLowerCase().includes(search)) ||
+                (asig.Mecanico && asig.Mecanico.toLowerCase().includes(search)) ||
+                (asig.Supervisor && asig.Supervisor.toLowerCase().includes(search)) ||
                 (asig.Maquina && asig.Maquina.toLowerCase().includes(search)) ||
                 (asig.Problema && asig.Problema.toLowerCase().includes(search))
         );
@@ -118,7 +142,7 @@ function renderAsignacionesFiltradas(data) {
         filtered = filtered.filter((asig) => asig.Status === status);
     }
 
-    // Contadores
+    // Contadores de status
     const counts = {
         PENDIENTE: 0,
         ASIGNADO: 0,
@@ -143,14 +167,14 @@ function renderAsignacionesFiltradas(data) {
     if (document.getElementById("ot-total"))
         document.getElementById("ot-total").textContent = counts.total;
 
-    // Render cards (ya ordenadas)
+    // Render cards
     const cont = document.getElementById("asignaciones-container");
     cont.innerHTML = filtered.length
         ? filtered.map(renderAsignacion).join("")
         : `<div class="col-span-full text-center text-gray-400 py-8">No hay OTs para mostrar.</div>`;
 }
 
-// Cargar todas las asignaciones (sin filtrar) para actualizar la barra de resumen y cards
+// --- Recarga y renderiza asignaciones desde el backend ---
 function recargarYRenderizarAsignaciones() {
     fetch("/asignaciones-ot")
         .then((res) => res.json())
@@ -159,15 +183,33 @@ function recargarYRenderizarAsignaciones() {
         });
 }
 
-// Cargar asignaciones iniciales (solo las que no son AUTONOMO)
-function cargarAsignaciones() {
-    fetch("/asignaciones-ot")
-        .then((res) => res.json())
-        .then((data) => {
-            renderAsignacionesFiltradas(data);
+// --- Revisa cada segundo si hay que limpiar ComidaBreak ---
+function revisarYLimpiarComidaBreak() {
+    const ahora = new Date();
+    const vencidos = [];
+    window.horasComidaBreak.forEach((hora, idx) => {
+        const horaRegreso = new Date(hora);
+        // Si la hora actual es igual o mayor a la hora de regreso
+        if (
+            ahora.getHours() > horaRegreso.getHours() ||
+            (ahora.getHours() === horaRegreso.getHours() && ahora.getMinutes() >= horaRegreso.getMinutes())
+        ) {
+            vencidos.push(window.foliosComidaBreak[idx]);
+        }
+    });
+    if (vencidos.length > 0) {
+        fetch('/asignaciones-ot/limpiar-comida-break-masivo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ folios: vencidos })
         });
+    }
 }
 
+// --- Eventos DOM y Echo ---
 document.addEventListener("DOMContentLoaded", function () {
     recargarYRenderizarAsignaciones();
     const searchInput = document.getElementById("search-ot");
@@ -175,20 +217,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (searchInput)
         searchInput.addEventListener("input", recargarYRenderizarAsignaciones);
     if (filterSelect)
-        filterSelect.addEventListener(
-            "change",
-            recargarYRenderizarAsignaciones
-        );
+        filterSelect.addEventListener("change", recargarYRenderizarAsignaciones);
 });
 
-// Escuchar el canal y evento, evitando duplicados y ocultando AUTONOMO
 window.Echo.channel("asignaciones-ot")
-    .listen("AsignacionOTCreated", (e) => {
-        recargarYRenderizarAsignaciones();
-    })
-    .listen("AsignacionOTReasignada", (e) => {
-        recargarYRenderizarAsignaciones();
-    })
-    .listen("StatusOTUpdated", (e) => {
-        recargarYRenderizarAsignaciones();
-    });
+    .listen("AsignacionOTCreated", () => recargarYRenderizarAsignaciones())
+    .listen("AsignacionOTReasignada", () => recargarYRenderizarAsignaciones())
+    .listen("StatusOTUpdated", () => recargarYRenderizarAsignaciones())
+    .listen("ComidaBreakLimpiado", () => recargarYRenderizarAsignaciones()); // Nuevo evento
+
+// --- Intervalo para revisar comida/break ---
+setInterval(revisarYLimpiarComidaBreak, 1000);

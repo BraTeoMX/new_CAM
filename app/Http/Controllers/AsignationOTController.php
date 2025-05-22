@@ -9,6 +9,7 @@ use App\Models\Vinculacion;
 use App\Models\AsignationOT;
 use Carbon\Carbon;
 use App\Events\AsignacionOTCreated;
+use App\Events\ComidaBreakLimpiado; // Agrega este use
 use Illuminate\Support\Facades\DB;
 
 class AsignationOTController extends Controller
@@ -70,90 +71,81 @@ class AsignationOTController extends Controller
 
         $now = Carbon::parse($createdAt);
 
-        // Filtrar mecánicos disponibles (no en break/comida)
-        Log::info("Filtrando mecánicos disponibles (no en break/comida)...");
-        $disponibles = $mecanicos->filter(function ($mec) use ($now) {
+        // Determinar para cada mecánico si está en break o comida y la hora de término
+        $mecanicos = $mecanicos->map(function ($mec) use ($now) {
             $dia = $now->englishDayOfWeek;
+            $enComida = false;
+            $enBreak = false;
+            $termino = null;
+            $motivo = null;
+
             // Comida
             if ($mec->Hora_Comida_Inicio && $mec->Hora_Comida_Fin) {
                 $inicio = Carbon::parse($mec->Hora_Comida_Inicio);
                 $fin = Carbon::parse($mec->Hora_Comida_Fin);
-                if ($now->between($inicio, $fin)) return false;
+                if ($now->between($inicio, $fin)) {
+                    $enComida = true;
+                    $termino = $fin;
+                    $motivo = "El mecanico no esta disponible, se encuentra en su hora de comida";
+                }
             }
             // Breaks
             if (in_array($dia, ['Monday','Tuesday','Wednesday','Thursday'])) {
                 if ($mec->Break_Lun_Jue_Inicio && $mec->Break_Lun_Jue_Fin) {
                     $inicio = Carbon::parse($mec->Break_Lun_Jue_Inicio);
                     $fin = Carbon::parse($mec->Break_Lun_Jue_Fin);
-                    if ($now->between($inicio, $fin)) return false;
+                    if ($now->between($inicio, $fin)) {
+                        $enBreak = true;
+                        $termino = $fin;
+                        $motivo = "El mecanico no esta disponible, se encuentra en su hora de break";
+                    }
                 }
             }
             if ($dia === 'Friday') {
                 if ($mec->Break_Viernes_Inicio && $mec->Break_Viernes_Fin) {
                     $inicio = Carbon::parse($mec->Break_Viernes_Inicio);
                     $fin = Carbon::parse($mec->Break_Viernes_Fin);
-                    if ($now->between($inicio, $fin)) return false;
+                    if ($now->between($inicio, $fin)) {
+                        $enBreak = true;
+                        $termino = $fin;
+                        $motivo = "El mecanico no esta disponible, se encuentra en su hora de break";
+                    }
                 }
             }
-            return true;
+            $mec->enComida = $enComida;
+            $mec->enBreak = $enBreak;
+            $mec->terminoComidaBreak = $termino ? $termino->toDateTimeString() : null;
+            $mec->motivoComidaBreak = $motivo;
+            return $mec;
         });
 
-        Log::info("Mecánicos disponibles tras filtro de horario: " . $disponibles->pluck('Num_Mecanico')->implode(', '));
+        // Selecciona aleatoriamente un mecánico presente
+        $asignado = $mecanicos->random();
+        $asignacionHora = $now;
 
-        if ($disponibles->isNotEmpty()) {
-            $asignado = $disponibles->random();
-            $asignacionHora = $now;
-            Log::info("Mecánico asignado aleatoriamente de los disponibles: " . $asignado->Num_Mecanico);
-        } else {
-            Log::info("Todos los mecánicos están en break/comida, buscando el más próximo disponible...");
-            $proximos = [];
-            foreach ($mecanicos as $mec) {
-                $horas = [];
-                if ($mec->Hora_Comida_Fin && $now->lt(Carbon::parse($mec->Hora_Comida_Fin))) {
-                    $horas[] = Carbon::parse($mec->Hora_Comida_Fin);
-                }
-                if ($now->isWeekday() && $mec->Break_Lun_Jue_Fin && $now->lt(Carbon::parse($mec->Break_Lun_Jue_Fin))) {
-                    $horas[] = Carbon::parse($mec->Break_Lun_Jue_Fin);
-                }
-                if ($now->isFriday() && $mec->Break_Viernes_Fin && $now->lt(Carbon::parse($mec->Break_Viernes_Fin))) {
-                    $horas[] = Carbon::parse($mec->Break_Viernes_Fin);
-                }
-                if (!empty($horas)) {
-                    $proximos[] = [
-                        'mecanico' => $mec,
-                        'hora' => collect($horas)->max()
-                    ];
-                }
-            }
-            if (empty($proximos)) {
-                $asignado = $mecanicos->random();
-                $asignacionHora = $now;
-                Log::info("No hay break/comida próximos, asignando aleatoriamente: " . $asignado->Num_Mecanico);
-            } else {
-                $min = collect($proximos)->sortBy('hora')->first();
-                $asignado = $min['mecanico'];
-                $asignacionHora = $min['hora'];
-                Log::info("Asignando al mecánico que antes queda libre: " . $asignado->Num_Mecanico . " a las " . $asignacionHora);
-            }
-        }
-
-        // Obtener nombre del mecánico por cvetra (Num_Mecanico)
-        Log::info("Buscando nombre del mecánico en cat_empleados por cvetra: " . $asignado->Num_Mecanico);
-        $mecanicoData = DB::connection('sqlsrv_dev')
-            ->table('cat_empleados')
-            ->where('cvetra', $asignado->Num_Mecanico)
-            ->select('cvetra', 'nombre')
-            ->first();
-
-        $cvetra = $mecanicoData ? $mecanicoData->cvetra : $asignado->Num_Mecanico;
-        $nombreMecanico = $mecanicoData ? $mecanicoData->nombre : $asignado->Mecanico;
-
-        Log::info("Datos del mecánico asignado: cvetra=$cvetra, nombre=$nombreMecanico");
+        // Determina si está en break o comida y la hora de término
+        $motivoComidaBreak = $asignado->motivoComidaBreak;
+        $terminoComidaBreak = $asignado->terminoComidaBreak;
 
         $StatusEntrante = strtoupper($request->input('status'));
         $statusAsignar = $StatusEntrante === 'SIN_ASIGNAR' ? 'ASIGNADO' : $StatusEntrante;
+       $supervisor = $mecanicos->where('Num_Mecanico', $asignado->Num_Mecanico)->first()->Supervisor;
+        // Validación para status AUTONOMO
+        if ($statusAsignar === 'AUTONOMO') {
+            $nombreMecanico = 'AUTONOMO';
+            $cvetra = null;
+        } else {
+            // Obtener nombre del mecánico por cvetra (Num_Mecanico)
+            Log::info("Buscando nombre del mecánico en cat_empleados por cvetra: " . $asignado->Num_Mecanico);
+            $mecanicoData = DB::connection('sqlsrv_dev')
+                ->table('cat_empleados')
+                ->where('cvetra', $asignado->Num_Mecanico)
+                ->select('cvetra', 'nombre')
+                ->first();
 
-        Log::info("Status entrante: $StatusEntrante, status a asignar: $statusAsignar");
+            $cvetra = $mecanicoData ? $mecanicoData->cvetra : $asignado->Num_Mecanico;
+            $nombreMecanico = $mecanicoData ? $mecanicoData->nombre : $asignado->Mecanico;
+        }
 
         // Guardar la asignación en la base de datos
         $asignacion = AsignationOT::create([
@@ -161,10 +153,12 @@ class AsignationOTController extends Controller
             'Modulo'    => $modulo,
             'Num_Mecanico' => $cvetra,
             'Mecanico'  => $nombreMecanico,
-            'Supervisor'=> $asignado->Supervisor,
+            'Supervisor'=> $supervisor,
             'Maquina' => $request->input('maquina'),
             'Problema'  => $request->input('descripcion'),
             'Status'    => $statusAsignar,
+            'ComidaBreak' => $motivoComidaBreak ?? null,
+            'TerminoComidaBreack' => $terminoComidaBreak ?? null,
         ]);
 
         Log::info("Asignación OT guardada: " . json_encode($asignacion->toArray()));
@@ -186,7 +180,9 @@ class AsignationOTController extends Controller
             'problema' => $request->input('descripcion'),
             'status' => $statusAsignar,
             'asignacion_hora' => $asignacionHora->toDateTimeString(),
-            'foto' => $asignado->foto ?? null, // si tienes campo foto
+            'foto' => $asignado->foto ?? null,
+            'ComidaBreak' => $motivoComidaBreak,
+            'termino_comida_break' => $terminoComidaBreak,
         ]);
     }
 
@@ -195,5 +191,35 @@ class AsignationOTController extends Controller
     {
         $asignaciones = AsignationOT::orderBy('id', 'desc')->get();
         return response()->json($asignaciones);
+    }
+
+    // Nuevo método para limpiar ComidaBreak y TerminoComidaBreack por folio
+    public function limpiarComidaBreak(Request $request)
+    {
+        $folio = $request->input('folio');
+        $asignacion = AsignationOT::where('Folio', $folio)->first();
+        if ($asignacion) {
+            $asignacion->ComidaBreak = null;
+            $asignacion->TerminoComidaBreack = null;
+            $asignacion->save();
+            // Opcional: emitir evento si quieres que se actualice en tiempo real
+            broadcast(new AsignacionOTCreated($asignacion))->toOthers();
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false, 'message' => 'No encontrado'], 404);
+    }
+
+    // Nuevo método para limpiar ComidaBreak y TerminoComidaBreack de varios folios
+    public function limpiarComidaBreakMasivo(Request $request)
+    {
+        $folios = $request->input('folios', []);
+        if (!is_array($folios) || empty($folios)) {
+            return response()->json(['success' => false, 'message' => 'No hay folios'], 400);
+        }
+        \App\Models\AsignationOT::whereIn('Folio', $folios)
+            ->update(['ComidaBreak' => null, 'TerminoComidaBreack' => null]);
+        // Emitir evento para que todos los clientes recarguen
+        broadcast(new ComidaBreakLimpiado())->toOthers();
+        return response()->json(['success' => true]);
     }
 }

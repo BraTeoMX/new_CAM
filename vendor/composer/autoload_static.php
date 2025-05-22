@@ -843,6 +843,7 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Events\\AsignacionOTCreated' => __DIR__ . '/../..' . '/app/Events/AsignacionOTCreated.php',
         'App\\Events\\AsignacionOTReasignada' => __DIR__ . '/../..' . '/app/Events/AsignacionOTReasignada.php',
+        'App\\Events\\ComidaBreakLimpiado' => __DIR__ . '/../..' . '/app/Events/ComidaBreakLimpiado.php',
         'App\\Events\\NewOrderNotification' => __DIR__ . '/../..' . '/app/Events/NewOrderNotification.php',
         'App\\Events\\StatusOTUpdated' => __DIR__ . '/../..' . '/app/Events/StatusOTUpdated.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',

@@ -82,9 +82,9 @@ class FormGuestController extends Controller
             }, $validatedData);
 
             // Verificar existencia del módulo
-            $moduloExists = DB::connection('sqlsrv')
-                ->table('CatModuloOperario_View')
-                ->where('MODULEID', $sanitizedData['modulo'])
+            $moduloExists = DB::connection('sqlsrv_dev')
+                ->table('Supervisores_views')
+                ->where('Modulo', $sanitizedData['modulo'])
                 ->exists();
 
             if (!$moduloExists) {

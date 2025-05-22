@@ -21,6 +21,7 @@ return array(
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Events\\AsignacionOTCreated' => $baseDir . '/app/Events/AsignacionOTCreated.php',
     'App\\Events\\AsignacionOTReasignada' => $baseDir . '/app/Events/AsignacionOTReasignada.php',
+    'App\\Events\\ComidaBreakLimpiado' => $baseDir . '/app/Events/ComidaBreakLimpiado.php',
     'App\\Events\\NewOrderNotification' => $baseDir . '/app/Events/NewOrderNotification.php',
     'App\\Events\\StatusOTUpdated' => $baseDir . '/app/Events/StatusOTUpdated.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',

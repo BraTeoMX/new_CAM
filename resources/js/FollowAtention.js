@@ -11,6 +11,7 @@ const COLORS = {
     DEFAULT: 'bg-gray-100 text-gray-800'
 };
 
+
 const STATUS_LIST = [
     'PENDIENTE',
     'ASIGNADO',
@@ -47,6 +48,24 @@ function getStatusColor(status) {
     return COLORS[status] || COLORS.DEFAULT;
 }
 
+function getRingClass(status) {
+    switch (status) {
+        case "FINALIZADO":
+            return "ring-blue-600 dark:ring-blue-600 bg-blue-600";
+        case "ASIGNADO":
+            return "ring-blue-400 dark:ring-blue-400 bg-blue-400";
+        case "PROCESO":
+            return "ring-yellow-400 dark:ring-yellow-400 bg-yellow-400";
+        case "PENDIENTE":
+            return "ring-red-500 dark:ring-red-500 bg-red-500";
+        case "ATENDIDO":
+            return "ring-green-600 dark:ring-green-600 bg-green-600";
+        case "AUTONOMO":
+            return "ring-violet-600 dark:ring-violet-600 bg-violet-600";
+        default:
+            return "ring-gray-400 dark:ring-gray-400 bg-gray-400";
+    }
+}
 function formatDateTime(dateStr) {
     return dateStr ? new Date(dateStr).toLocaleString() : '';
 }
@@ -111,11 +130,25 @@ function renderOTCard(ot) {
     let timerHtml = '';
     let followData = followAtentionMap.get(ot.Folio) || {};
 
+    // --- NUEVO: Mostrar mensaje de comida/break si aplica ---
+    let comidaBreakHtml = '';
+    if (ot.ComidaBreak && ot.TerminoComidaBreack) {
+        comidaBreakHtml = `
+            <div class="mt-2">
+                <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">
+                    ${ot.ComidaBreak}
+                    Regresa a las: ${new Date(ot.TerminoComidaBreack).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+            </div>
+        `;
+    }
+
     let timeInicio = '';
     let timeEstimado = '';
     let timerLabel = 'Tiempo restante:';
     let timerValue = '';
     let timerClass = 'timer-countdown';
+
 
     if (ot.Status === 'PROCESO') {
         timeInicio = followData.TimeInicio || '';
@@ -206,10 +239,21 @@ function renderOTCard(ot) {
             </button>
         </div>
     ` : '';
+    const ringClass = getRingClass(ot.Status);
+
+     const imgUrl = ot.Status === "AUTONOMO"
+        ? "/images/Avatar.webp" // Reemplaza con la ruta correcta
+        : "http://128.150.102.45:8000/Intimark/" + ot.Num_Mecanico + ".jpg";
     // --- Agrega un data-folio-card para poder actualizar solo esta card ---
     return `
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-5" data-folio-card="${ot.Folio}">
-            <div class="flex items-center justify-between mb-4">
+    <div class="relative max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col" data-folio-card="${ot.Folio}">
+         <div class="absolute -top-8 -left-8 z-10">
+            <img class="w-20 h-20 rounded-full ring-4 ${ringClass} shadow-lg object-cover bg-white"
+                src="${imgUrl}" alt="${ot.Num_Mecanico}"
+                onerror="this.onerror=null; this.src='/default-avatar.jpg';">
+        </div>
+        <div class="p-5 pl-20">
+        <div class="flex items-center justify-between mb-4">
                 <span class="px-3 py-1 text-sm font-semibold rounded ${statusColor}">${ot.Status}</span>
                 <span class="text-lg font-bold text-gray-800 dark:text-gray-100">Folio: ${ot.Folio}</span>
             </div>
@@ -225,10 +269,12 @@ function renderOTCard(ot) {
                     <span>Creada: ${formatDateTime(ot.created_at)}</span>
                     <span>Actualizada: ${formatDateTime(ot.updated_at)}</span>
                 </div>
+                ${comidaBreakHtml}
             </div>
             ${timerHtml}
             ${finalizarBtn}
             ${footer}
+            </div>
         </div>
     `;
 }
@@ -799,6 +845,11 @@ window.Echo.channel("asignaciones-ot")
         if (modulo) cargarSeguimientoOTs(modulo);
     })
     .listen("StatusOTUpdated", (e) => {
+        const modulo = document.getElementById('modulo-select')?.value;
+        if (modulo) cargarSeguimientoOTs(modulo);
+    })
+    .listen("ComidaBreakLimpiado", (e) => {
+        // NUEVO: Recarga para reflejar el cambio de comida/break en tiempo real
         const modulo = document.getElementById('modulo-select')?.value;
         if (modulo) cargarSeguimientoOTs(modulo);
     });

@@ -20,5 +20,7 @@ class AsignationOT extends Model
         'Supervisor',
         'Problema',
          'Status',
+         'ComidaBreak',
+         'TerminoComidaBreack',
     ];
 }
