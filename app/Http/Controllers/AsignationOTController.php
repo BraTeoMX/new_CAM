@@ -134,7 +134,10 @@ class AsignationOTController extends Controller
         if ($statusAsignar === 'AUTONOMO') {
             $nombreMecanico = 'AUTONOMO';
             $cvetra = null;
-        } else {
+        }elseif($statusAsignar === 'CANCELADO') {
+            $nombreMecanico = 'CANCELADO';
+            $cvetra = null;
+        }else {
             // Obtener nombre del mecánico por cvetra (Num_Mecanico)
             Log::info("Buscando nombre del mecánico en cat_empleados por cvetra: " . $asignado->Num_Mecanico);
             $mecanicoData = DB::connection('sqlsrv_dev')

@@ -483,24 +483,71 @@ class ChatManager {
         const questionSpan = document.createElement('span');
         questionSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
 
+        // --- Nuevo: Timer de 1 minuto ---
+        let timerSeconds = 60;
+        let timerInterval;
+        let timerDiv = document.createElement('div');
+        timerDiv.className = 'text-center text-xs font-bold text-red-600 mt-2';
+        timerDiv.innerHTML = `Tiempo para responder: <span id="final-question-timer">01:00</span>`;
+
+        // Función para actualizar el timer visual
+        function updateTimerDisplay() {
+            const min = Math.floor(timerSeconds / 60);
+            const sec = timerSeconds % 60;
+            timerDiv.querySelector('#final-question-timer').textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        // --- Botones ---
         questionSpan.innerHTML = `
             <p>¿Pudiste resolver el problema, con los pasos de ayuda?</p>
             <div class="flex gap-4 mt-3">
                 <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(true)">
                     SI
                 </button>
-                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(false)">
+                <button class="bg-orange-400 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(false)">
                     NO
+                </button>
+                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse('CANCELADO')">
+                    Cancelar ticket
                 </button>
             </div>
         `;
 
+        // --- Agregar el timer visual ---
+        questionSpan.appendChild(timerDiv);
+
         questionDiv.appendChild(questionSpan);
         chatMessages.appendChild(questionDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // --- Iniciar el timer de 1 minuto ---
+        updateTimerDisplay();
+        let timerExpired = false;
+        this.finalQuestionTimerInterval = setInterval(() => {
+            timerSeconds--;
+            updateTimerDisplay();
+            if (timerSeconds <= 0) {
+                clearInterval(this.finalQuestionTimerInterval);
+                timerExpired = true;
+                // Sumar 60 segundos al tiempo real de IA
+                if (!this.state.actualStepTimes) this.state.actualStepTimes = {};
+                this.state.actualStepTimes['final_wait'] = 60;
+                // Enviar automáticamente como CANCELADO
+                this.handleResponse('CANCELADO', true); // true = triggeredByTimeout
+            }
+        }, 1000);
+
+        // Guardar referencia para limpiar si el usuario responde antes
+        this.finalQuestionTimerActive = true;
     }
 
-    async handleResponse(wasSuccessful) {
+    async handleResponse(wasSuccessful, triggeredByTimeout = false) {
+        // Limpiar el timer si está activo
+        if (this.finalQuestionTimerActive && this.finalQuestionTimerInterval) {
+            clearInterval(this.finalQuestionTimerInterval);
+            this.finalQuestionTimerActive = false;
+        }
+
         const chatMessages = this.elements.chatMessages;
         try {
             // Usar los valores globales si los del state están vacíos
@@ -531,27 +578,34 @@ class ChatManager {
                 return;
             }
 
-              // Calcular el tiempo real total pasado en los pasos (en minutos:segundos)
-                let totalActualTimeSeconds = 0;
-                for (const stepKey in this.state.actualStepTimes) {
-                    if (this.state.actualStepTimes.hasOwnProperty(stepKey)) {
-                        totalActualTimeSeconds += this.state.actualStepTimes[stepKey];
-                    }
+            // Calcular el tiempo real total pasado en los pasos (en minutos:segundos)
+            let totalActualTimeSeconds = 0;
+            for (const stepKey in this.state.actualStepTimes) {
+                if (this.state.actualStepTimes.hasOwnProperty(stepKey)) {
+                    totalActualTimeSeconds += this.state.actualStepTimes[stepKey];
                 }
-                const tiempo_estimado_ia = this.state.totalEstimatedIATime;
-                console.log(`Tiempo estimado de IA: ${tiempo_estimado_ia} minutos`);
-                // Formato mm:ss
-                const minutos = Math.floor(totalActualTimeSeconds / 60);
-                const segundos = totalActualTimeSeconds % 60;
-                const tiempo_real_ia = `${minutos}:${segundos.toString().padStart(2, '0')}`;
-                console.log(`Incluyendo tiempo real de IA: ${tiempo_real_ia} (mm:ss)`);
+            }
+            const tiempo_estimado_ia = this.state.totalEstimatedIATime;
+            const minutos = Math.floor(totalActualTimeSeconds / 60);
+            const segundos = totalActualTimeSeconds % 60;
+            const tiempo_real_ia = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+
+            // Determinar status a enviar
+            let statusToSend;
+            if (wasSuccessful === true) {
+                statusToSend = 'AUTONOMO';
+            } else if (wasSuccessful === false) {
+                statusToSend = 'SIN_ASIGNAR';
+            } else if (wasSuccessful === 'CANCELADO') {
+                statusToSend = 'CANCELADO';
+            }
 
             const formData = {
                 modulo: modulo,
                 problema: problema,
                 descripcion: problema,
-                status: wasSuccessful ? 'AUTONOMO' : 'SIN_ASIGNAR',
-                maquina: MACHINES[selectedMachineIndex], // Enviar el nombre de la máquina seleccionada
+                status: statusToSend,
+                maquina: MACHINES[selectedMachineIndex],
                 tiempo_estimado_ia: tiempo_estimado_ia,
                 tiempo_real_ia: tiempo_real_ia,
             };
@@ -571,22 +625,51 @@ class ChatManager {
             const data = await response.json();
 
             if (data.success) {
+                // Determinar icono, título y texto según status
+                let swalIcon = 'success';
+                let swalTitle = '';
+                let swalText = '';
+                if (statusToSend === 'AUTONOMO') {
+                    swalIcon = 'success';
+                    swalTitle = 'Excelente trabajo';
+                    swalText = 'Gracias por haberlo resuelto de forma autónoma.';
+                } else if (statusToSend === 'SIN_ASIGNAR') {
+                    swalIcon = 'success';
+                    swalTitle = 'Ticket registrado';
+                    swalText = `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}`;
+                } else if (statusToSend === 'CANCELADO') {
+                    swalIcon = 'warning';
+                    swalTitle = 'El ticket fue cancelado';
+                    swalText = triggeredByTimeout ? 'Por inactividad se ha cancelado tu ticket' : '';
+                }
+
                 await Swal.fire({
-                    icon: 'success',
-                    title: 'Ticket registrado',
-                    text: wasSuccessful
-                        ? `Gracias por haberlo resuelto de forma autónoma.`
-                        : `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}`,
+                    icon: swalIcon,
+                    title: swalTitle,
+                    text: swalText,
                     confirmButtonText: 'OK'
                 });
 
-                await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
-                await this.appendChatMessage(
-                    wasSuccessful
-                        ? 'Me alegra que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte'
-                        : 'Se ha generado tu ticket, en breve te atenderá el mecánico.',
-                    chatMessages
-                );
+                // Mensajes en el chat según status
+                if (statusToSend === 'AUTONOMO') {
+                    await this.appendChatMessage(
+                        'Me alegra 😃 que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte 🤖',
+                        chatMessages
+                    );
+                } else if (statusToSend === 'SIN_ASIGNAR') {
+                    await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
+                    await this.appendChatMessage(
+                        'Se ha generado tu ticket, en breve te atenderá el mecánico.',
+                        chatMessages
+                    );
+                } else if (statusToSend === 'CANCELADO') {
+                    await this.appendChatMessage(
+                        triggeredByTimeout
+                            ? 'Por inactividad se ha cancelado tu ticket.<br>Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte'
+                            : 'Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte',
+                        chatMessages
+                    );
+                }
 
                 setTimeout(() => this.showFinalResetQuestion(chatMessages), 1000);
             } else {

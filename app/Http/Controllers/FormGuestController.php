@@ -73,7 +73,7 @@ class FormGuestController extends Controller
                 'problema' => ['required', 'string', 'max:255'],
                 'maquina' => ['required', 'string', 'max:255'],
                 'descripcion' => ['required', 'string', 'max:255'],
-                'status' => ['required', 'string', 'in:AUTONOMO,SIN_ASIGNAR'],
+                'status' => ['required', 'string', 'in:AUTONOMO,SIN_ASIGNAR,CANCELADO'],
             ]);
 
             // Sanitizar datos

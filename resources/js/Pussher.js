@@ -40,7 +40,23 @@ function renderNotification(notification) {
             </li>
             </div>
         `;
-    } else {
+    } else if(notification.status === "CANCELADO" ){
+         notificationHtml = `
+            <div class="divide-y divide-gray-100 dark:divide-gray-700">
+            <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${notification.folio}">
+                <div class="shrink-0">
+                    <img class="w-12 h-12 rounded-full" src="/images/cancelado.webp" alt="cancelado"/>
+                </div>
+                <div class="w-full ps-3">
+                    <div class="text-gray-500 text-sm mb-1.5 dark:text-gray-400">
+                        <strong>Ticket cancelado</strong><br>Modulo: ${notification.modulo}
+                    </div>
+                    <div class="text-xs text-blue-600 dark:text-blue-500">${timeAgo(notification.created_at)}</div>
+                </div>
+            </li>
+            </div>
+        `;
+    }else {
         notificationHtml = `
             <div class="divide-y divide-gray-100 dark:divide-gray-700">
             <li class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 cursor-pointer flex justify-between items-center" data-folio="${notification.folio}">
@@ -112,8 +128,10 @@ function showToast(e) {
     const toast = document.createElement("div");
     let toastMessage;
     if (e.status === "AUTONOMO") {
-        toastMessage = "Problema resuelta Autonomamente";
-    } else {
+        toastMessage = "Problema resuelto Autonomamente";
+    }else if (e.status === "CANCELADO") {
+        toastMessage = `Ticket cancelado`;
+    }else {
         toastMessage = `Nuevo ticket generado: ${e.folio}`;
     }
     toast.innerHTML = `
@@ -223,6 +241,11 @@ $(document).on("click", "#notificationList li", function () {
             $("#notificationModalBody").html(`
                 <p>Modulo: ${notification.modulo}</p>
                 <p>Descripción: ${notification.descripcion || ''}</p>
+            `);
+        }else if(notification.status === "CANCELADO"){
+            $("#notificationModalTitle").text(`Ticket cancelado`);
+            $("#notificationModalBody").html(`
+                <p>Modulo: ${notification.modulo}</p>
             `);
         } else {
             $("#notificationModalTitle").text(`Nueva OT: ${notification.folio}`);
