@@ -119,7 +119,7 @@ function renderAsignacionesFiltradas(data) {
     const status = document.getElementById("filter-status")?.value || "";
 
     const statusOrder = ['ASIGNADO', 'PROCESO', 'PENDIENTE', 'ATENDIDO', 'FINALIZADO'];
-    let filtered = data.filter(asig => asig.Status !== "AUTONOMO");
+    let filtered = data.filter(asig => asig.Status !== "AUTONOMO" && asig.Status !== "CANCELADO");
 
     filtered.sort((a, b) => {
         const idxA = statusOrder.indexOf(a.Status);

@@ -50,8 +50,6 @@ function getStatusColor(status) {
 
 function getRingClass(status) {
     switch (status) {
-        case "FINALIZADO":
-            return "ring-blue-600 dark:ring-blue-600 bg-blue-600";
         case "ASIGNADO":
             return "ring-blue-400 dark:ring-blue-400 bg-blue-400";
         case "PROCESO":
@@ -224,7 +222,7 @@ function renderOTCard(ot) {
                     data-folio="${ot.Folio}"
                     data-inicio="${timeInicio}"
                     data-estimado="${timeEstimado}">
-                    Finalizar Proceso
+                    Finalizar Atención
                 </button>
             </div>
         `;
@@ -558,6 +556,8 @@ function initializeTimers() {
 // --- RENDER Y FILTRO PRINCIPAL ---
 async function renderAndFilterOTs(data) {
     otMap.clear();
+    // --- FILTRAR OTs CANCELADAS DESDE EL INICIO ---
+    data = data.filter(ot => ot.Status !== "CANCELADO" && ot.Status !== "FINALIZADO");
     data.forEach(ot => otMap.set(ot.Folio, ot));
 
     const search = document.getElementById('search-ot')?.value?.toLowerCase() || '';
@@ -596,7 +596,7 @@ async function renderAndFilterOTs(data) {
     // Contadores
     const counts = {};
     STATUS_LIST.forEach(st => counts[st] = 0);
-    counts.total = data.filter(ot => ot.Status !== "FINALIZADO").length;
+    counts.total = data.filter(ot => ot.Status !== "FINALIZADO" && ot.Status !== "CANCELADO").length;
     data.forEach(ot => {
         if (counts[ot.Status] !== undefined) counts[ot.Status]++;
     });
@@ -800,28 +800,6 @@ async function iniciarAtencion(folio, clase, tiempo_estimado) {
         Swal.fire('Error', 'No se pudo iniciar la atención', 'error');
     }
 }
-
-// Obtener datos de FollowAtention por folio (AJAX GET)
-async function getFollowAtentionData(folio) {
-    try {
-        const response = await fetch(`/api/follow-atention/${encodeURIComponent(folio)}`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        if (!response.ok) throw new Error('No se pudo obtener el registro');
-        const data = await response.json();
-        if (data.success) {
-            return data.data; // Aquí tienes TimeEstimado, TimeInicio, etc.
-        }
-        return null;
-    } catch (e) {
-        console.error(e);
-        return null;
-    }
-}
-
 // Solicitar permisos para notificaciones y configurar visibilitychange
 if (Notification.permission === "default") {
     Notification.requestPermission();
@@ -837,19 +815,22 @@ document.addEventListener('visibilitychange', function() {
 // Escucha el evento de Echo para actualizar en tiempo real y mostrar el temporizador inmediatamente
 window.Echo.channel("asignaciones-ot")
     .listen("AsignacionOTCreated", (e) => {
+        // --- NO ACTUALIZAR SI LA OT ES CANCELADA ---
+        if (e && e.Status === "CANCELADO") return;
         const modulo = document.getElementById('modulo-select')?.value;
         if (modulo) cargarSeguimientoOTs(modulo);
     })
     .listen("AsignacionOTReasignada", (e) => {
+        if (e && e.Status === "CANCELADO") return;
         const modulo = document.getElementById('modulo-select')?.value;
         if (modulo) cargarSeguimientoOTs(modulo);
     })
     .listen("StatusOTUpdated", (e) => {
+        if (e && e.Status === "CANCELADO") return;
         const modulo = document.getElementById('modulo-select')?.value;
         if (modulo) cargarSeguimientoOTs(modulo);
     })
     .listen("ComidaBreakLimpiado", (e) => {
-        // NUEVO: Recarga para reflejar el cambio de comida/break en tiempo real
         const modulo = document.getElementById('modulo-select')?.value;
         if (modulo) cargarSeguimientoOTs(modulo);
     });
