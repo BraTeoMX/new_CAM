@@ -34,8 +34,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/AdminControl', [AdminControlController::class, 'Admin'])->name('Admin');
         Route::get('/admin-control/users', [AdminControlController::class, 'getUsers'])->name('admin-control.users');
+        Route::post('/admin-control/users', [AdminControlController::class, 'store']);
         Route::get('/admin-control/users/{id}', [AdminControlController::class, 'edit']);
         Route::put('/admin-control/users/{id}', [AdminControlController::class, 'update']);
+        Route::get('/admin-control/puestos', [AdminControlController::class, 'getPuestos']);
         Route::get('/Catalogos', [CatalogosController::class, 'Catalogos'])->name('Catalogos');
         Route::get('/mecanicos', [CatalogosController::class, 'getMecanicos']);
         Route::get('/supervisores', [CatalogosController::class, 'getSupervisores']);

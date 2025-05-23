@@ -68,6 +68,9 @@ class CatalogosController extends Controller
     public function getVinculaciones()
     {
         try {
+            // Sincronizar supervisores antes de retornar las vinculaciones
+            $this->syncSupervisoresWithCatalog();
+
             $vinculaciones = \App\Models\Vinculacion::select(
                 'id',
                 'Supervisor',
@@ -89,6 +92,38 @@ class CatalogosController extends Controller
                 'message' => 'Error al obtener las vinculaciones.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Sincroniza los supervisores de la tabla vinculaciones con el catálogo de supervisores.
+     */
+    protected function syncSupervisoresWithCatalog()
+    {
+        // Obtener supervisores del catálogo
+        $supervisoresCatalogo = DB::connection('sqlsrv_dev')
+            ->table('Supervisores_views')
+            ->select('Modulo', 'Nombre')
+            ->get()
+            ->keyBy('Modulo');
+
+        // Obtener módulos únicos en vinculaciones
+        $modulosVinculaciones = DB::table('vinculaciones')
+            ->select('Modulo', 'Supervisor')
+            ->distinct()
+            ->get();
+
+        foreach ($modulosVinculaciones as $vinc) {
+            $modulo = $vinc->Modulo;
+            $supervisorActual = $vinc->Supervisor;
+            $supervisorCatalogo = $supervisoresCatalogo[$modulo]->Nombre ?? null;
+
+            if ($supervisorCatalogo && $supervisorActual !== $supervisorCatalogo) {
+                // Actualizar supervisor en todas las vinculaciones de ese módulo
+                DB::table('vinculaciones')
+                    ->where('Modulo', $modulo)
+                    ->update(['Supervisor' => $supervisorCatalogo]);
+            }
         }
     }
 
