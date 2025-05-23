@@ -24,5 +24,7 @@ class AsignationOT extends Model
          'Status',
          'ComidaBreak',
          'TerminoComidaBreack',
+         'created_at',
+         'updated_at',
     ];
 }

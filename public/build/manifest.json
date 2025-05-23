@@ -11,7 +11,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-4R-pBeV3.css",
+    "file": "assets/app-QTYH8RGV.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -83,6 +83,18 @@
     "file": "assets/calendar-DefsuQaZ.js",
     "name": "calendar",
     "src": "resources/js/calendar.js",
+    "isEntry": true
+  },
+  "resources/js/dashboardHeatmap.js": {
+    "file": "assets/dashboardHeatmap-DEfJKpmv.js",
+    "name": "dashboardHeatmap",
+    "src": "resources/js/dashboardHeatmap.js",
+    "isEntry": true
+  },
+  "resources/js/elemento1dashboard.js": {
+    "file": "assets/elemento1dashboard-6aPPdgnl.js",
+    "name": "elemento1dashboard",
+    "src": "resources/js/elemento1dashboard.js",
     "isEntry": true
   },
   "resources/js/events.js": {
