@@ -57,41 +57,50 @@ function processCalendarData(rawData, year, month) {
 // Renderizar calendario mensual tipo heatmap con leyenda
 function renderCalendarHeatmap(year, month, dayMap) {
     const container = document.createElement('div');
-    container.className = 'group py-7 px-9 border border-dotted border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 rounded-md relative overflow-hidden lg:col-span-6 flex flex-row gap-8';
+    container.className = `
+        group py-2 px-1 sm:py-4 sm:px-2 md:py-6 md:px-4 lg:py-7 lg:px-9
+        border border-dotted border-zinc-100 dark:border-zinc-800
+        bg-zinc-50 dark:bg-zinc-900 rounded-md relative overflow-hidden
+        flex flex-col md:flex-row gap-2 md:gap-6 w-full
+        max-w-full
+        lg:col-span-6
+    `.replace(/\s+/g, ' ');
+
     container.innerHTML = `
-        <div class="absolute inset-0 z-0 opacity-5"></div>
-        <div class="relative z-10 flex flex-row gap-8">
-            <div>
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Actividad de tickets</div>
-                    <select id="calendar-month" class="ml-4 px-2 py-1 rounded bg-zinc-800 text-white text-sm border border-zinc-700 focus:outline-none"></select>
-                    <select id="calendar-year" class="ml-2 px-2 py-1 rounded bg-zinc-800 text-white text-sm border border-zinc-700 focus:outline-none"></select>
+        <div class="relative z-10 flex flex-col md:flex-row gap-2 md:gap-6 w-full">
+            <div class="w-full md:w-auto">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4">
+                    <div class="text-base sm:text-lg md:text-xl lg:text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Actividad de tickets</div>
+                    <div class="flex gap-2">
+                        <select id="calendar-month" class="px-2 py-1 rounded bg-zinc-800 text-white text-xs sm:text-sm border border-zinc-700 focus:outline-none"></select>
+                        <select id="calendar-year" class="px-2 py-1 rounded bg-zinc-800 text-white text-xs sm:text-sm border border-zinc-700 focus:outline-none"></select>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <div id="calendar-grid" class="relative" style="min-width: 270px;"></div>
+                <div class="overflow-x-auto w-full">
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2 min-w-[340px] sm:min-w-[420px] md:min-w-[420px] lg:min-w-[420px] w-max mx-auto"></div>
                 </div>
             </div>
-            <div class="flex flex-col items-start justify-center ml-6">
-                <div class="text-xs text-gray-500 mb-2">Actividad</div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-block w-6 h-6 rounded bg-gray-100 dark:bg-zinc-800 border"></span>
-                    <span class="text-xs text-gray-400">0</span>
+            <div class="flex flex-row flex-wrap md:flex-col items-center md:items-start justify-center ml-0 md:ml-6 gap-2 md:gap-0 mt-2 md:mt-0">
+                <div class="text-xs text-gray-500 mb-2 hidden md:block">Actividad</div>
+                <div class="flex items-center gap-1 sm:gap-2">
+                    <span class="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded bg-gray-100 dark:bg-zinc-800 border"></span>
+                    <span class="text-[10px] sm:text-xs text-gray-400">0</span>
                 </div>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="inline-block w-6 h-6 rounded bg-emerald-100 dark:bg-emerald-800 border"></span>
-                    <span class="text-xs text-gray-400">1-4</span>
+                <div class="flex items-center gap-1 sm:gap-2 mt-0 md:mt-1">
+                    <span class="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded bg-emerald-100 dark:bg-emerald-800 border"></span>
+                    <span class="text-[10px] sm:text-xs text-gray-400">1-4</span>
                 </div>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="inline-block w-6 h-6 rounded bg-emerald-200 dark:bg-emerald-600 border"></span>
-                    <span class="text-xs text-gray-400">5-9</span>
+                <div class="flex items-center gap-1 sm:gap-2 mt-0 md:mt-1">
+                    <span class="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded bg-emerald-200 dark:bg-emerald-600 border"></span>
+                    <span class="text-[10px] sm:text-xs text-gray-400">5-9</span>
                 </div>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="inline-block w-6 h-6 rounded bg-emerald-400 dark:bg-emerald-400 border"></span>
-                    <span class="text-xs text-gray-400">10-14</span>
+                <div class="flex items-center gap-1 sm:gap-2 mt-0 md:mt-1">
+                    <span class="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded bg-emerald-400 dark:bg-emerald-400 border"></span>
+                    <span class="text-[10px] sm:text-xs text-gray-400">10-14</span>
                 </div>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="inline-block w-6 h-6 rounded bg-emerald-600 dark:bg-emerald-200 border"></span>
-                    <span class="text-xs text-gray-400">15+</span>
+                <div class="flex items-center gap-1 sm:gap-2 mt-0 md:mt-1">
+                    <span class="inline-block w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded bg-emerald-600 dark:bg-emerald-200 border"></span>
+                    <span class="text-[10px] sm:text-xs text-gray-400">15+</span>
                 </div>
             </div>
         </div>
@@ -116,36 +125,29 @@ function renderCalendarHeatmap(year, month, dayMap) {
         yearSelect.appendChild(opt);
     }
 
-    // Encabezados de días
+    // Encabezados de días (como grid)
     const grid = container.querySelector('#calendar-grid');
-    calendarConfig.days.forEach((day, i) => {
+    calendarConfig.days.forEach(day => {
         const label = document.createElement('div');
         label.textContent = day;
-        label.className = 'text-sm text-center text-gray-500'; // Aumenta el tamaño de fuente
-        label.style = `
-            position: absolute;
-            left: ${(i * (calendarConfig.cellSize + calendarConfig.cellGap))}px;
-            top: 0;
-            width: ${calendarConfig.cellSize}px;
-            height: 28px;
-            line-height: 28px;
-        `;
+        label.className = 'text-xs sm:text-sm text-center text-gray-500 font-bold';
         grid.appendChild(label);
     });
 
     // Primer día del mes (0=domingo, 1=lunes,...)
     const firstDay = new Date(year, month, 1).getDay();
-    // Ajustar para que lunes sea 0
     const startDay = (firstDay + 6) % 7;
 
-    // Días del mes
-    let row = 0;
-    for (let d = 1; d <= dayMap.daysInMonth; d++) {
-        const col = (startDay + d - 1) % 7;
-        row = Math.floor((startDay + d - 1) / 7);
-        const value = dayMap.dayMap[d] || 0;
+    // Rellenar celdas vacías antes del primer día
+    for (let i = 0; i < startDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'w-full h-[44px] sm:h-[44px]';
+        grid.appendChild(empty);
+    }
 
-        // Buscar los módulos y supervisores de ese día
+    // Días del mes
+    for (let d = 1; d <= dayMap.daysInMonth; d++) {
+        const value = dayMap.dayMap[d] || 0;
         let modulos = [];
         let supervisores = [];
         heatmapData.forEach(rowData => {
@@ -164,29 +166,22 @@ function renderCalendarHeatmap(year, month, dayMap) {
         const tooltip = `${d}/${month + 1}/${year}: ${value} registros\nMódulos: ${modulos.join(', ') || '-'}\nSupervisores: ${supervisores.join(', ') || '-'}`;
 
         const cell = document.createElement('div');
-        cell.className = `absolute flex flex-col items-center justify-center text-base font-medium ${getCellColor(value)}`;
-        cell.style = `
-            left: ${(col * (calendarConfig.cellSize + calendarConfig.cellGap))}px;
-            top: ${(row * (calendarConfig.cellSize + calendarConfig.cellGap)) + 32}px;
-            width: ${calendarConfig.cellSize}px;
-            height: ${calendarConfig.cellSize}px;
-            border-radius: 8px;
-            transition: background 0.2s;
-            cursor: pointer;
-        `;
+        cell.className = `
+            flex flex-col items-center justify-center
+            text-xs sm:text-base font-medium ${getCellColor(value)}
+            rounded-lg transition cursor-pointer
+            w-full h-[44px] sm:h-[44px]
+        `.replace(/\s+/g, ' ');
         cell.title = tooltip;
         cell.textContent = d;
         if (value > 0) {
             const badge = document.createElement('span');
             badge.textContent = value;
-            badge.className = 'block text-[13px] text-emerald-900 dark:text-emerald-100 font-bold';
+            badge.className = 'block text-[12px] sm:text-[13px] text-emerald-900 dark:text-emerald-100 font-bold';
             cell.appendChild(badge);
         }
         grid.appendChild(cell);
     }
-    // Ajustar tamaño del grid
-    grid.style.height = `${(row + 1) * (calendarConfig.cellSize + calendarConfig.cellGap) + 40}px`;
-    grid.style.width = `${7 * (calendarConfig.cellSize + calendarConfig.cellGap)}px`;
 
     // Insertar en el DOM
     const target = document.getElementById('dashboard-heatmap');

@@ -103,9 +103,9 @@ document.addEventListener("DOMContentLoaded", function () {
                          style="width: ${scale(d.value)}%">
                     </div>
                     <div class="absolute left-2 flex items-center gap-2">
-                        <span class="text-xs font-medium text-white drop-shadow-sm">${d.key}</span>
+                        <span class="text-xs font-medium text-gray-900 dark:text-white drop-shadow-sm">${d.key}</span>
                     </div>
-                    <span class="absolute right-2 text-sm font-bold text-gray-700 dark:text-white">${d.value}</span>
+                    <span class="absolute right-2 text-sm font-bold text-gray-900 dark:text-white">${d.value}</span>
                 </div>
             </div>
         `).join('');

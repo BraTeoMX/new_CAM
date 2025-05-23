@@ -87,3 +87,4 @@ Route::get('/api/fallas', [FollowAtentionController::class, 'getFallas']);
 Route::get('/api/causas', [FollowAtentionController::class, 'getCausas']);
 Route::get('/api/acciones', [FollowAtentionController::class, 'getAcciones']);
 Route::post('/asignaciones-ot/limpiar-comida-break-masivo', [AsignationOTController::class, 'limpiarComidaBreakMasivo']);
+Route::get('/dashboard/timeline-data', [DashboardController::class, 'getTimelineData'])->name('dashboard.timeline-data');
