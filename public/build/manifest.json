@@ -15,7 +15,7 @@
     "name": "transform"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BiISDK7F.css",
+    "file": "assets/app-CZMezfcQ.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -71,12 +71,6 @@
     "src": "resources/js/Sortable.js",
     "isEntry": true
   },
-  "resources/js/adminuser.js": {
-    "file": "assets/adminuser-DasdcmZn.js",
-    "name": "adminuser",
-    "src": "resources/js/adminuser.js",
-    "isEntry": true
-  },
   "resources/js/app.js": {
     "file": "assets/app-CBdplO0V.js",
     "name": "app",
@@ -90,7 +84,7 @@
     "isEntry": true
   },
   "resources/js/calendarSelects.js": {
-    "file": "assets/calendarSelects-Cq-VCjUZ.js",
+    "file": "assets/calendarSelects-KVALIoxC.js",
     "name": "calendarSelects",
     "src": "resources/js/calendarSelects.js",
     "isEntry": true
@@ -99,6 +93,12 @@
     "file": "assets/dashboardHeatmap-DIoSN1E1.js",
     "name": "dashboardHeatmap",
     "src": "resources/js/dashboardHeatmap.js",
+    "isEntry": true
+  },
+  "resources/js/efectividad.js": {
+    "file": "assets/efectividad-DTGHo__Z.js",
+    "name": "efectividad",
+    "src": "resources/js/efectividad.js",
     "isEntry": true
   },
   "resources/js/elemento1dashboard.js": {

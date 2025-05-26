@@ -21,10 +21,10 @@ class AsignationOT extends Model
         'Maquina',
         'Supervisor',
         'Problema',
-         'Status',
-         'ComidaBreak',
-         'TerminoComidaBreack',
-         'created_at',
-         'updated_at',
+        'Status',
+        'ComidaBreak',
+        'TerminoComidaBreack',
+        'created_at',
+        'updated_at',
     ];
 }

@@ -42,6 +42,8 @@
         "dayjs": "^1.11.13",
         "flatpickr": "^4.6.13",
         "fullcalendar": "^6.1.15",
+        "highcharts": "^12.2.0",
+        "highcharts-vue": "^2.0.1",
         "jquery": "^3.7.1",
         "laravel-echo": "^1.17.1",
         "moment": "^2.30.1",

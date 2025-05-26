@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // Llenar select de mes (solo los que existan en los datos)
-        const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         function fillMonthOptions(selectedYear) {
             monthSelect.innerHTML = '';
             const months = [...new Set(dates.filter(d => d.year === selectedYear).map(d => d.month))];
@@ -79,8 +79,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         fillDayOptions(currentYear, currentMonth);
         daySelect.value = ''; // Por defecto "Todos"
 
+        function dispatchCalendarChange() {
+            const detail = {
+                year: Number(yearSelect.value),
+                month: Number(monthSelect.value),
+                day: daySelect.value ? Number(daySelect.value) : null
+            };
+            window.dispatchEvent(new CustomEvent('calendar:change', { detail }));
+        }
+
         // Disparar evento inicial
-        window.dispatchEvent(new Event('calendar:change'));
+        dispatchCalendarChange();
 
         // Listeners para cambios
         yearSelect.addEventListener('change', () => {
@@ -88,22 +97,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             monthSelect.value = monthSelect.options[0]?.value;
             fillDayOptions(Number(yearSelect.value), Number(monthSelect.value));
             daySelect.value = '';
-            window.dispatchEvent(new Event('calendar:change'));
+            dispatchCalendarChange();
         });
         monthSelect.addEventListener('change', () => {
             fillDayOptions(Number(yearSelect.value), Number(monthSelect.value));
             daySelect.value = '';
-            window.dispatchEvent(new Event('calendar:change'));
+            dispatchCalendarChange();
         });
         daySelect.addEventListener('change', () => {
-            window.dispatchEvent(new Event('calendar:change'));
+            dispatchCalendarChange();
         });
 
     } catch (e) {
         // Si hay error, llenar selects con mes/año actual
         const now = new Date();
         yearSelect.innerHTML = `<option value="${now.getFullYear()}">${now.getFullYear()}</option>`;
-        monthSelect.innerHTML = `<option value="${now.getMonth()}">${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][now.getMonth()]}</option>`;
+        monthSelect.innerHTML = `<option value="${now.getMonth()}">${['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][now.getMonth()]}</option>`;
         daySelect.innerHTML = `<option value="">Todos</option>`;
         window.dispatchEvent(new Event('calendar:change'));
     }

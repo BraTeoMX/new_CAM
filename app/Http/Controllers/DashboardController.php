@@ -8,6 +8,7 @@ use App\Models\TicketOT;
 use App\Models\AsignationOT;
 use App\Models\FollowAtention;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -51,4 +52,59 @@ class DashboardController extends Controller
         return response()->json($timeline);
     }
 
+    public function getEfectividad(Request $request)
+    {
+        $year = $request->query('year');
+        $month = $request->query('month');
+        $day = $request->query('day');
+
+        // Obtener todos los tickets con join a FollowAtention
+        $query = DB::table('asignation_ots')
+            ->join('followatention', 'asignation_ots.Folio', '=', 'followatention.Folio')
+            ->select(
+                'asignation_ots.created_at as asignation_created',
+                'followatention.TimeEstimado',
+                'followatention.created_at as follow_created',
+                'followatention.updated_at as follow_updated'
+            );
+
+        // Filtros por año, mes, día sobre la fecha de creación del ticket
+        if ($year) {
+            $query->whereYear('asignation_ots.created_at', $year);
+        }
+        if ($month !== null && $month !== '') {
+            $query->whereMonth('asignation_ots.created_at', $month + 1); // JS months are 0-based
+        }
+        if ($day) {
+            $query->whereDay('asignation_ots.created_at', $day);
+        }
+
+        $tickets = $query->get();
+
+        $total = $tickets->count();
+        $efectivos = 0;
+
+        foreach ($tickets as $t) {
+            // Si alguna fecha falta, no se cuenta
+            if (!$t->asignation_created || !$t->follow_created || !$t->follow_updated || !$t->TimeEstimado) continue;
+
+            $inicio = \Carbon\Carbon::parse($t->follow_created);
+            $fin = \Carbon\Carbon::parse($t->follow_updated);
+
+            $minutos = $fin->diffInMinutes($inicio);
+
+            // Efectivo si el tiempo real es menor o igual al estimado
+            if ($minutos <= intval($t->TimeEstimado)) {
+                $efectivos++;
+            }
+        }
+
+        $efectividad = $total > 0 ? round(($efectivos / $total) * 100, 2) : 0;
+
+        return response()->json([
+            'efectividad' => $efectividad,
+            'total' => $total,
+            'efectivos' => $efectivos,
+        ]);
+    }
 }

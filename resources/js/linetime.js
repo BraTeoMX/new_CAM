@@ -120,7 +120,7 @@ function renderTimelineBarJS(data) {
                 .attr("id", "timeline-gradient")
                 .attr("x1", "0%").attr("x2", "100%")
                 .attr("y1", "0%").attr("y2", "0%");
-            gradient.append("stop").attr("offset", "0%").attr("stop-color", "#ef4444" );   // rojo
+            gradient.append("stop").attr("offset", "0%").attr("stop-color", "#ef4444");   // rojo
             gradient.append("stop").attr("offset", "60%").attr("stop-color", "#f59e42");  // naranja
             gradient.append("stop").attr("offset", "100%").attr("stop-color", "#22c55e"); // verde
 
@@ -164,7 +164,7 @@ function renderTimelineBarJS(data) {
             `;
 
             // Draw points
-            drawPoint(posStart, "#ef4444", "Inicio", item.AsignationCreated, tooltipExtra); 
+            drawPoint(posStart, "#ef4444", "Inicio", item.AsignationCreated, tooltipExtra);
 
             // Nuevo: marca para la hora de inicio de atención (created_at de FollowAtention)
             // Calcula la posición relativa de la marca de inicio de atención
@@ -174,7 +174,7 @@ function renderTimelineBarJS(data) {
                 // Si TimeInicio es una fecha/hora válida, calcula la posición
                 attentionMarkPos = ((attentionMarkDate - start) / total);
                 // Dibuja el punto de inicio de atención (puedes ajustar el color y label)
-                drawPoint(attentionMarkPos, "#f59e42", "Inicio Atención", attentionMarkDate, tooltipExtra); 
+                drawPoint(attentionMarkPos, "#f59e42", "Inicio Atención", attentionMarkDate, tooltipExtra);
             }
 
             drawPoint(posAttention, "#3b82f6", "Atención", item.FollowCreated, tooltipExtra);

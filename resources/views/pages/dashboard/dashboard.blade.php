@@ -59,28 +59,50 @@
         </div>
         {{-- ...TOPS  code... --}}
         <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
-            <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
-                <div class="w-full bg-white dark:bg-gray-800 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
+                    <div
+                        class="w-full bg-white dark:bg-gray-800
                             transition-all duration-300 ease-in-out
                             hover:shadow-lg dark:hover:shadow-gray-700/50
                             p-0 relative inset-0 z-0 rounded-2xl scale-105">
-                    <div class="overflow-x-auto w-full">
-                        <div id="dashboard-tops" class="min-w-[420px] w-max mx-auto relative z-10">
-                            <div class="tops-container">
-                                <div class="min-h-[280px] flex items-center justify-center">
-                                    <div class="animate-pulse text-gray-400">Cargando...</div>
+                        <div class="overflow-x-auto w-full">
+                            <div id="dashboard-tops" class="min-w-[420px] w-max mx-auto relative z-10">
+                                <div class="tops-container">
+                                    <div class="min-h-[280px] flex items-center justify-center">
+                                        <div class="animate-pulse text-gray-400">Cargando...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- --- --}}
+                <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
+                    <div
+                        class="w-full bg-white dark:bg-gray-800
+                            transition-all duration-300 ease-in-out
+                            hover:shadow-lg dark:hover:shadow-gray-700/50
+                            p-0 relative inset-0 z-0 rounded-2xl scale-105">
+                        <div class="overflow-x-auto w-full">
+                            <div id="dashboard-topsmeca" class="min-w-[420px] w-max mx-auto relative z-10">
+                                <div class="topsmeca-container">
+                                    <div class="min-h-[280px] flex items-center justify-center">
+                                        <div class="animate-pulse text-gray-400">Cargando...</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            {{-- ...TOPS code... --}}
             <br>
             {{-- ...existing code... --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
                     <div
-                        class="w-full bg-white dark:bg-gray-800 
+                        class="w-full bg-white dark:bg-gray-800
                             transition-all duration-300 ease-in-out
                             hover:shadow-lg dark:hover:shadow-gray-700/50
                             p-0 relative inset-0 z-0 rounded-2xl scale-105">
@@ -119,6 +141,8 @@
                 </div>
             </div>
             {{-- ...existing code... --}}
-            @vite(['resources/js/calendarSelects.js', 'resources/js/elemento1dashboard.js', 'resources/js/dashboardHeatmap.js', 'resources/js/linetime.js'])
+            {{-- Agrega Highcharts y el módulo gauge --}}
+
+            @vite(['resources/js/calendarSelects.js', 'resources/js/elemento1dashboard.js', 'resources/js/dashboardHeatmap.js', 'resources/js/linetime.js', 'resources/js/efectividad.js'])
         </div>
 </x-app-layout>
