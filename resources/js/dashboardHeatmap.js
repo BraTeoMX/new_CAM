@@ -39,23 +39,24 @@ function parseDate(dateStr) {
 }
 
 // Procesar datos para el calendario del mes actual
-function processCalendarData(rawData, year, month) {
-    // month: 0-based (0=enero)
+function processCalendarData(rawData, year, month, day = null) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const dayMap = {};
     rawData.forEach(row => {
         const dateObj = parseDate(row.created_at);
         if (!dateObj) return;
         if (dateObj.getFullYear() === year && dateObj.getMonth() === month) {
-            const day = dateObj.getDate();
-            dayMap[day] = (dayMap[day] || 0) + 1;
+            const d = dateObj.getDate();
+            if (day === null || d === day) {
+                dayMap[d] = (dayMap[d] || 0) + 1;
+            }
         }
     });
     return { daysInMonth, dayMap };
 }
 
 // Renderizar calendario mensual tipo heatmap con leyenda
-function renderCalendarHeatmap(year, month, dayMap) {
+function renderCalendarHeatmap(year, month, dayMap, selectedDay = null) {
     const container = document.createElement('div');
     container.className = `
         group py-2 px-1 sm:py-4 sm:px-2 md:py-6 md:px-4 lg:py-7 lg:px-9
@@ -71,10 +72,6 @@ function renderCalendarHeatmap(year, month, dayMap) {
             <div class="w-full md:w-auto">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4">
                     <div class="text-base sm:text-lg md:text-xl lg:text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Actividad de tickets</div>
-                    <div class="flex gap-2">
-                        <select id="calendar-month" class="px-2 py-1 rounded bg-zinc-800 text-white text-xs sm:text-sm border border-zinc-700 focus:outline-none"></select>
-                        <select id="calendar-year" class="px-2 py-1 rounded bg-zinc-800 text-white text-xs sm:text-sm border border-zinc-700 focus:outline-none"></select>
-                    </div>
                 </div>
                 <div class="overflow-x-auto w-full">
                     <div id="calendar-grid" class="grid grid-cols-7 gap-2 min-w-[340px] sm:min-w-[420px] md:min-w-[420px] lg:min-w-[420px] w-max mx-auto"></div>
@@ -106,25 +103,6 @@ function renderCalendarHeatmap(year, month, dayMap) {
         </div>
     `;
 
-    // Rellenar selects de mes y año
-    const monthSelect = container.querySelector('#calendar-month');
-    for (let m = 0; m < 12; m++) {
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][m];
-        if (m === month) opt.selected = true;
-        monthSelect.appendChild(opt);
-    }
-    const yearSelect = container.querySelector('#calendar-year');
-    const thisYear = new Date().getFullYear();
-    for (let y = thisYear - 3; y <= thisYear + 1; y++) {
-        const opt = document.createElement('option');
-        opt.value = y;
-        opt.textContent = y;
-        if (y === year) opt.selected = true;
-        yearSelect.appendChild(opt);
-    }
-
     // Encabezados de días (como grid)
     const grid = container.querySelector('#calendar-grid');
     calendarConfig.days.forEach(day => {
@@ -138,16 +116,19 @@ function renderCalendarHeatmap(year, month, dayMap) {
     const firstDay = new Date(year, month, 1).getDay();
     const startDay = (firstDay + 6) % 7;
 
-    // Rellenar celdas vacías antes del primer día
-    for (let i = 0; i < startDay; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'w-full h-[44px] sm:h-[44px]';
-        grid.appendChild(empty);
-    }
-
-    // Días del mes
-    for (let d = 1; d <= dayMap.daysInMonth; d++) {
-        const value = dayMap.dayMap[d] || 0;
+    // Si hay un día seleccionado, solo mostrar ese día
+    if (selectedDay !== null) {
+        // Calcular en qué columna debe ir el día seleccionado
+        const dateObj = new Date(year, month, selectedDay);
+        const col = (dateObj.getDay() + 6) % 7;
+        // Rellenar celdas vacías antes
+        for (let i = 0; i < col; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'w-full h-[44px] sm:h-[44px]';
+            grid.appendChild(empty);
+        }
+        // Solo ese día
+        const value = dayMap.dayMap[selectedDay] || 0;
         let modulos = [];
         let supervisores = [];
         heatmapData.forEach(rowData => {
@@ -156,14 +137,14 @@ function renderCalendarHeatmap(year, month, dayMap) {
                 dateObj &&
                 dateObj.getFullYear() === year &&
                 dateObj.getMonth() === month &&
-                dateObj.getDate() === d
+                dateObj.getDate() === selectedDay
             ) {
                 if (rowData.Modulo && !modulos.includes(rowData.Modulo)) modulos.push(rowData.Modulo);
                 if (rowData.Supervisor && !supervisores.includes(rowData.Supervisor)) supervisores.push(rowData.Supervisor);
             }
         });
 
-        const tooltip = `${d}/${month + 1}/${year}: ${value} registros\nMódulos: ${modulos.join(', ') || '-'}\nSupervisores: ${supervisores.join(', ') || '-'}`;
+        const tooltip = `${selectedDay}/${month + 1}/${year}: ${value} registros\nMódulos: ${modulos.join(', ') || '-'}\nSupervisores: ${supervisores.join(', ') || '-'}`;
 
         const cell = document.createElement('div');
         cell.className = `
@@ -171,9 +152,10 @@ function renderCalendarHeatmap(year, month, dayMap) {
             text-xs sm:text-base font-medium ${getCellColor(value)}
             rounded-lg transition cursor-pointer
             w-full h-[44px] sm:h-[44px]
+            ring-4 ring-emerald-500 ring-offset-2
         `.replace(/\s+/g, ' ');
         cell.title = tooltip;
-        cell.textContent = d;
+        cell.textContent = selectedDay;
         if (value > 0) {
             const badge = document.createElement('span');
             badge.textContent = value;
@@ -181,6 +163,50 @@ function renderCalendarHeatmap(year, month, dayMap) {
             cell.appendChild(badge);
         }
         grid.appendChild(cell);
+    } else {
+        // Rellenar celdas vacías antes del primer día
+        for (let i = 0; i < startDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'w-full h-[44px] sm:h-[44px]';
+            grid.appendChild(empty);
+        }
+        // Días del mes
+        for (let d = 1; d <= dayMap.daysInMonth; d++) {
+            const value = dayMap.dayMap[d] || 0;
+            let modulos = [];
+            let supervisores = [];
+            heatmapData.forEach(rowData => {
+                const dateObj = parseDate(rowData.created_at);
+                if (
+                    dateObj &&
+                    dateObj.getFullYear() === year &&
+                    dateObj.getMonth() === month &&
+                    dateObj.getDate() === d
+                ) {
+                    if (rowData.Modulo && !modulos.includes(rowData.Modulo)) modulos.push(rowData.Modulo);
+                    if (rowData.Supervisor && !supervisores.includes(rowData.Supervisor)) supervisores.push(rowData.Supervisor);
+                }
+            });
+
+            const tooltip = `${d}/${month + 1}/${year}: ${value} registros\nMódulos: ${modulos.join(', ') || '-'}\nSupervisores: ${supervisores.join(', ') || '-'}`;
+
+            const cell = document.createElement('div');
+            cell.className = `
+                flex flex-col items-center justify-center
+                text-xs sm:text-base font-medium ${getCellColor(value)}
+                rounded-lg transition cursor-pointer
+                w-full h-[44px] sm:h-[44px]
+            `.replace(/\s+/g, ' ');
+            cell.title = tooltip;
+            cell.textContent = d;
+            if (value > 0) {
+                const badge = document.createElement('span');
+                badge.textContent = value;
+                badge.className = 'block text-[12px] sm:text-[13px] text-emerald-900 dark:text-gray-800 font-bold';
+                cell.appendChild(badge);
+            }
+            grid.appendChild(cell);
+        }
     }
 
     // Insertar en el DOM
@@ -189,36 +215,54 @@ function renderCalendarHeatmap(year, month, dayMap) {
         target.innerHTML = '';
         target.appendChild(container);
     }
-
-    // Listeners para cambiar mes/año
-    monthSelect.addEventListener('change', () => {
-        const newMonth = parseInt(monthSelect.value, 10);
-        const newYear = parseInt(yearSelect.value, 10);
-        const dayMap = processCalendarData(heatmapData, newYear, newMonth);
-        renderCalendarHeatmap(newYear, newMonth, dayMap);
-    });
-    yearSelect.addEventListener('change', () => {
-        const newMonth = parseInt(monthSelect.value, 10);
-        const newYear = parseInt(yearSelect.value, 10);
-        const dayMap = processCalendarData(heatmapData, newYear, newMonth);
-        renderCalendarHeatmap(newYear, newMonth, dayMap);
-    });
 }
 
-// Obtener datos y renderizar
+// NUEVO: Utilidad para obtener mes/año/día seleccionados globalmente
+function getSelectedMonthYearDay() {
+    const monthSelect = document.getElementById('calendar-month');
+    const yearSelect = document.getElementById('calendar-year');
+    const daySelect = document.getElementById('calendar-day');
+    const month = monthSelect ? parseInt(monthSelect.value, 10) : (new Date()).getMonth();
+    const year = yearSelect ? parseInt(yearSelect.value, 10) : (new Date()).getFullYear();
+    const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
+    return { month, year, day };
+}
+
+// NUEVO: Escuchar cambios globales de mes/año
+window.addEventListener('calendar:change', () => {
+    const { month, year, day } = getSelectedMonthYearDay();
+    const dayMap = processCalendarData(heatmapData, year, month, day);
+    renderCalendarHeatmap(year, month, dayMap, day);
+});
+
+// Modificar loadHeatmap para usar el mes/año/día global
 async function loadHeatmap() {
     try {
         const response = await fetch('/cardsAteOTs');
         const data = await response.json();
-        // Guardar la data globalmente para siempre tenerla disponible
         heatmapData.length = 0;
         data.forEach(row => heatmapData.push(row));
-        const now = new Date();
-        const dayMap = processCalendarData(heatmapData, now.getFullYear(), now.getMonth());
-        renderCalendarHeatmap(now.getFullYear(), now.getMonth(), dayMap);
+        const { month, year, day } = getSelectedMonthYearDay();
+        const dayMap = processCalendarData(heatmapData, year, month, day);
+        renderCalendarHeatmap(year, month, dayMap, day);
     } catch (e) {
         console.error('Error cargando heatmap:', e);
     }
 }
 
 document.addEventListener('DOMContentLoaded', loadHeatmap);
+
+// NUEVO: Inicializar selects globales y emitir evento al cambiar
+document.addEventListener('DOMContentLoaded', () => {
+    const monthSelect = document.getElementById('calendar-month');
+    const yearSelect = document.getElementById('calendar-year');
+    if (monthSelect && yearSelect) {
+        monthSelect.addEventListener('change', () => {
+            window.dispatchEvent(new Event('calendar:change'));
+        });
+        yearSelect.addEventListener('change', () => {
+            window.dispatchEvent(new Event('calendar:change'));
+        });
+    }
+});
+

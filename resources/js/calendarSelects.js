@@ -1,0 +1,110 @@
+document.addEventListener('DOMContentLoaded', async () => {
+    const monthSelect = document.getElementById('calendar-month');
+    const yearSelect = document.getElementById('calendar-year');
+    const daySelect = document.getElementById('calendar-day');
+    if (!monthSelect || !yearSelect || !daySelect) return;
+
+    let data = [];
+    try {
+        const res = await fetch('/cardsAteOTs');
+        data = await res.json();
+
+        // Extraer fechas válidas
+        const dates = data
+            .map(item => item.created_at)
+            .filter(Boolean)
+            .map(dateStr => {
+                const d = new Date(dateStr);
+                return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
+            });
+
+        // Años únicos
+        const years = [...new Set(dates.map(d => d.year))].sort((a, b) => a - b);
+
+        // Llenar select de año
+        yearSelect.innerHTML = '';
+        years.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+        });
+
+        // Llenar select de mes (solo los que existan en los datos)
+        const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        function fillMonthOptions(selectedYear) {
+            monthSelect.innerHTML = '';
+            const months = [...new Set(dates.filter(d => d.year === selectedYear).map(d => d.month))];
+            for (let m = 0; m < 12; m++) {
+                if (months.includes(m)) {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = monthNames[m];
+                    monthSelect.appendChild(opt);
+                }
+            }
+        }
+
+        // Llenar select de día según año/mes
+        function fillDayOptions(selectedYear, selectedMonth) {
+            daySelect.innerHTML = '';
+            // Opción "Todos"
+            const optAll = document.createElement('option');
+            optAll.value = '';
+            optAll.textContent = 'Todos';
+            daySelect.appendChild(optAll);
+            // Días disponibles
+            const days = [...new Set(dates.filter(d => d.year === selectedYear && d.month === selectedMonth).map(d => d.day))].sort((a, b) => a - b);
+            days.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                daySelect.appendChild(opt);
+            });
+        }
+
+        // Seleccionar por defecto el mes y año actual si existen, si no el primero disponible
+        const now = new Date();
+        let currentYear = now.getFullYear();
+        let currentMonth = now.getMonth();
+        if (![...yearSelect.options].some(o => Number(o.value) === currentYear)) {
+            currentYear = Number(yearSelect.options[0]?.value);
+        }
+        fillMonthOptions(currentYear);
+        if (![...monthSelect.options].some(o => Number(o.value) === currentMonth)) {
+            currentMonth = Number(monthSelect.options[0]?.value);
+        }
+        yearSelect.value = currentYear;
+        monthSelect.value = currentMonth;
+        fillDayOptions(currentYear, currentMonth);
+        daySelect.value = ''; // Por defecto "Todos"
+
+        // Disparar evento inicial
+        window.dispatchEvent(new Event('calendar:change'));
+
+        // Listeners para cambios
+        yearSelect.addEventListener('change', () => {
+            fillMonthOptions(Number(yearSelect.value));
+            monthSelect.value = monthSelect.options[0]?.value;
+            fillDayOptions(Number(yearSelect.value), Number(monthSelect.value));
+            daySelect.value = '';
+            window.dispatchEvent(new Event('calendar:change'));
+        });
+        monthSelect.addEventListener('change', () => {
+            fillDayOptions(Number(yearSelect.value), Number(monthSelect.value));
+            daySelect.value = '';
+            window.dispatchEvent(new Event('calendar:change'));
+        });
+        daySelect.addEventListener('change', () => {
+            window.dispatchEvent(new Event('calendar:change'));
+        });
+
+    } catch (e) {
+        // Si hay error, llenar selects con mes/año actual
+        const now = new Date();
+        yearSelect.innerHTML = `<option value="${now.getFullYear()}">${now.getFullYear()}</option>`;
+        monthSelect.innerHTML = `<option value="${now.getMonth()}">${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][now.getMonth()]}</option>`;
+        daySelect.innerHTML = `<option value="">Todos</option>`;
+        window.dispatchEvent(new Event('calendar:change'));
+    }
+});

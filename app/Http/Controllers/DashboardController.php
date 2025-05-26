@@ -43,6 +43,7 @@ class DashboardController extends Controller
                     'FollowCreated' => $follow->updated_at, // Fin de la línea de tiempo
                     'TimeInicio' => $follow->created_at,    // Marca intermedia en la línea de tiempo
                     'TiempoAtencionMin' => $diff,
+                    'created_at' => $asignation->created_at, // <-- AGREGADO PARA FILTRO JS
                 ];
             }
         }

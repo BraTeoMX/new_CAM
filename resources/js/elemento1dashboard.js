@@ -14,34 +14,35 @@ document.addEventListener("DOMContentLoaded", function () {
         'FINALIZADO',
     ];
 
+    // Gradientes tailwind para cada status
     const STATUS_CONFIG = {
         'PENDIENTE': {
             icon: '<span class="material-symbols-outlined text-orange-800 text-3xl">pending_actions</span>',
-            color: "bg-orange-400 dark:bg-orange-500"
+            color: "from-orange-300 to-orange-400"
         },
         'ASIGNADO': {
             icon: '<span class="material-symbols-outlined text-blue-400 text-3xl">assignment_ind</span>',
-            color: "bg-blue-400 dark:bg-blue-400"
+            color: "from-blue-300 to-blue-400"
         },
         'PROCESO': {
             icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">av_timer</span>',
-            color: "bg-blue-400 dark:bg-blue-500"
+            color: "from-indigo-300 to-indigo-400"
         },
         'ATENDIDO': {
             icon: '<span class="material-symbols-outlined text-indigo-800 text-3xl">preliminary</span>',
-            color: "bg-indigo-400 dark:bg-indigo-500"
+            color: "from-purple-300 to-purple-400"
         },
         'AUTONOMO': {
             icon: '<span class="material-symbols-outlined text-green-800 text-3xl">smart_toy</span>',
-            color: "bg-green-400 dark:bg-green-500"
+            color: "from-lime-300 to-lime-400"
         },
         'CANCELADO': {
             icon: '<span class="material-symbols-outlined text-red-800 text-3xl">dangerous</span>',
-            color: "bg-red-400 dark:bg-red-500"
+            color: "from-pink-300 to-pink-400"
         },
         'FINALIZADO': {
             icon: '<span class="material-symbols-outlined text-cyan-800 text-3xl">fact_check</span>',
-            color: "bg-cyan-400 dark:bg-cyan-500"
+            color: "from-sky-300 to-sky-400"
         }
     };
 
@@ -67,48 +68,152 @@ document.addEventListener("DOMContentLoaded", function () {
             .filter(d => d.value > 0)
             .sort((a, b) => b.value - a.value);
 
-        // Limpiar contenedor
-        container.innerHTML = `
-            <div class="relative w-full h-[400px]"
-                 style="--marginTop: 10px; --marginRight: 35px; --marginBottom: 10px; --marginLeft: 45px;">
-                <div class="absolute inset-0
-                           h-[calc(100%-var(--marginTop)-var(--marginBottom))]
-                           translate-y-[var(--marginTop)]
-                           left-[var(--marginLeft)]
-                           right-[var(--marginRight)]">
-                    ${generateBars(chartData)}
-                </div>
-            </div>
-        `;
-    }
+        // Escalas
+        const maxValue = Math.max(...chartData.map(d => d.value), 1);
+        const yScale = d3.scaleBand()
+            .domain(chartData.map(d => d.key))
+            .range([0, 100])
+            .padding(0.175);
 
-    function generateBars(data) {
-        const height = 100;
-        const barHeight = (height / data.length) * 0.85; // Slightly taller bars
-        const gap = (height / data.length) * 0.15; // Smaller gaps
-
-        const maxValue = Math.max(...data.map(d => d.value));
-        const scale = d3.scaleLinear()
+        const xScale = d3.scaleLinear()
             .domain([0, maxValue])
             .range([0, 100]);
 
-        return data.map((d, i) => `
-            <div class="absolute flex items-center w-full group"
-                 style="top: ${i * (barHeight + gap)}%; height: ${barHeight}%">
-                <div class="flex items-center justify-center w-8 h-8 -ml-10">
-                    ${STATUS_CONFIG[d.key].icon}
-                </div>
-                <div class="relative flex items-center w-full h-full">
-                    <div class="${STATUS_CONFIG[d.key].color} h-full rounded-r-lg transition-all duration-500 opacity-90 group-hover:opacity-100"
-                         style="width: ${scale(d.value)}%">
-                    </div>
-                    <div class="absolute left-2 flex items-center gap-2">
-                        <span class="text-xs font-medium text-gray-900 dark:text-white drop-shadow-sm">${d.key}</span>
-                    </div>
-                    <span class="absolute right-2 text-sm font-bold text-gray-900 dark:text-white">${d.value}</span>
-                </div>
+        // Limpiar contenedor
+        container.innerHTML = `
+         <div class="flex text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Conteo de status
+                        de
+                        tickets</div>
+            <div class="relative w-full h-72"
+                style="--marginTop:0px;--marginRight:0px;--marginBottom:16px;--marginLeft:60px;">
+                <div class="absolute inset-0 z-10 h-[calc(100%-var(--marginTop)-var(--marginBottom))]
+                    translate-y-[var(--marginTop)] w-[calc(100%-var(--marginLeft)-var(--marginRight))]
+                    translate-x-[var(--marginLeft)] overflow-visible" id="bar-chart-area"></div>
+                <div class="h-[calc(100%-var(--marginTop)-var(--marginBottom))]
+                    w-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible" id="bar-chart-yaxis"></div>
             </div>
-        `).join('');
+        `;
+
+        const chartArea = container.querySelector("#bar-chart-area");
+        const yAxisArea = container.querySelector("#bar-chart-yaxis");
+
+        // Render Y axis (icon + label)
+        chartData.forEach((entry, i) => {
+            const y = yScale(entry.key) + yScale.bandwidth() / 2;
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "absolute flex items-center gap-1 text-xs text-gray-400 -translate-y-1/2 w-full text-right";
+            labelDiv.style.top = `${y}%`;
+            labelDiv.style.left = "-8px";
+            labelDiv.innerHTML = `<span>${entry.icon}</span><span>${entry.key}</span>`;
+            yAxisArea.appendChild(labelDiv);
+        });
+
+        // Render bars
+        chartData.forEach((d, index) => {
+            const barWidth = xScale(d.value);
+            const barHeight = yScale.bandwidth();
+            const y = yScale(d.key);
+
+            // Barra
+            const bar = document.createElement("div");
+            bar.className = `absolute bg-gradient-to-b ${d.color} group cursor-pointer transition-all duration-300`;
+            bar.style.left = "0";
+            bar.style.top = `${y}%`;
+            bar.style.width = `${barWidth}%`;
+            bar.style.height = `${barHeight}%`;
+            bar.style.borderRadius = "0 8px 8px 0";
+
+            // Tooltip
+            bar.addEventListener("mouseenter", function (e) {
+                let tooltip = document.getElementById("bar-tooltip");
+                if (!tooltip) {
+                    tooltip = document.createElement("div");
+                    tooltip.id = "bar-tooltip";
+                    tooltip.className = "fixed z-50 px-4 py-2 rounded-lg shadow-lg bg-gray-900 text-white text-xs pointer-events-none";
+                    document.body.appendChild(tooltip);
+                }
+                tooltip.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1">${d.icon}<span class="font-bold">${d.key}</span></div>
+                    <div class="text-gray-300 text-sm">Total: <span class="font-bold">${d.value}</span></div>
+                `;
+                tooltip.style.opacity = 1;
+                tooltip.style.left = (e.clientX + 10) + "px";
+                tooltip.style.top = (e.clientY - 10) + "px";
+            });
+            bar.addEventListener("mousemove", function (e) {
+                const tooltip = document.getElementById("bar-tooltip");
+                if (tooltip) {
+                    tooltip.style.left = (e.clientX + 10) + "px";
+                    tooltip.style.top = (e.clientY - 10) + "px";
+                }
+            });
+            bar.addEventListener("mouseleave", function () {
+                const tooltip = document.getElementById("bar-tooltip");
+                if (tooltip) tooltip.style.opacity = 0;
+            });
+
+            chartArea.appendChild(bar);
+
+            // Valor numérico al final de la barra
+            const valueLabel = document.createElement("span");
+            valueLabel.className = "absolute right-2 text-sm font-bold text-gray-900 dark:text-white";
+            valueLabel.style.top = `${y + barHeight / 2}%`;
+            valueLabel.style.transform = "translateY(-50%)";
+            valueLabel.style.left = `${barWidth}%`;
+            valueLabel.innerText = d.value;
+            chartArea.appendChild(valueLabel);
+        });
+
+        // Render grid lines (SVG)
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "absolute h-full w-full pointer-events-none");
+        svg.setAttribute("viewBox", "0 0 100 100");
+        svg.setAttribute("preserveAspectRatio", "none");
+        xScale.ticks(8).forEach((tick) => {
+            const x = xScale(tick);
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", x);
+            line.setAttribute("x2", x);
+            line.setAttribute("y1", "0");
+            line.setAttribute("y2", "100");
+            line.setAttribute("stroke", "#d1d5db");
+            line.setAttribute("stroke-dasharray", "6,5");
+            line.setAttribute("stroke-width", "0.5");
+            svg.appendChild(line);
+        });
+        chartArea.appendChild(svg);
+
+        // Render X axis values
+        xScale.ticks(4).forEach((value) => {
+            const x = xScale(value);
+            const label = document.createElement("div");
+            label.className = "absolute text-xs -translate-x-1/2 tabular-nums text-gray-400";
+            label.style.left = `${x}%`;
+            label.style.top = "100%";
+            label.innerText = value;
+            chartArea.appendChild(label);
+        });
+    }
+
+    // --- FILTRO MES/AÑO/DÍA ---
+    function getSelectedMonthYearDay() {
+        const monthSelect = document.getElementById('calendar-month');
+        const yearSelect = document.getElementById('calendar-year');
+        const daySelect = document.getElementById('calendar-day');
+        const month = monthSelect ? parseInt(monthSelect.value, 10) : (new Date()).getMonth();
+        const year = yearSelect ? parseInt(yearSelect.value, 10) : (new Date()).getFullYear();
+        const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
+        return { month, year, day };
+    }
+
+    function filterByMonthYearDay(data, year, month, day) {
+        return data.filter(item => {
+            if (!item.created_at) return false;
+            const date = new Date(item.created_at);
+            if (date.getFullYear() !== year || date.getMonth() !== month) return false;
+            if (day !== null && date.getDate() !== day) return false;
+            return true;
+        });
     }
 
     let dashboardData = null;
@@ -117,7 +222,9 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((res) => res.json())
             .then((data) => {
                 dashboardData = data;
-                renderBarChart(dashboardData);
+                const { month, year, day } = getSelectedMonthYearDay();
+                const filtered = filterByMonthYearDay(dashboardData, year, month, day);
+                renderBarChart(filtered);
             })
             .catch(() => {
                 container.innerHTML = '<div class="text-red-500 p-4">No se pudo cargar el dashboard.</div>';
@@ -126,7 +233,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fetchAndRender();
 
+    window.addEventListener('calendar:change', () => {
+        if (dashboardData) {
+            const { month, year, day } = getSelectedMonthYearDay();
+            const filtered = filterByMonthYearDay(dashboardData, year, month, day);
+            renderBarChart(filtered);
+        }
+    });
+
     window.addEventListener("resize", () => {
-        if (dashboardData) renderBarChart(dashboardData);
+        if (dashboardData) {
+            const { month, year, day } = getSelectedMonthYearDay();
+            const filtered = filterByMonthYearDay(dashboardData, year, month, day);
+            renderBarChart(filtered);
+        }
     });
 });

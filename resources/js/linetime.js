@@ -4,7 +4,11 @@ import * as d3 from "d3";
 function renderTimelineBarJS(data) {
     const container = document.getElementById('timeline-container');
     if (!container) return;
-    container.innerHTML = '';
+    container.innerHTML = `
+        <div class="flex text-2xl font-medium tracking-tight text-gray-950 dark:text-white mb-4">
+            Línea de tiempo de atención
+        </div>
+    `;
 
     // Helper para formatear fecha/hora
     const formatDate = (d) => new Date(d).toLocaleDateString();
@@ -91,7 +95,8 @@ function renderTimelineBarJS(data) {
             // Create wrapper div
             const wrapper = document.createElement('div');
             wrapper.className = "w-full mb-8";
-            wrapper.innerHTML = `<div class="mb-2 text-sm font-semibold break-all text-left text-gray-800 dark:text-gray-100">Modulo: ${item.Modulo}</div>`;
+            wrapper.innerHTML = `
+            <div class="mb-2 text-sm font-semibold break-all text-left text-gray-800 dark:text-gray-100">Modulo: ${item.Modulo}</div>`;
             container.appendChild(wrapper);
 
             // Create SVG
@@ -115,9 +120,9 @@ function renderTimelineBarJS(data) {
                 .attr("id", "timeline-gradient")
                 .attr("x1", "0%").attr("x2", "100%")
                 .attr("y1", "0%").attr("y2", "0%");
-            gradient.append("stop").attr("offset", "0%").attr("stop-color", "#22c55e");   // verde
+            gradient.append("stop").attr("offset", "0%").attr("stop-color", "#ef4444" );   // rojo
             gradient.append("stop").attr("offset", "60%").attr("stop-color", "#f59e42");  // naranja
-            gradient.append("stop").attr("offset", "100%").attr("stop-color", "#ef4444"); // rojo
+            gradient.append("stop").attr("offset", "100%").attr("stop-color", "#22c55e"); // verde
 
             // Helper for points
             function drawPoint(pos, color, label, date, tooltipExtra = "") {
@@ -159,7 +164,7 @@ function renderTimelineBarJS(data) {
             `;
 
             // Draw points
-            drawPoint(posStart, "#22c55e", "Inicio", item.AsignationCreated, tooltipExtra);
+            drawPoint(posStart, "#ef4444", "Inicio", item.AsignationCreated, tooltipExtra); 
 
             // Nuevo: marca para la hora de inicio de atención (created_at de FollowAtention)
             // Calcula la posición relativa de la marca de inicio de atención
@@ -169,14 +174,14 @@ function renderTimelineBarJS(data) {
                 // Si TimeInicio es una fecha/hora válida, calcula la posición
                 attentionMarkPos = ((attentionMarkDate - start) / total);
                 // Dibuja el punto de inicio de atención (puedes ajustar el color y label)
-                drawPoint(attentionMarkPos, "#f59e42", "Inicio Atención", attentionMarkDate, tooltipExtra);
+                drawPoint(attentionMarkPos, "#f59e42", "Inicio Atención", attentionMarkDate, tooltipExtra); 
             }
 
             drawPoint(posAttention, "#3b82f6", "Atención", item.FollowCreated, tooltipExtra);
             if (timeInicioPos !== null && !isNaN(timeInicioPos)) {
                 drawPoint(timeInicioPos, "#fde047", "TimeInicio", timeInicioDate, tooltipExtra);
             }
-            drawPoint(posEnd, "#ef4444", "Fin", item.TimeFin ? item.TimeFin : item.FollowCreated, tooltipExtra);
+            drawPoint(posEnd, "#22c55e", "Fin", item.TimeFin ? item.TimeFin : item.FollowCreated, tooltipExtra);
 
             // Add SVG to wrapper
             wrapper.appendChild(svg.node());
@@ -242,15 +247,50 @@ function renderTimelineBarJS(data) {
     renderFilteredTimeline();
 }
 
-// Reemplaza el renderizado anterior por el nuevo
-async function fetchTimelineData() {
-    try {
-        const response = await fetch('/dashboard/timeline-data');
-        const data = await response.json();
-        renderTimelineBarJS(data);
-    } catch (error) {
-        console.error('Error al obtener la línea de tiempo:', error);
-    }
+// NUEVO: Utilidad para obtener mes/año/día seleccionados globalmente
+function getSelectedMonthYearDay() {
+    const monthSelect = document.getElementById('calendar-month');
+    const yearSelect = document.getElementById('calendar-year');
+    const daySelect = document.getElementById('calendar-day');
+    const month = monthSelect ? parseInt(monthSelect.value, 10) : (new Date()).getMonth();
+    const year = yearSelect ? parseInt(yearSelect.value, 10) : (new Date()).getFullYear();
+    const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
+    return { month, year, day };
 }
+
+// NUEVO: Filtrar datos por mes/año/día
+function filterByMonthYearDay(data, year, month, day) {
+    return data.filter(item => {
+        if (!item.created_at) return false;
+        const date = new Date(item.created_at);
+        if (date.getFullYear() !== year || date.getMonth() !== month) return false;
+        if (day !== null && date.getDate() !== day) return false;
+        return true;
+    });
+}
+
+let timelineData = null;
+function fetchTimelineData() {
+    fetch('/dashboard/timeline-data')
+        .then(res => res.json())
+        .then(data => {
+            timelineData = data;
+            const { month, year, day } = getSelectedMonthYearDay();
+            const filtered = filterByMonthYearDay(timelineData, year, month, day);
+            renderTimelineBarJS(filtered);
+        })
+        .catch(error => {
+            console.error('Error al obtener la línea de tiempo:', error);
+        });
+}
+
+// NUEVO: Escuchar cambios globales de mes/año
+window.addEventListener('calendar:change', () => {
+    if (timelineData) {
+        const { month, year, day } = getSelectedMonthYearDay();
+        const filtered = filterByMonthYearDay(timelineData, year, month, day);
+        renderTimelineBarJS(filtered);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', fetchTimelineData);
