@@ -8,6 +8,7 @@ use App\Models\TicketOT;
 use App\Models\AsignationOT;
 use App\Models\FollowAtention;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -57,7 +58,6 @@ class DashboardController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
         $day = $request->query('day');
-
         // Obtener todos los tickets con join a FollowAtention
         $query = DB::table('asignation_ots')
             ->join('followatention', 'asignation_ots.Folio', '=', 'followatention.Folio')
@@ -73,7 +73,7 @@ class DashboardController extends Controller
             $query->whereYear('asignation_ots.created_at', $year);
         }
         if ($month !== null && $month !== '') {
-            $query->whereMonth('asignation_ots.created_at', $month + 1); // JS months are 0-based
+            $query->whereMonth('asignation_ots.created_at', $month + 1); // Sumar 1 porque JS envía 0-based
         }
         if ($day) {
             $query->whereDay('asignation_ots.created_at', $day);
@@ -93,8 +93,11 @@ class DashboardController extends Controller
 
             $minutos = $fin->diffInMinutes($inicio);
 
+            // Convertir TimeEstimado ("HH:MM:SS") a minutos
+            list($h, $m, $s) = explode(':', $t->TimeEstimado);
+            $estimadoMin = ($h * 60) + $m + ($s > 0 ? 1 : 0); // Redondea hacia arriba si hay segundos
             // Efectivo si el tiempo real es menor o igual al estimado
-            if ($minutos <= intval($t->TimeEstimado)) {
+            if ($minutos <= $estimadoMin) {
                 $efectivos++;
             }
         }
@@ -106,5 +109,118 @@ class DashboardController extends Controller
             'total' => $total,
             'efectivos' => $efectivos,
         ]);
+    }
+    public function tops()
+    {
+        // Top 3 máquinas con más problemas
+        $topMaquinas = \App\Models\AsignationOT::select('Maquina', DB::raw('count(*) as total'))
+            ->whereNotNull('Maquina')
+            ->groupBy('Maquina')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        // Top 3 módulos con mayor generación de tickets
+        $topModulos = \App\Models\AsignationOT::select('Modulo', DB::raw('count(*) as total'))
+            ->whereNotNull('Modulo')
+            ->groupBy('Modulo')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        // Agrupar problemas similares usando Gemini API
+        $problemasRaw = \App\Models\AsignationOT::whereNotNull('Problema')->pluck('Problema')->toArray();
+        $geminiApiKey = env('GEMINI_API_KEY');
+        // Usa el modelo correcto y endpoint actualizado
+        $geminiEndpoint = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=' . $geminiApiKey;
+        $prompt = "Agrupa y cuenta los siguientes problemas de tickets que sean iguales o muy parecidos, aunque tengan diferencias de redacción. Devuélveme un JSON con los 3 problemas más frecuentes y su cantidad, con el formato: [{\"problema\": \"nombre\", \"total\": cantidad}, ...]. Lista de problemas:\n" . implode("\n", $problemasRaw);
+        $response = \Illuminate\Support\Facades\Http::post($geminiEndpoint, [
+            "contents" => [
+                [
+                    "role" => "user",
+                    "parts" => [
+                        ["text" => $prompt]
+                    ]
+                ]
+            ]
+        ]);
+        $topProblemas = [];
+        if ($response->ok()) {
+            $geminiText = data_get($response->json(), 'candidates.0.content.parts.0.text');
+            // --- LIMPIEZA DEL BLOQUE MARKDOWN ---
+            if ($geminiText) {
+                // Elimina bloques de código markdown y espacios
+                $geminiText = preg_replace('/^```json|^```/m', '', $geminiText);
+                $geminiText = preg_replace('/```$/m', '', $geminiText);
+                $geminiText = trim($geminiText);
+            }
+            $topProblemas = json_decode($geminiText, true);
+            if (!is_array($topProblemas)) {
+                $topProblemas = \App\Models\AsignationOT::select('Problema', DB::raw('count(*) as total'))
+                    ->whereNotNull('Problema')
+                    ->groupBy('Problema')
+                    ->orderByDesc('total')
+                    ->limit(3)
+                    ->get();
+            }
+        } else {
+            $topProblemas = \App\Models\AsignationOT::select('Problema', DB::raw('count(*) as total'))
+                ->whereNotNull('Problema')
+                ->groupBy('Problema')
+                ->orderByDesc('total')
+                ->limit(3)
+                ->get();
+        }
+        // Cuarto top preparado (ejemplo: top supervisores u otro)
+        $topExtra = []; // Aquí puedes agregar la lógica para el cuarto top
+
+        return response()->json([
+            'maquinas' => $topMaquinas,
+            'problemas' => $topProblemas,
+            'modulos' => $topModulos,
+            'extra' => $topExtra,
+        ]);
+    }
+
+    public function creadasVsCompletadas(Request $request)
+    {
+        $year = $request->query('year');
+        $month = $request->query('month');
+        $day = $request->query('day');
+
+        // 1. Obtener todas las fechas de creación de OTs (AsignationOT)
+        $creadasQuery = \App\Models\AsignationOT::selectRaw('DATE(created_at) as date, COUNT(*) as creadas');
+        if ($year) $creadasQuery->whereYear('created_at', $year);
+        if ($month !== null && $month !== '') $creadasQuery->whereMonth('created_at', $month + 1); // JS months 0-based
+        if ($day) $creadasQuery->whereDay('created_at', $day);
+        $creadasPorDia = $creadasQuery->groupBy('date')->orderBy('date')->get()->keyBy('date');
+
+        // 2. Obtener todas las fechas de OTs completadas (FollowAtention cruzando por Folio)
+        $completadasQuery = FollowAtention::selectRaw('DATE(followatention.updated_at) as date, COUNT(DISTINCT followatention.Folio) as completadas')
+            ->join('asignation_ots', 'asignation_ots.Folio', '=', 'followatention.Folio')
+            ->whereNotNull('followatention.updated_at');
+        if ($year) $completadasQuery->whereYear('followatention.updated_at', $year);
+        if ($month !== null && $month !== '') $completadasQuery->whereMonth('followatention.updated_at', $month + 1);
+        if ($day) $completadasQuery->whereDay('followatention.updated_at', $day);
+        $completadasPorDia = $completadasQuery->groupBy('date')->orderBy('date')->get()->keyBy('date');
+
+        // 3. Unir las fechas para tener todas las posibles
+        $fechas = collect($creadasPorDia->keys())
+            ->merge($completadasPorDia->keys())
+            ->unique()
+            ->sort()
+            ->values();
+
+        // 4. Construir el arreglo final
+        $result = [];
+        foreach ($fechas as $fecha) {
+            $result[] = [
+                'date' => $fecha,
+                'creadas' => (int) ($creadasPorDia[$fecha]->creadas ?? 0),
+                'completadas' => (int) ($completadasPorDia[$fecha]->completadas ?? 0),
+            ];
+        }
+
+        return response()->json($result);
     }
 }

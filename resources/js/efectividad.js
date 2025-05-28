@@ -1,9 +1,34 @@
-// Asegúrate de que Highcharts esté cargado globalmente
+// Variables globales para mantener el estado
+window.EfectividadState = {
+    efectividad: 0,
+    total: 0,
+    efectivos: 0,
+    lastParams: { year: null, month: null, day: null }
+};
 
-function renderGaugeEfectividad(efectividad, total, efectivos) {
+// Utilidad para obtener el contenedor principal y subcontenedores
+function getDashboardContainers() {
+    const topsDiv = document.getElementById('dashboard-tops');
+    if (!topsDiv) return {};
+    // Limpia el contenedor antes de agregar los subelementos para evitar espacios/residuos
+    topsDiv.innerHTML = '';
+    let gaugeDiv = document.createElement('div');
+    gaugeDiv.id = 'efectividad-gauge';
+    gaugeDiv.className = 'w-full';
+    topsDiv.appendChild(gaugeDiv);
+
+    let infoDiv = document.createElement('div');
+    infoDiv.id = 'efectividad-info';
+    infoDiv.className = 'text-center mt-4 text-base font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-lg py-2 px-4 shadow border border-gray-200 dark:border-gray-700';
+    topsDiv.appendChild(infoDiv);
+
+    return { topsDiv, gaugeDiv, infoDiv };
+}
+
+// Renderiza el gauge y la información de efectividad
+function renderGaugeEfectividad() {
     if (typeof Highcharts === 'undefined') {
-        // Mostrar mensaje de error en el dashboard con estilos Tailwind y soporte dark
-        const topsDiv = document.getElementById('dashboard-tops');
+        const { topsDiv } = getDashboardContainers();
         if (topsDiv) {
             topsDiv.innerHTML = `
                 <div class="text-center p-4 rounded-lg bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 shadow">
@@ -15,12 +40,18 @@ function renderGaugeEfectividad(efectividad, total, efectivos) {
         return;
     }
 
-    // Detectar si el tema es dark usando Tailwind (clase 'dark' en <html>)
-    const isDark = document.documentElement.classList.contains('dark');
-    const chartBg = isDark ? '#1e293b' : '#fff'; // slate-800 para dark, blanco para light
-    const textColor = isDark ? '#f1f5f9' : '#1e293b'; // slate-100 para dark, slate-800 para light
+    const { gaugeDiv, infoDiv } = getDashboardContainers();
+    if (!gaugeDiv || !infoDiv) return;
 
-    Highcharts.chart('dashboard-tops', {
+    // Limpia solo el gauge antes de renderizar
+    gaugeDiv.innerHTML = '';
+
+    // Tema dark/light
+    const isDark = document.documentElement.classList.contains('dark');
+    const chartBg = isDark ? '#1e293b' : '#fff';
+    const textColor = isDark ? '#f1f5f9' : '#1e293b';
+
+    Highcharts.chart(gaugeDiv.id, {
         chart: {
             type: 'gauge',
             plotBackgroundColor: null,
@@ -65,20 +96,20 @@ function renderGaugeEfectividad(efectividad, total, efectivos) {
                 {
                     from: 0,
                     to: 70,
-                    color: '#DF5353', // rojo
+                    color: '#DF5353',
                     thickness: 20,
                     borderRadius: '50%'
                 },
                 {
                     from: 70,
                     to: 90,
-                    color: '#DDDF0D', // amarillo
+                    color: '#DDDF0D',
                     thickness: 20
                 },
                 {
                     from: 90,
                     to: 100,
-                    color: '#55BF3B', // verde
+                    color: '#55BF3B',
                     thickness: 20,
                     borderRadius: '50%'
                 }
@@ -86,7 +117,7 @@ function renderGaugeEfectividad(efectividad, total, efectivos) {
         },
         series: [{
             name: 'Efectividad',
-            data: [efectividad],
+            data: [window.EfectividadState.efectividad],
             tooltip: {
                 valueSuffix: ' %'
             },
@@ -101,7 +132,7 @@ function renderGaugeEfectividad(efectividad, total, efectivos) {
             },
             dial: {
                 radius: '80%',
-                backgroundColor: isDark ? '#64748b' : 'gray', // slate-400 para dark
+                backgroundColor: isDark ? '#64748b' : 'gray',
                 baseWidth: 12,
                 baseLength: '0%',
                 rearLength: '0%'
@@ -116,43 +147,73 @@ function renderGaugeEfectividad(efectividad, total, efectivos) {
         }
     });
 
-    // Puedes mostrar info adicional debajo del gauge si lo deseas
-    const topsDiv = document.getElementById('dashboard-tops');
-    let info = document.getElementById('efectividad-info');
-    if (!info) {
-        info = document.createElement('div');
-        info.id = 'efectividad-info';
-        info.className = 'text-center mt-4 text-base font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-lg py-2 px-4 shadow border border-gray-200 dark:border-gray-700';
-        topsDiv.appendChild(info);
-    }
-    info.innerHTML = `
+    // Actualiza solo la info
+    infoDiv.innerHTML = `
         <span class="text-gray-600 dark:text-gray-300">Tickets efectivos:</span>
-        <b class="text-emerald-600 dark:text-emerald-400">${efectivos}</b>
+        <b class="text-emerald-600 dark:text-emerald-400">${window.EfectividadState.efectivos}</b>
         <span class="text-gray-400 dark:text-gray-500">/</span>
-        <b class="text-blue-600 dark:text-blue-400">${total}</b>
+        <b class="text-blue-600 dark:text-blue-400">${window.EfectividadState.total}</b>
     `;
 }
 
-async function fetchAndRenderEfectividad({ year, month, day }) {
-    const params = new URLSearchParams();
-    if (year) params.append('year', year);
-    if (month !== undefined && month !== null) params.append('month', month);
-    if (day) params.append('day', day);
+// Obtiene y actualiza la efectividad desde el backend
+async function fetchAndUpdateEfectividad(params) {
+    // Evita peticiones duplicadas si los parámetros no han cambiado
+    const last = window.EfectividadState.lastParams;
+    if (
+        last.year === params.year &&
+        last.month === params.month &&
+        last.day === params.day
+    ) {
+        return; // No hay cambios, no volver a renderizar
+    }
+    window.EfectividadState.lastParams = { ...params };
 
-    const res = await fetch(`/dashboard/efectividad?${params.toString()}`);
-    const data = await res.json();
-    renderGaugeEfectividad(data.efectividad, data.total, data.efectivos);
+    try {
+        const urlParams = new URLSearchParams();
+        if (params.year) urlParams.append('year', params.year);
+        if (params.month !== undefined && params.month !== null) urlParams.append('month', params.month);
+        if (params.day) urlParams.append('day', params.day);
+
+        const res = await fetch(`/dashboard/efectividad?${urlParams.toString()}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Error al obtener datos de efectividad');
+        const data = await res.json();
+
+        // Actualiza el estado global
+        window.EfectividadState.efectividad = Number(data.efectividad) || 0;
+        window.EfectividadState.total = Number(data.total) || 0;
+        window.EfectividadState.efectivos = Number(data.efectivos) || 0;
+
+        renderGaugeEfectividad();
+    } catch (err) {
+        const { topsDiv } = getDashboardContainers();
+        if (topsDiv) {
+            topsDiv.innerHTML = `
+                <div class="text-center p-4 rounded-lg bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 shadow">
+                    <span class="font-bold">Error:</span> No se pudo cargar la efectividad.<br>
+                    <span class="text-sm">${err.message}</span>
+                </div>
+            `;
+        }
+    }
 }
 
-// Escuchar el evento de filtros
+// Escucha el evento de cambio de calendario y actualiza la efectividad
 window.addEventListener('calendar:change', (e) => {
     const detail = e.detail || {};
-    fetchAndRenderEfectividad(detail);
+    fetchAndUpdateEfectividad({
+        year: detail.year,
+        month: detail.month,
+        day: detail.day || null
+    });
 });
 
-// Render inicial por si acaso
+// Render inicial al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAndRenderEfectividad({
+    fetchAndUpdateEfectividad({
         year: new Date().getFullYear(),
         month: new Date().getMonth(),
         day: null

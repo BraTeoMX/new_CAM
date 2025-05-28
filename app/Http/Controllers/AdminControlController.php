@@ -29,34 +29,22 @@ class AdminControlController extends Controller
 
     public function getUsers()
     {
-        $users = User::select('name', 'email', 'num_empleado', 'puesto', 'status')->get();
+        $users = User::select('id','name', 'email', 'num_empleado', 'puesto', 'status')->get();
         return response()->json($users);
     }
-    public function edit($id)
+    public function getPuestos()
     {
-        $user = User::where('num_empleado', $id)->firstOrFail();
-        return response()->json($user);
+        $puestos = DB::connection('sqlsrv_dev')
+            ->table('cat_puestos')
+            ->select('despue')
+            ->pluck('despue')
+            ->toArray();
+
+        // Agrega "Administrador" al inicio
+        array_unshift($puestos, 'Administrador');
+
+        return response()->json($puestos);
     }
-
-    // Actualizar usuario
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $id . ',num_empleado',
-            'puesto' => 'required|string|max:255',
-        ]);
-
-        $user = User::where('num_empleado', $id)->firstOrFail();
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'puesto' => $request->puesto
-        ]);
-
-        return response()->json(['message' => 'Usuario actualizado correctamente']);
-    }
-
     // Crear usuario
     public function store(Request $request)
     {
@@ -79,18 +67,37 @@ class AdminControlController extends Controller
 
         return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user]);
     }
-
-    public function getPuestos()
+    public function edit($id)
     {
-        $puestos = DB::connection('sqlsrv_dev')
-            ->table('cat_puestos')
-            ->select('despue')
-            ->pluck('despue')
-            ->toArray();
+        $user = User::where('id', $id)->firstOrFail();
+        return response()->json($user);
+    }
 
-        // Agrega "Administrador" al inicio
-        array_unshift($puestos, 'Administrador');
+    // Actualizar usuario
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $id . ',id',
+            'puesto' => 'required|string|max:255',
+        ]);
 
-        return response()->json($puestos);
+        $user = User::where('id', $id)->firstOrFail();
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'puesto' => $request->puesto
+        ]);
+
+        return response()->json(['message' => 'Usuario actualizado correctamente']);
+    }
+
+    // Eliminar usuario
+    public function destroy($id)
+    {
+        $user = User::where('id', $id)->firstOrFail();
+        $user->delete();
+
+        return response()->json(['message' => 'Usuario eliminado correctamente']);
     }
 }

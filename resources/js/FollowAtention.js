@@ -501,6 +501,10 @@ function initializeTimers() {
         const endTime = startTime.getTime() + (estimado * 60 * 1000);
         let alertShown = false;
 
+        // --- NUEVO: variables para alertas cada minuto y para WhatsApp ---
+        let lastMinuteAlert = null;
+        let whatsappSent = false;
+
         function updateTimer() {
             const now = new Date().getTime();
             const timeLeft = endTime - now;
@@ -508,11 +512,24 @@ function initializeTimers() {
             let minutes, seconds;
             let isNegative = false;
 
-            if (timeLeft < 0) {
+            if (timeLeft < 4) {
                 isNegative = true;
                 const timePassed = Math.abs(timeLeft);
                 minutes = Math.floor(timePassed / (1000 * 60));
                 seconds = Math.floor((timePassed % (1000 * 60)) / 1000);
+
+                // --- ALERTA CADA MINUTO DESPUÉS DE 0 ---
+                if (minutes !== lastMinuteAlert) {
+                    lastMinuteAlert = minutes;
+                    if (document.visibilityState === 'visible') {
+                        Swal.fire({
+                            title: '¡Atención!',
+                            text: `Se ha terminado el tiempo de atención para la OT ${folio}. Han pasado ${minutes} minuto(s) extra.`,
+                            icon: 'error',
+                            timer: 4000
+                        });
+                    }
+                }
             } else {
                 minutes = Math.floor(timeLeft / (1000 * 60));
                 seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);

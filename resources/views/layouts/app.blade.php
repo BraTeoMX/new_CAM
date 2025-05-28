@@ -27,7 +27,7 @@
     <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css', 'resources/js/app.js', 'resources/js/Sortable.js', 'resources/js/Pussher.js'])
+    @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css', 'resources/js/app.js', 'resources/js/Sortable.js', 'resources/js/Pussher.js','resources/js/cardsAteOTsCache.js'])
 
     <!-- Styles -->
     @livewireStyles
@@ -71,10 +71,20 @@
     <!-- Page wrapper -->
     <div class="flex h-[100dvh] overflow-hidden">
 
-        <x-app.sidebar :variant="$attributes['sidebarVariant']" />
+        {{-- Sidebar solo visible en sm y superior --}}
+        <div class="hidden sm:block">
+            <x-app.sidebar :variant="$attributes['sidebarVariant']" />
+        </div>
+
+        {{-- Docker solo visible en móvil --}}
+        <div class="block sm:hidden">
+            <x-app.docker />
+        </div>
 
         <!-- Content area -->
-        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden @if ($attributes['background']) {{ $attributes['background'] }} @endif"
+        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden @if ($attributes['background']) {{ $attributes['background'] }} @endif
+            pb-0 sm:pb-0"
+            :class="{ 'pb-20': window.innerWidth < 640 }"
             x-ref="contentarea">
 
             <x-app.header :variant="$attributes['headerVariant']" />

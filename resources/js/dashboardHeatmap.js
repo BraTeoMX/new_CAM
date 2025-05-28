@@ -1,5 +1,5 @@
 // Variables globales
-const heatmapData = [];
+let heatmapData = [];
 const calendarConfig = {
     days: ['Lun', 'Mar', 'Mier', 'Juev', 'Vier', 'Sab', 'Dom'],
     cellSize: 44, // Aumenta el tamaño de la celda
@@ -235,13 +235,10 @@ window.addEventListener('calendar:change', () => {
     renderCalendarHeatmap(year, month, dayMap, day);
 });
 
-// Modificar loadHeatmap para usar el mes/año/día global
+// Modificar loadHeatmap para usar la función global
 async function loadHeatmap() {
     try {
-        const response = await fetch('/cardsAteOTs');
-        const data = await response.json();
-        heatmapData.length = 0;
-        data.forEach(row => heatmapData.push(row));
+        heatmapData = await window.getCardsAteOTsData();
         const { month, year, day } = getSelectedMonthYearDay();
         const dayMap = processCalendarData(heatmapData, year, month, day);
         renderCalendarHeatmap(year, month, dayMap, day);

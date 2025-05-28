@@ -37,6 +37,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/admin-control/users', [AdminControlController::class, 'store']);
         Route::get('/admin-control/users/{id}', [AdminControlController::class, 'edit']);
         Route::put('/admin-control/users/{id}', [AdminControlController::class, 'update']);
+        Route::delete('/admin-control/users/{id}', [AdminControlController::class, 'destroy'])->name('admin.users.destroy');
         Route::get('/admin-control/puestos', [AdminControlController::class, 'getPuestos']);
         Route::get('/Catalogos', [CatalogosController::class, 'Catalogos'])->name('Catalogos');
         Route::get('/mecanicos', [CatalogosController::class, 'getMecanicos']);
@@ -89,3 +90,5 @@ Route::get('/api/acciones', [FollowAtentionController::class, 'getAcciones']);
 Route::post('/asignaciones-ot/limpiar-comida-break-masivo', [AsignationOTController::class, 'limpiarComidaBreakMasivo']);
 Route::get('/dashboard/timeline-data', [DashboardController::class, 'getTimelineData'])->name('dashboard.timeline-data');
 Route::get('/dashboard/efectividad', [DashboardController::class, 'getEfectividad']);
+Route::get('/dashboard/tops', [DashboardController::class, 'tops']);
+Route::get('/api/dashboard/creadas-vs-completadas', [DashboardController::class, 'creadasVsCompletadas']);

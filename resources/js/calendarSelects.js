@@ -1,16 +1,15 @@
-document.addEventListener('DOMContentLoaded', async () => {
+let calendarData = [];
+let calendarDates = [];
+
+async function initCalendarSelects() {
     const monthSelect = document.getElementById('calendar-month');
     const yearSelect = document.getElementById('calendar-year');
     const daySelect = document.getElementById('calendar-day');
     if (!monthSelect || !yearSelect || !daySelect) return;
 
-    let data = [];
     try {
-        const res = await fetch('/cardsAteOTs');
-        data = await res.json();
-
-        // Extraer fechas válidas
-        const dates = data
+        calendarData = await window.getCardsAteOTsData();
+        calendarDates = calendarData
             .map(item => item.created_at)
             .filter(Boolean)
             .map(dateStr => {
@@ -18,10 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
             });
 
-        // Años únicos
-        const years = [...new Set(dates.map(d => d.year))].sort((a, b) => a - b);
-
-        // Llenar select de año
+        const years = [...new Set(calendarDates.map(d => d.year))].sort((a, b) => a - b);
         yearSelect.innerHTML = '';
         years.forEach(y => {
             const opt = document.createElement('option');
@@ -30,11 +26,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             yearSelect.appendChild(opt);
         });
 
-        // Llenar select de mes (solo los que existan en los datos)
         const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         function fillMonthOptions(selectedYear) {
             monthSelect.innerHTML = '';
-            const months = [...new Set(dates.filter(d => d.year === selectedYear).map(d => d.month))];
+            const months = [...new Set(calendarDates.filter(d => d.year === selectedYear).map(d => d.month))];
             for (let m = 0; m < 12; m++) {
                 if (months.includes(m)) {
                     const opt = document.createElement('option');
@@ -44,17 +39,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         }
-
-        // Llenar select de día según año/mes
         function fillDayOptions(selectedYear, selectedMonth) {
             daySelect.innerHTML = '';
-            // Opción "Todos"
             const optAll = document.createElement('option');
             optAll.value = '';
             optAll.textContent = 'Todos';
             daySelect.appendChild(optAll);
-            // Días disponibles
-            const days = [...new Set(dates.filter(d => d.year === selectedYear && d.month === selectedMonth).map(d => d.day))].sort((a, b) => a - b);
+            const days = [...new Set(calendarDates.filter(d => d.year === selectedYear && d.month === selectedMonth).map(d => d.day))].sort((a, b) => a - b);
             days.forEach(d => {
                 const opt = document.createElement('option');
                 opt.value = d;
@@ -63,7 +54,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // Seleccionar por defecto el mes y año actual si existen, si no el primero disponible
         const now = new Date();
         let currentYear = now.getFullYear();
         let currentMonth = now.getMonth();
@@ -77,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         yearSelect.value = currentYear;
         monthSelect.value = currentMonth;
         fillDayOptions(currentYear, currentMonth);
-        daySelect.value = ''; // Por defecto "Todos"
+        daySelect.value = '';
 
         function dispatchCalendarChange() {
             const detail = {
@@ -88,10 +78,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.dispatchEvent(new CustomEvent('calendar:change', { detail }));
         }
 
-        // Disparar evento inicial
         dispatchCalendarChange();
 
-        // Listeners para cambios
         yearSelect.addEventListener('change', () => {
             fillMonthOptions(Number(yearSelect.value));
             monthSelect.value = monthSelect.options[0]?.value;
@@ -109,11 +97,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
     } catch (e) {
-        // Si hay error, llenar selects con mes/año actual
         const now = new Date();
         yearSelect.innerHTML = `<option value="${now.getFullYear()}">${now.getFullYear()}</option>`;
         monthSelect.innerHTML = `<option value="${now.getMonth()}">${['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][now.getMonth()]}</option>`;
         daySelect.innerHTML = `<option value="">Todos</option>`;
         window.dispatchEvent(new Event('calendar:change'));
     }
-});
+}
+
+// No es necesario cambiar nada aquí, el ajuste se hace en efectividad.js
+document.addEventListener('DOMContentLoaded', initCalendarSelects);

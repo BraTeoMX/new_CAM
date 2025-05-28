@@ -1,4 +1,37 @@
+import Echo from "laravel-echo";
+import Pusher from "pusher-js";
+
+// --- Configuración de Echo/Pusher ---
+window.Pusher = Pusher;
+window.Echo = new Echo({
+    broadcaster: "pusher",
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true,
+    encrypted: true,
+});
+
+
 import * as d3 from "d3";
+
+let elemento1Data = [];
+
+async function cargarElemento1() {
+    try {
+        elemento1Data = await window.getCardsAteOTsData();
+        // ...usa elemento1Data para renderizar tu componente...
+        // Ejemplo: renderElemento1(elemento1Data);
+    } catch (e) {
+        console.error('Error cargando datos para elemento1:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', cargarElemento1);
+
+// Si necesitas actualizar por filtro, escucha el evento calendar:change
+window.addEventListener('calendar:change', async (e) => {
+    await cargarElemento1();
+});
 
 document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("dashboard-elemento1");
@@ -17,32 +50,32 @@ document.addEventListener("DOMContentLoaded", function () {
     // Gradientes tailwind para cada status
     const STATUS_CONFIG = {
         'PENDIENTE': {
-            icon: '<span class="material-symbols-outlined text-orange-800 text-3xl">pending_actions</span>',
-            color: "from-orange-300 to-orange-400"
+            icon: '<span class="material-symbols-outlined text-red-800 text-3xl">pending_actions</span>',
+            color: "from-red-300 to-red-400"
         },
         'ASIGNADO': {
             icon: '<span class="material-symbols-outlined text-blue-400 text-3xl">assignment_ind</span>',
             color: "from-blue-300 to-blue-400"
         },
         'PROCESO': {
-            icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">av_timer</span>',
-            color: "from-indigo-300 to-indigo-400"
+            icon: '<span class="material-symbols-outlined text-yellow-800 text-3xl">av_timer</span>',
+            color: "from-yellow-300 to-yellow-400"
         },
         'ATENDIDO': {
-            icon: '<span class="material-symbols-outlined text-indigo-800 text-3xl">preliminary</span>',
-            color: "from-purple-300 to-purple-400"
+            icon: '<span class="material-symbols-outlined text-green-800 text-3xl">preliminary</span>',
+            color: "from-green-300 to-green-400"
         },
         'AUTONOMO': {
-            icon: '<span class="material-symbols-outlined text-green-800 text-3xl">smart_toy</span>',
-            color: "from-lime-300 to-lime-400"
+            icon: '<span class="material-symbols-outlined text-violet-800 text-3xl">smart_toy</span>',
+            color: "from-violet-300 to-violet-400"
         },
         'CANCELADO': {
-            icon: '<span class="material-symbols-outlined text-red-800 text-3xl">dangerous</span>',
-            color: "from-pink-300 to-pink-400"
+            icon: '<span class="material-symbols-outlined text-orange-800 text-3xl">dangerous</span>',
+            color: "from-orange-300 to-orange-400"
         },
         'FINALIZADO': {
-            icon: '<span class="material-symbols-outlined text-cyan-800 text-3xl">fact_check</span>',
-            color: "from-sky-300 to-sky-400"
+            icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">fact_check</span>',
+            color: "from-blue-300 to-blue-400"
         }
     };
 
@@ -218,8 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let dashboardData = null;
     function fetchAndRender() {
-        fetch("/cardsAteOTs")
-            .then((res) => res.json())
+        window.getCardsAteOTsData()
             .then((data) => {
                 dashboardData = data;
                 const { month, year, day } = getSelectedMonthYearDay();
@@ -232,6 +264,32 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     fetchAndRender();
+
+    // --- Escuchar eventos de Echo para actualizar el dashboard ---
+    if (window.Echo) {
+        window.Echo.channel("asignaciones-ot")
+            .listen("AsignacionOTCreated", (e) => {
+                // Forzar actualización y mapear SIN_ASIGNAR a ASIGNADO
+                window.getCardsAteOTsData()
+                    .then((data) => {
+                        // Mapear status SIN_ASIGNAR a ASIGNADO
+                        const mapped = data.map(item => {
+                            if ((item.Status || item.status) === "SIN_ASIGNAR") {
+                                return { ...item, Status: "ASIGNADO" };
+                            }
+                            return item;
+                        });
+                        dashboardData = mapped;
+                        const { month, year, day } = getSelectedMonthYearDay();
+                        const filtered = filterByMonthYearDay(dashboardData, year, month, day);
+                        renderBarChart(filtered);
+                    })
+                    .catch(() => {
+                        container.innerHTML = '<div class="text-red-500 p-4">No se pudo cargar el dashboard.</div>';
+                    });
+            })
+            .listen("StatusOTUpdated", () => fetchAndRender());
+    }
 
     window.addEventListener('calendar:change', () => {
         if (dashboardData) {

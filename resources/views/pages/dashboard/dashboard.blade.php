@@ -86,10 +86,8 @@
                             p-0 relative inset-0 z-0 rounded-2xl scale-105">
                         <div class="overflow-x-auto w-full">
                             <div id="dashboard-topsmeca" class="min-w-[420px] w-max mx-auto relative z-10">
-                                <div class="topsmeca-container">
-                                    <div class="min-h-[280px] flex items-center justify-center">
-                                        <div class="animate-pulse text-gray-400">Cargando...</div>
-                                    </div>
+                                <div class="min-h-[280px] flex items-center justify-center">
+                                    <div class="animate-pulse text-gray-400">Cargando...</div>
                                 </div>
                             </div>
                         </div>
@@ -117,7 +115,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
                     <div id="dashboard-elemento1"
                         class="relative w-full max-w-xl min-h-[280px] sm:min-h-[320px] md:min-h-[360px]
@@ -127,6 +124,20 @@
                     </div>
                 </div>
             </div>
+            <br>
+            <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
+                <div id="creatComplet-container"
+                    class="relative w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6
+                            transition-all duration-300 ease-in-out
+                            hover:shadow-lg dark:hover:shadow-gray-700/50">
+                    <div class="creatComplet-container overflow-x-auto pb-4">
+                        <div class="min-h-[280px] flex items-center justify-center">
+                            <div class="animate-pulse text-gray-400">Cargando...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{-- ...existing code... --}}
             {{-- Nuevo div para la línea de tiempo --}}
             <div class="w-full my-1 mx-auto px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col space-y-4">
                 <div id="timeline-container"
@@ -140,9 +151,6 @@
                     </div>
                 </div>
             </div>
-            {{-- ...existing code... --}}
-            {{-- Agrega Highcharts y el módulo gauge --}}
-
-            @vite(['resources/js/calendarSelects.js', 'resources/js/elemento1dashboard.js', 'resources/js/dashboardHeatmap.js', 'resources/js/linetime.js', 'resources/js/efectividad.js'])
+            @vite(['resources/js/calendarSelects.js', 'resources/js/elemento1dashboard.js', 'resources/js/dashboardHeatmap.js', 'resources/js/linetime.js', 'resources/js/efectividad.js', 'resources/js/tops.js', 'resources/js/creatComplet.js'])
         </div>
 </x-app-layout>
