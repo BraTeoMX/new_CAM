@@ -42,6 +42,7 @@
         "dayjs": "^1.11.13",
         "flatpickr": "^4.6.13",
         "fullcalendar": "^6.1.15",
+        "gojs": "^3.0.22",
         "highcharts": "^12.2.0",
         "highcharts-vue": "^2.0.1",
         "jquery": "^3.7.1",

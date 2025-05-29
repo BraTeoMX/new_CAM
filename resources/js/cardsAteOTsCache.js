@@ -1,14 +1,3 @@
-
-// --- Configuración de Echo/Pusher ---
-window.Pusher = Pusher;
-window.Echo = new Echo({
-    broadcaster: "pusher",
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    forceTLS: true,
-    encrypted: true,
-});
-
 const CARDS_ATE_OTS_KEY = 'cardsAteOTsData';
 const CARDS_ATE_OTS_TTL = 5 * 60 * 1000; // 5 minutos
 

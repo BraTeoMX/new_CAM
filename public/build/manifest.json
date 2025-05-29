@@ -15,7 +15,7 @@
     "name": "transform"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BG7bfXge.css",
+    "file": "assets/app-CBq72_XF.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -96,7 +96,7 @@
     "isEntry": true
   },
   "resources/js/cardsAteOTsCache.js": {
-    "file": "assets/cardsAteOTsCache-BXlNdSlC.js",
+    "file": "assets/cardsAteOTsCache-D_NFF6g-.js",
     "name": "cardsAteOTsCache",
     "src": "resources/js/cardsAteOTsCache.js",
     "isEntry": true
@@ -144,6 +144,12 @@
     "imports": [
       "_transform-oMh35NN8.js"
     ]
+  },
+  "resources/js/minmachdesc.js": {
+    "file": "assets/minmachdesc-TpKJLNjH.js",
+    "name": "minmachdesc",
+    "src": "resources/js/minmachdesc.js",
+    "isEntry": true
   },
   "resources/js/tops.js": {
     "file": "assets/tops-ChZZ1Ny7.js",

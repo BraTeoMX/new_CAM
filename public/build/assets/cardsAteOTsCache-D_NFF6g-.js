@@ -1,0 +1,1 @@
+const e="cardsAteOTsData";window.getCardsAteOTsData=async function(){const a=localStorage.getItem(e);if(a)try{const t=JSON.parse(a);if(Date.now()-t.ts<3e5&&Array.isArray(t.data))return t.data}catch{}const s=await fetch("/cardsAteOTs",{cache:"no-store"});if(!s.ok)return[];const r=await s.json();return localStorage.setItem(e,JSON.stringify({data:r,ts:Date.now()})),r};

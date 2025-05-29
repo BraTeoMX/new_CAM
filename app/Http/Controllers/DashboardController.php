@@ -223,4 +223,120 @@ class DashboardController extends Controller
 
         return response()->json($result);
     }
+
+    public function minutosMaquinasDescompuestas()
+    {
+        $asignaciones = \App\Models\AsignationOT::all()->keyBy('Folio');
+        $follows = \App\Models\FollowAtention::all()->keyBy('Folio');
+
+        $modulosPorPlanta = [
+            'Planta Ixtlahuaca' => [],
+            'Planta San Bartolo' => [],
+        ];
+        $globalMinutos = 0;
+        $globalTickets = 0;
+        $detalleFolios = [];
+
+        $eficientes = 0; // Ejemplo: tickets resueltos en menos de 60 minutos
+
+        foreach ($asignaciones as $folio => $asig) {
+            if (!isset($follows[$folio])) continue;
+            $follow = $follows[$folio];
+
+            if (!$asig->created_at || !$asig->TimeAutReal || !$follow->updated_at) continue;
+
+            $parts = explode(':', $asig->TimeAutReal);
+            $h = isset($parts[0]) ? intval($parts[0]) : 0;
+            $m = isset($parts[1]) ? intval($parts[1]) : 0;
+            $s = isset($parts[2]) ? intval($parts[2]) : 0;
+
+            $horaLevantamiento = \Carbon\Carbon::parse($asig->created_at);
+            $horaInicioReal = $horaLevantamiento->copy()->subHours($h)->subMinutes($m)->subSeconds($s);
+            $horaAtencion = \Carbon\Carbon::parse($follow->updated_at);
+            $minutosResolucion = $horaAtencion->diffInMinutes($horaInicioReal);
+
+            $globalMinutos += $minutosResolucion;
+            $globalTickets++;
+
+            if ($minutosResolucion <= 60) $eficientes++;
+
+            $modulo = intval($follow->Modulo);
+            if ($modulo >= 100 && $modulo < 200) {
+                $planta = 'Planta Ixtlahuaca';
+            } elseif ($modulo >= 200) {
+                $planta = 'Planta San Bartolo';
+            } else {
+                $planta = 'Desconocida';
+            }
+
+            if (!isset($modulosPorPlanta[$planta][$modulo])) {
+                $modulosPorPlanta[$planta][$modulo] = [
+                    'modulo' => $modulo,
+                    'minutos' => 0,
+                    'tickets' => 0,
+                    'folios' => [],
+                ];
+            }
+            $modulosPorPlanta[$planta][$modulo]['minutos'] += $minutosResolucion;
+            $modulosPorPlanta[$planta][$modulo]['tickets']++;
+            $modulosPorPlanta[$planta][$modulo]['folios'][] = [
+                'folio' => $folio,
+                'modulo' => $modulo,
+                'minutos' => $minutosResolucion,
+                'supervisor' => $follow->Supervisor ?? '',
+            ];
+
+            // Para tabla global
+            $detalleFolios[] = [
+                'folio' => $folio,
+                'modulo' => $modulo,
+                'minutos' => $minutosResolucion,
+                'planta' => $planta,
+                'supervisor' => $follow->Supervisor ?? '',
+            ];
+        }
+
+        $plantas = [];
+        foreach ($modulosPorPlanta as $planta => $modulos) {
+            $totalMin = 0;
+            $totalTickets = 0;
+            $modulosArr = [];
+            $detallePlanta = [];
+            foreach ($modulos as $mod) {
+                $totalMin += $mod['minutos'];
+                $totalTickets += $mod['tickets'];
+                $modulosArr[] = [
+                    'modulo' => $mod['modulo'],
+                    'minutos' => $mod['minutos'],
+                    'tickets' => $mod['tickets'],
+                ];
+                foreach ($mod['folios'] as $folioDet) {
+                    $detallePlanta[] = $folioDet;
+                }
+            }
+            $plantas[] = [
+                'planta' => $planta,
+                'minutos' => $totalMin,
+                'tickets' => $totalTickets,
+                'modulos' => $modulosArr,
+                'detalle' => $detallePlanta,
+            ];
+        }
+
+        $eficiencia = $globalTickets > 0 ? round(($eficientes / $globalTickets) * 100, 2) : 0;
+
+        // Ejemplo de cálculo extra: promedio de minutos por ticket
+        $promedioMin = $globalTickets > 0 ? round($globalMinutos / $globalTickets, 2) : 0;
+
+        return response()->json([
+            'global' => [
+                'minutos' => $globalMinutos,
+                'tickets' => $globalTickets,
+                'eficiencia' => $eficiencia,
+                'promedio_min' => $promedioMin,
+                'detalle' => $detalleFolios,
+            ],
+            'plantas' => $plantas,
+        ]);
+    }
 }

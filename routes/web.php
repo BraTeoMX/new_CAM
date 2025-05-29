@@ -92,3 +92,4 @@ Route::get('/dashboard/timeline-data', [DashboardController::class, 'getTimeline
 Route::get('/dashboard/efectividad', [DashboardController::class, 'getEfectividad']);
 Route::get('/dashboard/tops', [DashboardController::class, 'tops']);
 Route::get('/api/dashboard/creadas-vs-completadas', [DashboardController::class, 'creadasVsCompletadas']);
+Route::get('/dashboard/minmachdesc', [DashboardController::class, 'minutosMaquinasDescompuestas']);

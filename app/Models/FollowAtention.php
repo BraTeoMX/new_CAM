@@ -30,6 +30,8 @@ class FollowAtention extends Model
         'Accion',
         'Comentarios',
         'Classe',
+        'created_at',
+        'updated_at',
 
     ];
       protected $casts = [
