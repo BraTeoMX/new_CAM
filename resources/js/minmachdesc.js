@@ -145,10 +145,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             sortKey: columns[0].key,
             sortAsc: true,
             search: '',
+            fontSize: 14, // px, tamaño base
         };
 
         const container = document.getElementById(containerId);
         if (!container) return;
+
+        // Detecta el tema actual
+        function isDarkMode() {
+            return document.documentElement.classList.contains('dark');
+        }
+
+        // Observa cambios de tema y vuelve a renderizar la tabla si cambia
+        if (!container._themeObserver) {
+            const observer = new MutationObserver(() => render());
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            container._themeObserver = observer;
+        }
 
         function filterData() {
             let filtered = data;
@@ -169,16 +182,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             let start = (page - 1) * state.perPage;
             let pageData = sorted.slice(start, start + state.perPage);
 
+            // Botones de tamaño de letra
+            let fontBtns = `
+            <div class="flex gap-2 items-center mb-2">
+                <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none" id="${containerId}-font-inc" title="Aumentar tamaño de letra">
+                    <span class="material-symbols-rounded align-middle">zoom_in</span>
+                </button>
+                <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none" id="${containerId}-font-dec" title="Reducir tamaño de letra">
+                    <span class="material-symbols-rounded align-middle">zoom_out</span>
+                </button>
+            </div>
+            `;
+
             // Buscador
             let html = `
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
-                <input type="text" placeholder="Buscar..." class="w-full sm:w-64 px-3 py-2 border rounded focus:ring focus:ring-indigo-200 dark:bg-gray-900 dark:text-white" id="${containerId}-search" value="${state.search}">
+                <div class="flex-1">${fontBtns}</div>
+                <input type="text" autocomplete="off" placeholder="Buscar..." class="w-full sm:w-64 px-3 py-2 border rounded focus:ring focus:ring-indigo-200 dark:bg-gray-900 dark:text-white" id="${containerId}-search" value="${state.search}">
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 sm:mt-0">
                     Mostrando ${pageData.length} de ${filtered.length} resultados
                 </div>
             </div>
             <div class="overflow-x-auto">
-            <table class="min-w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 border">
+            <table class="min-w-full rounded-lg overflow-hidden border"
+                style="font-size: ${state.fontSize}px;">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         ${columns.map(col => `
@@ -191,10 +218,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         `).join('')}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="transition">
                     ${pageData.map(row => `
                         <tr>
-                            ${columns.map(col => `<td class="px-4 py-2">${row[col.key] ?? ''}</td>`).join('')}
+                            ${columns.map(col => `
+                                <td class="px-4 py-2 ${isDarkMode() ? 'text-white' : 'text-black'}">
+                                    ${row[col.key] ?? ''}
+                                </td>
+                            `).join('')}
                         </tr>
                     `).join('')}
                 </tbody>
@@ -221,11 +252,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     render();
                 };
             });
-            container.querySelector(`#${containerId}-search`).oninput = e => {
+            // Buscador
+            const searchInput = container.querySelector(`#${containerId}-search`);
+            searchInput.addEventListener('input', e => {
                 state.search = e.target.value;
                 state.page = 1;
                 render();
-            };
+                setTimeout(() => {
+                    const newInput = container.querySelector(`#${containerId}-search`);
+                    if (newInput) newInput.focus();
+                    if (newInput && typeof newInput.selectionStart === 'number') {
+                        newInput.selectionStart = newInput.selectionEnd = newInput.value.length;
+                    }
+                }, 0);
+            });
+            // Paginación
             container.querySelector(`#${containerId}-prev`).onclick = () => {
                 if (state.page > 1) {
                     state.page--;
@@ -237,6 +278,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     state.page++;
                     render();
                 }
+            };
+            // Font size
+            container.querySelector(`#${containerId}-font-inc`).onclick = () => {
+                state.fontSize = Math.min(state.fontSize + 2, 32);
+                render();
+            };
+            container.querySelector(`#${containerId}-font-dec`).onclick = () => {
+                state.fontSize = Math.max(state.fontSize - 2, 10);
+                render();
             };
         }
 

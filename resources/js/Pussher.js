@@ -242,7 +242,7 @@ $(document).on("click", "#notificationList li", function () {
                 <p>Modulo: ${notification.modulo}</p>
                 <p>Descripción: ${notification.descripcion || ''}</p>
             `);
-        }else if(notification.status === "CANCELADO"){
+        } else if (notification.status === "CANCELADO") {
             $("#notificationModalTitle").text(`Ticket cancelado`);
             $("#notificationModalBody").html(`
                 <p>Modulo: ${notification.modulo}</p>
@@ -254,7 +254,18 @@ $(document).on("click", "#notificationList li", function () {
                 <p>Descripción: ${notification.descripcion || ''}</p>
             `);
         }
-        $("#notificationModal").removeClass("hidden");
+
+        // Inicializar el modal de Flowbite si existe y no está inicializado
+        if (window.flowbite && window.flowbite.Modal) {
+            let modalInstance = window.flowbite.Modal.getInstance(document.getElementById('notificationModal'));
+            if (!modalInstance) {
+                modalInstance = new window.flowbite.Modal(document.getElementById('notificationModal'));
+            }
+            modalInstance.show();
+        } else {
+            // Fallback: solo mostrar el modal si no se usa Flowbite Modal JS
+            $("#notificationModal").removeClass("hidden");
+        }
     }
 
     // Eliminar la notificación del DOM y de localStorage
@@ -263,7 +274,17 @@ $(document).on("click", "#notificationList li", function () {
 
 // --- Cerrar modal y actualizar contador ---
 $(document).on("click", '[data-modal-toggle="notificationModal"]', function () {
-    $("#notificationModal").addClass("hidden");
+    // Cerrar usando Flowbite Modal si está inicializado
+    if (window.flowbite && window.flowbite.Modal) {
+        const modalInstance = window.flowbite.Modal.getInstance(document.getElementById('notificationModal'));
+        if (modalInstance) {
+            modalInstance.hide();
+        } else {
+            $("#notificationModal").addClass("hidden");
+        }
+    } else {
+        $("#notificationModal").addClass("hidden");
+    }
     notificationCount = window.notificationsArray.length;
     if (notificationCount > 0) {
         $("#notificationCount").text(notificationCount).show();
