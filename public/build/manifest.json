@@ -15,7 +15,7 @@
     "name": "transform"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DTdGUfW0.css",
+    "file": "assets/app-Dfe_z9OD.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -30,7 +30,7 @@
     "isEntry": true
   },
   "resources/js/AsignationOt.js": {
-    "file": "assets/AsignationOt-Cq8IPtK7.js",
+    "file": "assets/AsignationOt-BRItuCb3.js",
     "name": "AsignationOt",
     "src": "resources/js/AsignationOt.js",
     "isEntry": true,
@@ -40,7 +40,7 @@
     ]
   },
   "resources/js/FollowAtention.js": {
-    "file": "assets/FollowAtention-DwIgrWDy.js",
+    "file": "assets/FollowAtention-Cj7PsbG0.js",
     "name": "FollowAtention",
     "src": "resources/js/FollowAtention.js",
     "isEntry": true,
@@ -146,13 +146,13 @@
     ]
   },
   "resources/js/minmachdesc.js": {
-    "file": "assets/minmachdesc-CRhxLTmj.js",
+    "file": "assets/minmachdesc-SwRE0NqP.js",
     "name": "minmachdesc",
     "src": "resources/js/minmachdesc.js",
     "isEntry": true
   },
   "resources/js/tops.js": {
-    "file": "assets/tops-ScvwBlpj.js",
+    "file": "assets/tops-BszSSpyw.js",
     "name": "tops",
     "src": "resources/js/tops.js",
     "isEntry": true
@@ -173,7 +173,7 @@
     ]
   },
   "resources/js/vinculacion.js": {
-    "file": "assets/vinculacion-BOwjQ5Xr.js",
+    "file": "assets/vinculacion-JAubKsS_.js",
     "name": "vinculacion",
     "src": "resources/js/vinculacion.js",
     "isEntry": true

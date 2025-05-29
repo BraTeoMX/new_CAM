@@ -1,20 +1,69 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const container = document.querySelector('#minmachdesc-tabs-container');
-    if (!container) return;
+// --- GLOBAL ARRAYS Y CONSTANTES ---
+const MINMACHDESC_STORAGE_KEY = 'minmachdesc_data_v1';
+const MINMACHDESC_STORAGE_TTL = 5 * 60 * 1000; // 5 minutos
 
-    // Loader
-    container.innerHTML = '<div class="minmachdesc-tabs-loader min-h-[280px] flex items-center justify-center"><div class="animate-pulse text-gray-400">Cargando...</div></div>';
+let minmachdescData = null;
 
-    // Obtener datos del backend
-    let data;
+// --- FUNCIONES DE UTILIDAD ---
+
+/**
+ * Guarda los datos en localStorage con timestamp.
+ */
+function saveToLocalStorage(key, data) {
     try {
-        const resp = await fetch('/dashboard/minmachdesc');
-        data = await resp.json();
+        const payload = {
+            data,
+            ts: Date.now()
+        };
+        localStorage.setItem(key, JSON.stringify(payload));
     } catch (e) {
-        container.innerHTML = '<div class="text-red-500">Error al cargar datos</div>';
-        return;
+        // Si falla, no hacer nada (posible storage lleno o modo privado)
     }
+}
 
+/**
+ * Carga los datos de localStorage si no están expirados.
+ */
+function loadFromLocalStorage(key, ttl) {
+    try {
+        const payload = JSON.parse(localStorage.getItem(key));
+        if (!payload || !payload.ts || !payload.data) return null;
+        if (Date.now() - payload.ts > ttl) return null;
+        return payload.data;
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Sanitiza texto para evitar XSS.
+ */
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+/**
+ * Ordena un array por clave.
+ */
+function sortBy(arr, key, asc = true) {
+    return arr.slice().sort((a, b) => {
+        if (a[key] < b[key]) return asc ? -1 : 1;
+        if (a[key] > b[key]) return asc ? 1 : -1;
+        return 0;
+    });
+}
+
+// --- RENDERIZADO DE UI ---
+
+/**
+ * Renderiza los tabs y su contenido.
+ */
+function renderTabs(container, data) {
     // Construir tabs
     let tabHeaders = `
     <div class="sm:hidden">
@@ -26,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (p.planta.toLowerCase().includes('ixtlahuaca')) icon = 'factory';
                 else if (p.planta.toLowerCase().includes('san bartolo')) icon = 'apartment';
                 else icon = 'location_on';
-                return `<option value="planta${i}">${p.planta}</option>`;
+                return `<option value="planta${i}">${escapeHtml(p.planta)}</option>`;
             }).join('')}
         </select>
     </div>
@@ -46,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <li class="w-full">
                 <button id="planta${i}-tab" data-tabs-target="#planta${i}" type="button" role="tab" aria-controls="planta${i}" aria-selected="false"
                     class="inline-block w-full p-4 bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none dark:bg-indigo-700 dark:hover:bg-indigo-800 dark:text-white dark:focus:ring-indigo-900 font-medium transition">
-                    <span class="material-symbols-rounded align-middle text-lg mr-1">${icon}</span> ${p.planta}
+                    <span class="material-symbols-rounded align-middle text-lg mr-1">${icon}</span> ${escapeHtml(p.planta)}
                 </button>
             </li>
             `;
@@ -127,175 +176,199 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${tabContent}
         </div>
     `;
+}
 
-    // Utilidad para ordenar
-    function sortBy(arr, key, asc = true) {
-        return arr.slice().sort((a, b) => {
-            if (a[key] < b[key]) return asc ? -1 : 1;
-            if (a[key] > b[key]) return asc ? 1 : -1;
-            return 0;
-        });
+/**
+ * Renderiza una tabla con paginación, búsqueda y ordenamiento.
+ */
+function renderTable(data, containerId, columns) {
+    let state = {
+        page: 1,
+        perPage: 10,
+        sortKey: columns[0].key,
+        sortAsc: true,
+        search: '',
+        fontSize: 14, // px, tamaño base
+    };
+
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Detecta el tema actual
+    function isDarkMode() {
+        return document.documentElement.classList.contains('dark');
     }
 
-    // Renderiza tabla con paginación, búsqueda y ordenamiento
-    function renderTable(data, containerId, columns) {
-        let state = {
-            page: 1,
-            perPage: 10,
-            sortKey: columns[0].key,
-            sortAsc: true,
-            search: '',
-            fontSize: 14, // px, tamaño base
-        };
+    // Observa cambios de tema y vuelve a renderizar la tabla si cambia
+    if (!container._themeObserver) {
+        const observer = new MutationObserver(() => render());
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        container._themeObserver = observer;
+    }
 
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        // Detecta el tema actual
-        function isDarkMode() {
-            return document.documentElement.classList.contains('dark');
+    function filterData() {
+        let filtered = data;
+        if (state.search) {
+            const s = state.search.toLowerCase();
+            filtered = filtered.filter(row =>
+                columns.some(col => (row[col.key] + '').toLowerCase().includes(s))
+            );
         }
+        return filtered;
+    }
 
-        // Observa cambios de tema y vuelve a renderizar la tabla si cambia
-        if (!container._themeObserver) {
-            const observer = new MutationObserver(() => render());
-            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-            container._themeObserver = observer;
-        }
+    function render() {
+        let filtered = filterData();
+        let sorted = sortBy(filtered, state.sortKey, state.sortAsc);
+        let totalPages = Math.ceil(sorted.length / state.perPage);
+        let page = Math.max(1, Math.min(state.page, totalPages || 1));
+        let start = (page - 1) * state.perPage;
+        let pageData = sorted.slice(start, start + state.perPage);
 
-        function filterData() {
-            let filtered = data;
-            if (state.search) {
-                const s = state.search.toLowerCase();
-                filtered = filtered.filter(row =>
-                    columns.some(col => (row[col.key] + '').toLowerCase().includes(s))
-                );
-            }
-            return filtered;
-        }
+        // Botones de tamaño de letra
+        let fontBtns = `
+        <div class="flex gap-2 items-center mb-2">
+            <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none" id="${containerId}-font-inc" title="Aumentar tamaño de letra">
+                <span class="material-symbols-rounded align-middle">zoom_in</span>
+            </button>
+            <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none" id="${containerId}-font-dec" title="Reducir tamaño de letra">
+                <span class="material-symbols-rounded align-middle">zoom_out</span>
+            </button>
+        </div>
+        `;
 
-        function render() {
-            let filtered = filterData();
-            let sorted = sortBy(filtered, state.sortKey, state.sortAsc);
-            let totalPages = Math.ceil(sorted.length / state.perPage);
-            let page = Math.max(1, Math.min(state.page, totalPages || 1));
-            let start = (page - 1) * state.perPage;
-            let pageData = sorted.slice(start, start + state.perPage);
-
-            // Botones de tamaño de letra
-            let fontBtns = `
-            <div class="flex gap-2 items-center mb-2">
-                <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none" id="${containerId}-font-inc" title="Aumentar tamaño de letra">
-                    <span class="material-symbols-rounded align-middle">zoom_in</span>
-                </button>
-                <button type="button" class="px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none" id="${containerId}-font-dec" title="Reducir tamaño de letra">
-                    <span class="material-symbols-rounded align-middle">zoom_out</span>
-                </button>
+        // Buscador
+        let html = `
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+            <div class="flex-1">${fontBtns}</div>
+            <input type="text" autocomplete="off" placeholder="Buscar..." class="w-full sm:w-64 px-3 py-2 border rounded focus:ring focus:ring-indigo-200 dark:bg-gray-900 dark:text-white" id="${containerId}-search" value="${state.search}">
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 sm:mt-0">
+                Mostrando ${pageData.length} de ${filtered.length} resultados
             </div>
-            `;
-
-            // Buscador
-            let html = `
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
-                <div class="flex-1">${fontBtns}</div>
-                <input type="text" autocomplete="off" placeholder="Buscar..." class="w-full sm:w-64 px-3 py-2 border rounded focus:ring focus:ring-indigo-200 dark:bg-gray-900 dark:text-white" id="${containerId}-search" value="${state.search}">
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 sm:mt-0">
-                    Mostrando ${pageData.length} de ${filtered.length} resultados
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-            <table class="min-w-full rounded-lg overflow-hidden border"
-                style="font-size: ${state.fontSize}px;">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        </div>
+        <div class="overflow-x-auto">
+        <table class="min-w-full rounded-lg overflow-hidden border"
+            style="font-size: ${state.fontSize}px;">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    ${columns.map(col => `
+                        <th scope="col" class="px-4 py-3 cursor-pointer select-none group" data-sort="${col.key}">
+                            <span>${col.label}</span>
+                            <span class="inline-block align-middle ml-1 text-xs ${state.sortKey === col.key ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}">
+                                ${state.sortKey === col.key ? (state.sortAsc ? '▲' : '▼') : ''}
+                            </span>
+                        </th>
+                    `).join('')}
+                </tr>
+            </thead>
+            <tbody class="transition">
+                ${pageData.map(row => `
                     <tr>
                         ${columns.map(col => `
-                            <th scope="col" class="px-4 py-3 cursor-pointer select-none group" data-sort="${col.key}">
-                                <span>${col.label}</span>
-                                <span class="inline-block align-middle ml-1 text-xs ${state.sortKey === col.key ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}">
-                                    ${state.sortKey === col.key ? (state.sortAsc ? '▲' : '▼') : ''}
-                                </span>
-                            </th>
+                            <td class="px-4 py-2 ${isDarkMode() ? 'text-white' : 'text-black'}">
+                                ${escapeHtml(row[col.key] ?? '')}
+                            </td>
                         `).join('')}
                     </tr>
-                </thead>
-                <tbody class="transition">
-                    ${pageData.map(row => `
-                        <tr>
-                            ${columns.map(col => `
-                                <td class="px-4 py-2 ${isDarkMode() ? 'text-white' : 'text-black'}">
-                                    ${row[col.key] ?? ''}
-                                </td>
-                            `).join('')}
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            </div>
-            <div class="flex justify-between items-center mt-2">
-                <button class="px-3 py-1 rounded bg-indigo-600 text-white disabled:opacity-50" ${page === 1 ? 'disabled' : ''} id="${containerId}-prev">Anterior</button>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Página ${page} de ${totalPages || 1}</span>
-                <button class="px-3 py-1 rounded bg-indigo-600 text-white disabled:opacity-50" ${page === totalPages || totalPages === 0 ? 'disabled' : ''} id="${containerId}-next">Siguiente</button>
-            </div>
-            `;
+                `).join('')}
+            </tbody>
+        </table>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+            <button class="px-3 py-1 rounded bg-indigo-600 text-white disabled:opacity-50" ${page === 1 ? 'disabled' : ''} id="${containerId}-prev">Anterior</button>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Página ${page} de ${totalPages || 1}</span>
+            <button class="px-3 py-1 rounded bg-indigo-600 text-white disabled:opacity-50" ${page === totalPages || totalPages === 0 ? 'disabled' : ''} id="${containerId}-next">Siguiente</button>
+        </div>
+        `;
 
-            container.innerHTML = html;
+        container.innerHTML = html;
 
-            // Eventos
-            container.querySelectorAll('th[data-sort]').forEach(th => {
-                th.onclick = () => {
-                    const key = th.getAttribute('data-sort');
-                    if (state.sortKey === key) state.sortAsc = !state.sortAsc;
-                    else {
-                        state.sortKey = key;
-                        state.sortAsc = true;
-                    }
-                    render();
-                };
-            });
-            // Buscador
-            const searchInput = container.querySelector(`#${containerId}-search`);
-            searchInput.addEventListener('input', e => {
-                state.search = e.target.value;
-                state.page = 1;
-                render();
-                setTimeout(() => {
-                    const newInput = container.querySelector(`#${containerId}-search`);
-                    if (newInput) newInput.focus();
-                    if (newInput && typeof newInput.selectionStart === 'number') {
-                        newInput.selectionStart = newInput.selectionEnd = newInput.value.length;
-                    }
-                }, 0);
-            });
-            // Paginación
-            container.querySelector(`#${containerId}-prev`).onclick = () => {
-                if (state.page > 1) {
-                    state.page--;
-                    render();
+        // Eventos
+        container.querySelectorAll('th[data-sort]').forEach(th => {
+            th.onclick = () => {
+                const key = th.getAttribute('data-sort');
+                if (state.sortKey === key) state.sortAsc = !state.sortAsc;
+                else {
+                    state.sortKey = key;
+                    state.sortAsc = true;
                 }
+                render();
             };
-            container.querySelector(`#${containerId}-next`).onclick = () => {
-                if (state.page < totalPages) {
-                    state.page++;
-                    render();
+        });
+        // Buscador
+        const searchInput = container.querySelector(`#${containerId}-search`);
+        searchInput.addEventListener('input', e => {
+            state.search = e.target.value;
+            state.page = 1;
+            render();
+            setTimeout(() => {
+                const newInput = container.querySelector(`#${containerId}-search`);
+                if (newInput) newInput.focus();
+                if (newInput && typeof newInput.selectionStart === 'number') {
+                    newInput.selectionStart = newInput.selectionEnd = newInput.value.length;
                 }
-            };
-            // Font size
-            container.querySelector(`#${containerId}-font-inc`).onclick = () => {
-                state.fontSize = Math.min(state.fontSize + 2, 32);
+            }, 0);
+        });
+        // Paginación
+        container.querySelector(`#${containerId}-prev`).onclick = () => {
+            if (state.page > 1) {
+                state.page--;
                 render();
-            };
-            container.querySelector(`#${containerId}-font-dec`).onclick = () => {
-                state.fontSize = Math.max(state.fontSize - 2, 10);
+            }
+        };
+        container.querySelector(`#${containerId}-next`).onclick = () => {
+            if (state.page < totalPages) {
+                state.page++;
                 render();
-            };
-        }
-
-        render();
+            }
+        };
+        // Font size
+        container.querySelector(`#${containerId}-font-inc`).onclick = () => {
+            state.fontSize = Math.min(state.fontSize + 2, 32);
+            render();
+        };
+        container.querySelector(`#${containerId}-font-dec`).onclick = () => {
+            state.fontSize = Math.max(state.fontSize - 2, 10);
+            render();
+        };
     }
 
-    // Render tablas con paginación, búsqueda y ordenamiento
+    render();
+}
+
+// --- LOGICA PRINCIPAL ---
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const container = document.querySelector('#minmachdesc-tabs-container');
+    if (!container) return;
+
+    // Loader rápido
+    container.innerHTML = '<div class="minmachdesc-tabs-loader min-h-[280px] flex items-center justify-center"><div class="animate-pulse text-gray-400">Cargando...</div></div>';
+
+    // 1. Intenta cargar de localStorage
+    minmachdescData = loadFromLocalStorage(MINMACHDESC_STORAGE_KEY, MINMACHDESC_STORAGE_TTL);
+
+    // 2. Si no hay datos o están expirados, pide al backend
+    let fetched = false;
+    if (!minmachdescData) {
+        try {
+            const resp = await fetch('/dashboard/minmachdesc', { credentials: 'same-origin' });
+            if (!resp.ok) throw new Error('Error de red');
+            minmachdescData = await resp.json();
+            saveToLocalStorage(MINMACHDESC_STORAGE_KEY, minmachdescData);
+            fetched = true;
+        } catch (e) {
+            container.innerHTML = '<div class="text-red-500">Error al cargar datos</div>';
+            return;
+        }
+    }
+
+    // 3. Renderiza tabs y contenido
+    renderTabs(container, minmachdescData);
+
+    // 4. Renderiza tablas
     renderTable(
-        data.global.detalle,
+        minmachdescData.global.detalle,
         'global-table',
         [
             { key: 'folio', label: 'Folio' },
@@ -305,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             { key: 'supervisor', label: 'Supervisor' },
         ]
     );
-    data.plantas.forEach((p, i) => {
+    minmachdescData.plantas.forEach((p, i) => {
         renderTable(
             p.detalle,
             `planta${i}-table`,
@@ -318,6 +391,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     });
 
+    // 5. Tabs JS (igual que antes)
     // Flowbite tabs JS (simple manual toggle)
     function activateTab(tabId) {
         // Hide all tab panels

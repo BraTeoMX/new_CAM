@@ -42,10 +42,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/Catalogos', [CatalogosController::class, 'Catalogos'])->name('Catalogos');
         Route::get('/mecanicos', [CatalogosController::class, 'getMecanicos']);
         Route::get('/supervisores', [CatalogosController::class, 'getSupervisores']);
+        Route::get('/user-photo/{id}', [UserController::class, 'userPhoto'])->middleware('auth');
     });
 
 
 });
+
 // Rutas para visitantes (no autenticados)
 Route::middleware(['guest'])->group(function () {
 

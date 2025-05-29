@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Función para obtener URL de imagen
     function getMecanicoImageUrl(nombre) {
         const cvetra = getCvetraByNombre(nombre);
-        return cvetra ? `http://128.150.102.45:8000/Intimark/${cvetra}.jpg` : '/default-avatar.jpg';
+        return cvetra ? `http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/${cvetra}.jpg` : '/default-avatar.jpg';
     }
 
     // Modificar loadMecanicos para crear el mapa

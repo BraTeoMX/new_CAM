@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class UserController extends Controller
 {
@@ -43,5 +47,38 @@ class UserController extends Controller
                 'status' => 'error'
             ], 500);
         }
+    }
+     public function userPhoto($id)
+    {
+        // Solo usuarios autenticados pueden ver fotos
+        if (!Auth::check()) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $filename = $id . '.jpg';
+        $externalUrl = "http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/" . $filename;
+
+        try {
+            // Intenta obtener la imagen del servidor externo
+            $response = Http::timeout(5)->get($externalUrl);
+
+            if ($response->successful() && $response->header('Content-Type') === 'image/jpeg') {
+                return Response::make($response->body(), 200, [
+                    'Content-Type' => 'image/jpeg',
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                    'Cache-Control' => 'max-age=3600, public',
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log::error('Error obteniendo imagen externa: ' . $e->getMessage());
+        }
+
+        // Si no existe o hay error, retorna avatar por defecto
+        $defaultPath = public_path('default-avatar.jpg');
+        return Response::make(file_get_contents($defaultPath), 200, [
+            'Content-Type' => 'image/jpeg',
+            'Content-Disposition' => 'inline; filename="default-avatar.jpg"',
+            'Cache-Control' => 'max-age=3600, public',
+        ]);
     }
 }

@@ -49,7 +49,7 @@ import{P as N,E as M}from"./pusher-RuRbGOpv.js";import"./_commonjsHelpers-Cpj98o
                 Iniciar Atención
             </button>
         </div>
-    `:"",n=j(e.Status),b=e.Status==="AUTONOMO"?"/images/Avatar.webp":"http://128.150.102.45:8000/Intimark/"+e.Num_Mecanico+".jpg";return`
+    `:"",n=j(e.Status),b=e.Status==="AUTONOMO"?"/images/Avatar.webp":"http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/"+e.Num_Mecanico+".jpg";return`
     <div class="relative max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col" data-folio-card="${e.Folio}">
          <div class="absolute -top-8 -left-8 z-10">
             <img class="w-20 h-20 rounded-full ring-4 ${n} shadow-lg object-cover bg-white"

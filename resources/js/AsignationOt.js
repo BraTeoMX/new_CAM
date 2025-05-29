@@ -66,7 +66,7 @@ function actualizarFoliosComidaBreak(data) {
 function renderAsignacion(asig) {
     const imgUrl = asig.foto
         ? asig.foto
-        : "http://128.150.102.45:8000/Intimark/" + asig.Num_Mecanico + ".jpg";
+        : "http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/" + asig.Num_Mecanico + ".jpg";
     const statusColor = getStatusColor(asig.Status);
     const ringClass = getRingClass(asig.Status);
 

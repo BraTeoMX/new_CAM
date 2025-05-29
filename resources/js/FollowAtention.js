@@ -241,7 +241,7 @@ function renderOTCard(ot) {
 
      const imgUrl = ot.Status === "AUTONOMO"
         ? "/images/Avatar.webp" // Reemplaza con la ruta correcta
-        : "http://128.150.102.45:8000/Intimark/" + ot.Num_Mecanico + ".jpg";
+        : "http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/" + ot.Num_Mecanico + ".jpg";
     // --- Agrega un data-folio-card para poder actualizar solo esta card ---
     return `
     <div class="relative max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col" data-folio-card="${ot.Folio}">
