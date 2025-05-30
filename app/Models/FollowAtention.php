@@ -21,6 +21,7 @@ class FollowAtention extends Model
         'Supervisor',
         'Problema',
         'Maquina',
+        'NumMach',
         'Classe',
         'TimeEstimado',
         'TimeInicio',
