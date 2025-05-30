@@ -16,6 +16,8 @@ class FollowAtention extends Model
         'Num_Mecanico',
         'Mecanico',
         'Modulo',
+        'Operario',
+        'NombreOperario',
         'Supervisor',
         'Problema',
         'Maquina',

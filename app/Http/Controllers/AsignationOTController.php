@@ -154,6 +154,8 @@ class AsignationOTController extends Controller
         $asignacion = AsignationOT::create([
             'Folio'     => $request->input('folio'),
             'Modulo'    => $modulo,
+            'Operario'  => $request->input('operario'),
+            'NombreOperario' => $request->input('nombreoperario'),
             'Num_Mecanico' => $cvetra,
             'Mecanico'  => $nombreMecanico,
             'TimeAutEst' => $request->input('timeAutonomo'),
@@ -178,6 +180,8 @@ class AsignationOTController extends Controller
             'success' => true,
             'folio' => $request->input('folio'),
             'modulo' => $modulo,
+            'operario' => $request->input('Operario'),
+            'nombre_operario' => $request->input('NombreOperario'),
             'cve_mecanico' => $cvetra,
             'mecanico_asignado' => $nombreMecanico,
             'supervisor' => $asignado->Supervisor,

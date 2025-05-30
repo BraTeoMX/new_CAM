@@ -61,6 +61,41 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
+        public function ObtenerOperarios(request $request)
+    {
+        try {
+
+            $cacheKey = 'operarios';
+
+            Log::info('Verificando el caché...');
+            if (cache()->has($cacheKey)) {
+                Log::info('Cargando operarios desde el caché...');
+                $operarios = cache()->get($cacheKey);
+            } else {
+                Log::info('Cargando operarios desde la base de datos...');
+                $operarios = DB::connection('sqlsrv_dev')
+                    ->table('Operarios_Views')
+                    ->select('NumOperario' , 'Nombre')
+                    ->where('Modulo', $request->modulo)
+                    ->distinct()
+                    ->get();
+
+                Log::info('Operarios obtenidos: ', $operarios->toArray());
+
+                cache()->put($cacheKey, $operarios, now()->addDay());
+                Log::info('Operarios almacenados en caché.');
+            }
+
+            return response()->json($operarios);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener los Operarios',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function ticketsOT(Request $request)
     {
@@ -97,6 +132,9 @@ class FormGuestController extends Controller
 
             $tiempo_estimado = $request->tiempo_estimado_ia;
             $tiempo_real = $request->tiempo_real_ia;
+            $Operario = $request->Operario;
+            $NombreOperario = $request->NombreOperario;
+
             // Generar folio único
             $folio = 'OT' .'-'. strtoupper(substr(md5(uniqid()), 0, 6));
 
@@ -131,6 +169,8 @@ class FormGuestController extends Controller
                 $asignacionRequest = new Request([
                     'folio' => $ticket->Folio,
                     'modulo' => $ticket->Modulo,
+                    'operario' => $Operario,
+                    'nombreoperario' => $NombreOperario,
                     'maquina' => $ticket->Maquina,
                     'timeAutonomo' => $tiempo_estimado,
                     'timerealAutonomo' => $tiempo_real,

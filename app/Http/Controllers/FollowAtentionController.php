@@ -34,12 +34,47 @@ class FollowAtentionController extends Controller
 
     public function getClasesMaquina($maquina)
     {
-        // También retorna el TimeEstimado para cada clase
-        $clases = ClasseMaquina::where('mach', $maquina)
-            ->get(['class_id', 'class', 'TimeEstimado']);
-        return response()->json($clases);
+        try {
+            Log::info("Iniciando getClasesMaquina para máquina: $maquina");
+            // También retorna el TimeEstimado para cada clase
+            $clases = ClasseMaquina::where('mach', $maquina)
+                ->get(['class_id', 'class', 'TimeEstimado']);
+            Log::info("Clases obtenidas: " . $clases->count());
+            $numeroMaquina = $this->getNumeroMaquina($clases);
+            Log::info("Número de máquinas obtenidas: " . ($numeroMaquina ? $numeroMaquina->count() : 0));
+            return response()->json([
+                'clases' => $clases,
+                'numeroMaquina' => $numeroMaquina
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en getClasesMaquina: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+    private function getNumeroMaquina($clases)
+    {
+        try {
+            Log::info("Iniciando getNumeroMaquina");
+            // Extraer los valores de 'class' de la colección
+            $claseValues = $clases->pluck('class')->toArray();
+            Log::info("Valores de clase para búsqueda: " . json_encode($claseValues));
 
+            // Buscar los ID_INTIMARK donde CLASIFICACION esté en la lista de clases
+            $numeroMaquina = DB::connection('sqlsrv_dev')
+                ->table('DatosIntimark')
+                ->whereIn('CLASIFICACION', $claseValues)
+                ->get(['ID_INTIMARK']);
+
+            Log::info("IDs de máquina encontrados: " . ($numeroMaquina ? $numeroMaquina->count() : 0));
+            return $numeroMaquina; // Retorna solo los datos
+        } catch (\Exception $e) {
+            Log::error('Error en getNumeroMaquina: ' . $e->getMessage());
+            return collect(); // Retorna colección vacía en caso de error
+        }
+    }
     public function iniciarAtencion(Request $request)
     {
         try {
@@ -59,10 +94,13 @@ class FollowAtentionController extends Controller
                     'Num_Mecanico' => $ot->Num_Mecanico,
                     'Mecanico'     => $ot->Mecanico,
                     'Modulo'       => $ot->Modulo,
+                    'Operario'     => $ot->Operario,
+                    'NombreOperario' => $ot->NombreOperario,
                     'Supervisor'   => $ot->Supervisor,
                     'Problema'     => $ot->Problema,
                     'Maquina'      => $ot->Maquina,
                     'Classe'       => $request->clase,
+                    'NumMach' => $request->numero_maquina,
                     'TimeInicio'   => $timeInicio,
                     'TimeEstimado' => $request->tiempo_estimado,
                 ]
@@ -71,7 +109,6 @@ class FollowAtentionController extends Controller
             broadcast(new StatusOTUpdated($ot))->toOthers();
 
             return response()->json(['success' => true, 'ot' => $ot, 'follow' => $follow]);
-
         } catch (\Exception $e) {
             Log::error('Error en iniciarAtencion: ' . $e->getMessage());
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);

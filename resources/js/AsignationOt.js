@@ -97,6 +97,8 @@ function renderAsignacion(asig) {
             <div class="font-bold text-lg text-gray-800 dark:text-gray-100">Problema:<br>${asig.Problema}</div>
             <div class="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-300">
                 <span>Módulo: <b>${asig.Modulo}</b></span>
+                <span>Operario: <b>${asig.Operario}</b></span>
+                <span>Nombre Operario: <b>${asig.NombreOperario}</b></span>
                 <span>Mecánico: <b>${asig.Mecanico}</b></span>
                 <span>Supervisor: <b>${asig.Supervisor}</b></span>
                 <span>Máquina: <b>${asig.Maquina}</b></span>

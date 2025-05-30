@@ -75,6 +75,7 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
     Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
     Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
+    Route::get('/obtener-operarios', [FormGuestController::class, 'ObtenerOperarios']);
     Route::post('/ticketsOT', [FormGuestController::class, 'ticketsOT']);
     Route::get('/asignaciones-ot', [AsignationOTController::class, 'getAsignaciones']);
 //Otras rutas

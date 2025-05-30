@@ -259,6 +259,8 @@ function renderOTCard(ot) {
                 <p class="font-bold text-gray-800 dark:text-gray-100">${ot.Problema}</p>
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>Módulo: <span class="font-semibold">${ot.Modulo}</span></div>
+                    <div>Operario: <span class="font-semibold">${ot.Operario}</span></div>
+                    <div>Nombre Operario: <span class="font-semibold">${ot.NombreOperario}</span></div>
                     <div>Máquina: <span class="font-semibold">${ot.Maquina}</span></div>
                     <div>Mecánico: <span class="font-semibold">${ot.Mecanico}</span></div>
                     <div>Supervisor: <span class="font-semibold">${ot.Supervisor}</span></div>
@@ -719,17 +721,29 @@ async function mostrarSelectorClase(folio, maquina) {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) throw new TypeError("La respuesta no es JSON!");
-        const clases = await response.json();
+        const data = await response.json();
+        // data: { clases: [...], numeroMaquina: [...] }
+        const clases = data.clases || [];
+        const numeroMaquina = data.numeroMaquina || [];
 
         const { value: formValues } = await Swal.fire({
-            title: 'Seleccionar Clase de Máquina',
+            title: 'Seleccionar Clase y Número de Máquina',
             html: `
+                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Clase de Máquina:</label>
                 <select id="clase-select" class="swal2-select" style="width: 100%">
                     <option></option>
                     ${clases.map(c => `
-                        <option value="${c.class}"
-                                data-tiempo="${c.TimeEstimado}">
+                        <option value="${c.class}" data-tiempo="${c.TimeEstimado}">
                             ${c.class} (${c.TimeEstimado} min)
+                        </option>
+                    `).join('')}
+                </select>
+                <label class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Número de Máquina:</label>
+                <select id="numero-maquina-select" class="swal2-select" style="width: 100%">
+                    <option></option>
+                    ${numeroMaquina.map(nm => `
+                        <option value="${nm.ID_INTIMARK}">
+                            ${nm.ID_INTIMARK}
                         </option>
                     `).join('')}
                 </select>
@@ -740,23 +754,35 @@ async function mostrarSelectorClase(folio, maquina) {
                     placeholder: 'Selecciona una clase',
                     width: '100%'
                 });
+                $('#numero-maquina-select').select2({
+                    dropdownParent: $('.swal2-container'),
+                    placeholder: 'Selecciona el número de máquina',
+                    width: '100%'
+                });
             },
             preConfirm: () => {
-                const select = document.getElementById('clase-select');
-                const selectedOption = select.options[select.selectedIndex];
-                if (!select.value) {
+                const claseSelect = document.getElementById('clase-select');
+                const claseOption = claseSelect.options[claseSelect.selectedIndex];
+                const numeroMaquinaSelect = document.getElementById('numero-maquina-select');
+                if (!claseSelect.value) {
                     Swal.showValidationMessage('Debes seleccionar una clase');
                     return false;
                 }
+                if (!numeroMaquinaSelect.value) {
+                    Swal.showValidationMessage('Debes seleccionar el número de máquina');
+                    return false;
+                }
                 return {
-                    clase: select.value,
-                    tiempo_estimado: selectedOption.dataset.tiempo
+                    clase: claseSelect.value,
+                    tiempo_estimado: claseOption.dataset.tiempo,
+                    numero_maquina: numeroMaquinaSelect.value
                 };
             }
         });
 
         if (formValues) {
-            await iniciarAtencion(folio, formValues.clase, formValues.tiempo_estimado);
+            // Si necesitas enviar el número de máquina al backend, pásalo aquí
+            await iniciarAtencion(folio, formValues.clase, formValues.tiempo_estimado , formValues.numero_maquina);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -765,7 +791,7 @@ async function mostrarSelectorClase(folio, maquina) {
 }
 
 // Función para iniciar la atención
-async function iniciarAtencion(folio, clase, tiempo_estimado) {
+async function iniciarAtencion(folio, clase, tiempo_estimado, numero_maquina) {
     try {
         const timeInicio = new Date().toLocaleTimeString('es-ES', {
             hour: '2-digit',
@@ -784,6 +810,7 @@ async function iniciarAtencion(folio, clase, tiempo_estimado) {
             body: JSON.stringify({
                 folio,
                 clase,
+                numero_maquina,
                 tiempo_estimado,
                 time_inicio: timeInicio
             })

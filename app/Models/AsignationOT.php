@@ -14,6 +14,8 @@ class AsignationOT extends Model
         'id',
         'Folio',
         'Modulo',
+        'Operario',
+        'NombreOperario',
         'Num_Mecanico',
         'Mecanico',
         'TimeAutEst',

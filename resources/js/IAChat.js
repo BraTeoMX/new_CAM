@@ -5,6 +5,7 @@ import { GoogleGenAI } from '@google/genai';
 window.GLOBAL_CHAT_MODULE = null;
 window.GLOBAL_CHAT_MACHINE_INDEX = null;
 window.GLOBAL_CHAT_PROBLEM = null;
+window.GLOBAL_OPERARIO = undefined; // Nueva variable global para operario
 
 // Constantes globales
 const MACHINES = [
@@ -216,7 +217,8 @@ class ChatManager {
         const responseSpan = document.createElement('span');
         responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
         responseSpan.innerHTML = `Por favor selecciona el modulo que se atendera:<br>
-            <select id="modul" style="width:100%"></select>`;
+            <select id="modul" style="width:100%"></select>
+            <div id="operario-select-container" class="mt-4"></div>`;
         loadingDiv.appendChild(responseSpan);
         chatMessages.appendChild(loadingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -250,18 +252,73 @@ class ChatManager {
                     if (this.state.userModule && this.state.userModule !== newModule) {
                         this.state.userModule = newModule;
                         window.GLOBAL_CHAT_MODULE = newModule;
-                        // No mostrar mensajes ni reiniciar flujo
+                        // Mostrar el select de operarios actualizado
+                        this.showOperarioSelect(newModule);
                         return;
                     }
                     // Si es la primera vez, sí mostrar el flujo normal
                     this.state.userModule = newModule;
                     window.GLOBAL_CHAT_MODULE = newModule;
                     window.iaChatStep = 3;
-                    this.showMachineSelect();
+                    // Mostrar el select de operarios antes de continuar
+                    this.showOperarioSelect(newModule);
                 });
             }
         }, 100);
         window.iaChatStep = 99; // Esperar selección de módulo
+    }
+
+    /**
+     * Muestra el select2 de operarios según el módulo seleccionado
+     */
+    showOperarioSelect(modulo) {
+        // Limpiar contenedor
+        const container = document.getElementById('operario-select-container');
+        if (!container) return;
+        container.innerHTML = `<label class="block mb-2">Selecciona el operario:</label>
+            <select id="operario-select" style="width:100%"></select>`;
+
+        setTimeout(() => {
+            if (window.$ && $('#operario-select').length) {
+                $('#operario-select').select2({
+                    placeholder: 'Selecciona un operario',
+                    ajax: {
+                        url: '/obtener-operarios',
+                        type: 'GET',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { modulo: modulo };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: $.map(data, function (item) {
+                                    return {
+                                        id: item.NumOperario,
+                                        text: `${item.Nombre} - ${item.NumOperario}`
+                                    };
+                                })
+                            };
+                        }
+                    }
+                });
+
+                $('#operario-select').on('select2:select', (e) => {
+                    const operarioId = e.params.data.id;
+                    const operarioText = e.params.data.text;
+                    // Guardar operario seleccionado en el state si lo necesitas
+                    this.state.selectedOperario = { id: operarioId, text: operarioText };
+                    // --- Guardar globalmente nombre y número de operario ---
+                    const parts = operarioText.split(' - ');
+                    window.GLOBAL_OPERARIO = {
+                        nombre: parts[0] || '',
+                        numero: parts[1] || ''
+                    };
+                    // Continuar flujo normal
+                    this.showMachineSelect();
+                });
+            }
+        }, 100);
     }
 
     showMachineSelect() {
@@ -343,8 +400,18 @@ class ChatManager {
         resumenDiv.className = 'text-left mb-4';
         const resumenSpan = document.createElement('span');
         resumenSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+        // --- Separar nombre y número de operario ---
+        let operarioNombre = '';
+        let operarioNumero = '';
+        if (this.state.selectedOperario && this.state.selectedOperario.text) {
+            const parts = this.state.selectedOperario.text.split(' - ');
+            operarioNombre = parts[0] || '';
+            operarioNumero = parts[1] || '';
+        }
         resumenSpan.innerHTML = `<strong>Resumen de la solicitud:</strong><br>
             <b>Módulo:</b> ${this.escapeHtml(this.state.userModule)}<br>
+            <b>Operario:</b> ${this.escapeHtml(operarioNumero)}<br>
+            <b>Nombre:</b> ${this.escapeHtml(operarioNombre)}<br>
             <b>Máquina:</b> ${this.escapeHtml(MACHINES[this.state.selectedMachineIndex])}<br>
             <b>Problema/Descripción:</b> ${this.escapeHtml(this.state.userProblem)}`;
         resumenDiv.appendChild(resumenSpan);
@@ -600,6 +667,20 @@ class ChatManager {
                 statusToSend = 'CANCELADO';
             }
 
+            // --- Separar nombre y número de operario para enviar en el formData ---
+            let operarioNombre = '';
+            let operarioNumero = '';
+            if (this.state.selectedOperario && this.state.selectedOperario.text) {
+                const parts = this.state.selectedOperario.text.split(' - ');
+                operarioNombre = parts[0] || '';
+                operarioNumero = parts[1] || '';
+            }
+            // Si no hay valores locales, usar los globales
+            if ((!operarioNombre || !operarioNumero) && window.GLOBAL_OPERARIO) {
+                operarioNombre = window.GLOBAL_OPERARIO.nombre || '';
+                operarioNumero = window.GLOBAL_OPERARIO.numero || '';
+            }
+
             const formData = {
                 modulo: modulo,
                 problema: problema,
@@ -608,6 +689,8 @@ class ChatManager {
                 maquina: MACHINES[selectedMachineIndex],
                 tiempo_estimado_ia: tiempo_estimado_ia,
                 tiempo_real_ia: tiempo_real_ia,
+                Operario: operarioNumero,
+                NombreOperario: operarioNombre
             };
 
             console.log('Enviando datos al backend:', formData);
@@ -720,11 +803,13 @@ class ChatManager {
     resetChat() {
         this.state.userProblem = '';
         this.state.userModule = '';
+        this.state.selectedOperario = {}; // Mejor que string vacío si esperas un objeto
         this.state.selectedMachineIndex = null;
         this.state.nextResponseHandler = null;
         this.state.totalEstimatedIATime = 0; // Resetear tiempo estimado
         this.state.actualStepTimes = {}; // Resetear tiempos reales
         window.iaChatStep = 0;
+        window.GLOBAL_OPERARIO = undefined; // Limpiar variable global al resetear
     }
 
     escapeHtml(text) {
