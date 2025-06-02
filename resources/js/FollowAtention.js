@@ -742,8 +742,8 @@ async function mostrarSelectorClase(folio, maquina) {
                 <select id="numero-maquina-select" class="swal2-select" style="width: 100%">
                     <option></option>
                     ${numeroMaquina.map(nm => `
-                        <option value="${nm.ID_INTIMARK}">
-                            ${nm.ID_INTIMARK}
+                        <option value="${nm.Remplacad}">
+                            ${nm.Remplacad}
                         </option>
                     `).join('')}
                 </select>

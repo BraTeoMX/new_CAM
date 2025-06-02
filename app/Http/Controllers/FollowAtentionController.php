@@ -64,9 +64,9 @@ class FollowAtentionController extends Controller
 
             // Buscar los ID_INTIMARK donde CLASIFICACION esté en la lista de clases
             $numeroMaquina = DB::connection('sqlsrv_dev')
-                ->table('DatosIntimark')
-                ->whereIn('CLASIFICACION', $claseValues)
-                ->get(['ID_INTIMARK']);
+                ->table('InvMecanicos')
+                ->whereIn('Clasificacion', $claseValues)
+                ->get(['Remplacad']);
 
             Log::info("IDs de máquina encontrados: " . ($numeroMaquina ? $numeroMaquina->count() : 0));
             return $numeroMaquina; // Retorna solo los datos

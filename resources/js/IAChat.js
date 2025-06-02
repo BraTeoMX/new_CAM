@@ -232,17 +232,33 @@ class ChatManager {
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
-                        processResults: function (data) {
+                        data: function (params) {
                             return {
-                                results: $.map(data, function (item) {
-                                    return {
-                                        id: item.Modulo,
-                                        text: item.Modulo
-                                    };
-                                })
+                                search: params.term || ''
                             };
+                        },
+                        processResults: function (data, params) {
+                            let results = $.map(data, function (item) {
+                                return {
+                                    id: item.Modulo,
+                                    text: item.Modulo
+                            };
+                        });
+                        // Filtrar en frontend si hay término de búsqueda y el backend no filtra
+                        if (params.term && params.term.length > 0) {
+                            const term = params.term.toLowerCase();
+                            results = results.filter(r => r.text.toLowerCase().includes(term));
                         }
-                    }
+                        return { results };
+                        }
+                    },
+                    // Eliminar minimumInputLength para mostrar opciones al abrir
+                    minimumResultsForSearch: 0 // muestra el buscador siempre
+                });
+
+                // Abrir el dropdown automáticamente al hacer focus
+                $('#modul').on('select2:open', function() {
+                    $('.select2-search__field').focus();
                 });
 
                 // Evitar mensajes duplicados al cambiar de módulo
@@ -288,19 +304,33 @@ class ChatManager {
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            return { modulo: modulo };
-                        },
-                        processResults: function (data) {
+                            // Enviar el término de búsqueda y el módulo
                             return {
-                                results: $.map(data, function (item) {
-                                    return {
-                                        id: item.NumOperario,
-                                        text: `${item.Nombre} - ${item.NumOperario}`
-                                    };
-                                })
+                                modulo: modulo,
+                                search: params.term || ''
                             };
+                        },
+                        processResults: function (data, params) {
+                            let results = $.map(data, function (item) {
+                                return {
+                                    id: item.NumOperario,
+                                    text: `${item.Nombre} - ${item.NumOperario}`
+                            };
+                        });
+                        // Filtrar en frontend si hay término de búsqueda y el backend no filtra
+                        if (params.term && params.term.length > 0) {
+                            const term = params.term.toLowerCase();
+                            results = results.filter(r => r.text.toLowerCase().includes(term));
                         }
-                    }
+                        return { results };
+                        }
+                    },
+                    minimumResultsForSearch: 0 // muestra el buscador siempre
+                });
+
+                // Abrir el dropdown automáticamente al hacer focus
+                $('#operario-select').on('select2:open', function() {
+                    $('.select2-search__field').focus();
                 });
 
                 $('#operario-select').on('select2:select', (e) => {
