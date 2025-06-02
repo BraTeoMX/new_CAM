@@ -12,6 +12,7 @@ use App\Models\FollowAtention;
 use App\Models\Falla;
 use App\Models\Causa;
 use App\Models\Accion;
+use App\Models\Bahia;
 
 class FollowAtentionController extends Controller
 {
@@ -169,5 +170,72 @@ class FollowAtentionController extends Controller
     {
         $acciones = Accion::select('id', 'Accion')->orderBy('Accion')->get();
         return response()->json($acciones);
+    }
+
+    /**
+     * Guardar inicio o fin de Bahía.
+     * Espera POST con: folio, tipo ('inicio', 'fin', 'inicio1', 'fin1')
+     */
+    public function guardarBahia(Request $request)
+    {
+        $request->validate([
+            'folio' => 'required|string',
+            'tipo' => 'required|in:inicio,fin,inicio1,fin1',
+        ]);
+
+        $folio = $request->folio;
+        $tipo = $request->tipo;
+        $now = now();
+
+        $bahia = Bahia::where('Folio', $folio)->first();
+
+        if (!$bahia) {
+            // Solo puede ser 'inicio' para el primer ciclo
+            if ($tipo === 'inicio') {
+                $bahia = Bahia::create([
+                    'Folio' => $folio,
+                    'InicioBahia' => $now,
+                    'Pulsaciones' => 1,
+                ]);
+                return response()->json(['success' => true, 'bahia' => $bahia, 'accion' => 'inicio', 'fecha' => $now]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'No existe registro de inicio para este folio.'], 404);
+            }
+        }
+
+        // Lógica de pulsaciones y ciclos
+        switch ($tipo) {
+            case 'inicio':
+                // Primer ciclo, inicio
+                $bahia->InicioBahia = $now;
+                $bahia->Pulsaciones = 1;
+                $bahia->save();
+                return response()->json(['success' => true, 'bahia' => $bahia, 'accion' => 'inicio', 'fecha' => $now]);
+            case 'fin':
+                // Primer ciclo, fin
+                $bahia->FinBahia = $now;
+                $bahia->Pulsaciones = 2;
+                $bahia->save();
+                return response()->json(['success' => true, 'bahia' => $bahia, 'accion' => 'fin', 'fecha' => $now]);
+            case 'inicio1':
+                // Segundo ciclo, inicio
+                $bahia->InicioBahia1 = $now;
+                $bahia->Pulsaciones = 3;
+                $bahia->save();
+                return response()->json(['success' => true, 'bahia' => $bahia, 'accion' => 'inicio1', 'fecha' => $now]);
+            case 'fin1':
+                // Segundo ciclo, fin
+                $bahia->FinBahia1 = $now;
+                $bahia->Pulsaciones = 4;
+                $bahia->save();
+                return response()->json(['success' => true, 'bahia' => $bahia, 'accion' => 'fin1', 'fecha' => $now]);
+            default:
+                return response()->json(['success' => false, 'message' => 'Tipo no válido.'], 400);
+        }
+    }
+
+    public function getBahiaInfo($folio) {
+        $bahia = \App\Models\Bahia::where('Folio', $folio)->first();
+        return response()->json(['success' => true, 'bahia' => $bahia]);
     }
 }

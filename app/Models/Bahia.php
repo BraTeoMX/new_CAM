@@ -23,8 +23,11 @@ class Bahia extends Model
      */
     protected $fillable = [
         'Folio',
+        'Pulsaciones',
         'InicioBahia',
         'FinBahia',
+        'InicioBahia1',
+        'FinBahia1',
     ];
 
     /**
@@ -35,6 +38,8 @@ class Bahia extends Model
     protected $casts = [
         'InicioBahia' => 'datetime',
         'FinBahia' => 'datetime',
+        'InicioBahia1' => 'datetime',
+        'FinBahia1' => 'datetime',
     ];
 
     /**

@@ -96,3 +96,5 @@ Route::get('/dashboard/efectividad', [DashboardController::class, 'getEfectivida
 Route::get('/dashboard/tops', [DashboardController::class, 'tops']);
 Route::get('/api/dashboard/creadas-vs-completadas', [DashboardController::class, 'creadasVsCompletadas']);
 Route::get('/dashboard/minmachdesc', [DashboardController::class, 'minutosMaquinasDescompuestas']);
+Route::post('/api/bahia', [FollowAtentionController::class, 'guardarBahia']);
+Route::get('/api/bahia-info/{folio}', [FollowAtentionController::class, 'getBahiaInfo']);

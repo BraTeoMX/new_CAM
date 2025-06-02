@@ -214,16 +214,116 @@ function renderOTCard(ot) {
     }
 
     let finalizarBtn = '';
+    let bahiaBtn = '';
+    let bahiaTimerHtml = '';
+    let mostrarBahiaBtn = true;
+    let pulsaciones = 0;
+
+    // Obtener pulsaciones desde memoria local
+    if (window.bahiaTimers[ot.Folio] && typeof window.bahiaTimers[ot.Folio].pulsaciones !== 'undefined') {
+        pulsaciones = window.bahiaTimers[ot.Folio].pulsaciones;
+    }
+
+    // Si ya llegó a 4 pulsaciones, no mostrar el botón
+    if (pulsaciones >= 4) {
+        mostrarBahiaBtn = false;
+    }
+
     if (ot.Status === 'PROCESO') {
+        // Botón para iniciar o finalizar Bahía según estado global
+        const bahiaRunning = isBahiaRunning(ot.Folio);
+        if (mostrarBahiaBtn) {
+            bahiaBtn = `
+                <button class="bahia-btn text-white ${bahiaRunning ? 'bg-red-700 hover:bg-red-800' : 'bg-violet-700 hover:bg-violet-800'} focus:ring-4 focus:ring-violet-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 ml-2 dark:${bahiaRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-violet-600 hover:bg-violet-700'} focus:outline-none dark:focus:ring-violet-800"
+                    type="button"
+                    data-folio="${ot.Folio}">
+                    ${bahiaRunning ? 'Fin Bahía' : 'Inicio Bahía'}
+                </button>
+            `;
+        } else {
+            bahiaBtn = '';
+        }
+
+        // Timer Bahía siempre visible si hay tiempo registrado o está corriendo
+        const bahiaVisible = window.bahiaTimers[ot.Folio] && (window.bahiaTimers[ot.Folio].elapsed > 0 || window.bahiaTimers[ot.Folio].running);
+        bahiaTimerHtml = `
+            <div class="mt-2 text-center bahia-timer-container" data-folio="${ot.Folio}" style="${bahiaVisible ? '' : 'display:none;'}">
+                <div class="text-xs text-gray-500 mb-1">Tiempo Bahía:</div>
+                <div class="font-mono text-xl font-bold text-violet-700 timer-bahia" data-folio="${ot.Folio}">00:00:00</div>
+            </div>
+        `;
+
         finalizarBtn = `
             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
                 <button class="finalizar-proceso-btn text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                     type="button"
                     data-folio="${ot.Folio}"
-                    data-inicio="${timeInicio}"
-                    data-estimado="${timeEstimado}">
+                    data-inicio="${followData.TimeInicio || ''}"
+                    data-estimado="${parseEstimadoToMinutes(followData.TimeEstimado)}">
                     Finalizar Atención
                 </button>
+                ${bahiaBtn}
+            </div>
+        `;
+    }
+
+    // --- Mostrar SIEMPRE el tiempo de atención en ATENDIDO, aunque sea 0 o null ---
+    if (ot.Status === 'ATENDIDO') {
+        timerLabel = 'Tiempo total de atención:';
+        // Si no tenemos el dato, lo consultamos por AJAX y actualizamos la card
+        let minutos = 0;
+        if (
+            typeof followData.TimeEjecucion !== 'undefined' &&
+            followData.TimeEjecucion !== null &&
+            followData.TimeEjecucion !== ''
+        ) {
+            minutos = parseInt(followData.TimeEjecucion, 10);
+            if (isNaN(minutos)) minutos = 0;
+        } else {
+            // AJAX para obtener el dato si no está en el array global
+            fetch(`/api/follow-atention/${encodeURIComponent(ot.Folio)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data && data.data.TimeEjecucion != null) {
+                        followAtentionMap.set(ot.Folio, data.data);
+                        // Vuelve a renderizar solo esta card
+                        const card = document.querySelector(`[data-folio-card="${ot.Folio}"]`);
+                        if (card) {
+                            card.outerHTML = renderOTCard(ot);
+                        }
+                    }
+                });
+        }
+        timerValue = `${minutos} minutos`;
+        timerClass = 'timer-finalizado';
+        timerHtml = `
+            <div class="mt-3 text-center">
+                <div class="font-mono text-2xl font-bold">
+                    <span class="material-symbols-outlined">timer</span>
+                    <span class="text-gray-800 dark:text-gray-100">${timerLabel}</span>
+                </div>
+                <div class="font-mono text-2xl font-bold text-blue-700 ${timerClass}">
+                    ${timerValue}
+                </div>
+            </div>
+        `;
+    } else if (ot.Status === 'PROCESO') {
+        timerHtml = `
+            <div class="mt-3 text-center">
+                <div class="font-mono text-2xl font-bold">
+                    <span class="material-symbols-outlined">timer</span>
+                    <span class="text-gray-800 dark:text-gray-100">${timerLabel}</span>
+                </div>
+                <div class="font-mono text-2xl font-bold timer-countdown"
+                     data-folio="${ot.Folio}"
+                     data-inicio="${followData.TimeInicio || ''}"
+                     data-estimado="${parseEstimadoToMinutes(followData.TimeEstimado)}">
+                    <span class="text-gray-400">Cargando...</span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Tiempo estimado: ${parseEstimadoToMinutes(followData.TimeEstimado) ? parseEstimadoToMinutes(followData.TimeEstimado) : '...'} minutos
+                </div>
+                ${bahiaTimerHtml}
             </div>
         `;
     }
@@ -400,6 +500,12 @@ document.getElementById('finalizar-atencion-form').addEventListener('submit', as
         followData.TimeEjecucion = timeEjecucion;
     }
 
+    // --- LIBERAR LOCALSTORAGE DEL BAHIA SI EXISTE ---
+    if (window.bahiaTimers[folio]) {
+        delete window.bahiaTimers[folio];
+        saveBahiaTimers();
+    }
+
     // --- Mostrar el valor de TimeEjecucion en el cronómetro y cambiar el label ---
     if (timerDiv) {
         const labelSpan = timerDiv.parentElement?.previousElementSibling?.querySelector('span.text-gray-800');
@@ -471,6 +577,158 @@ document.querySelectorAll('[data-drawer-hide]').forEach(btn => {
         const id = btn.getAttribute('aria-controls');
         document.getElementById(id).classList.add('-translate-x-full');
     });
+});
+
+// --- TIMER BAHIA LOGIC ---
+// Array global para controlar el estado de los timers Bahía y pulsaciones
+window.bahiaTimers = window.bahiaTimers || {}; // { folio: { start, elapsed, running, pulsaciones } }
+
+// Cargar estado de timers Bahía desde localStorage al iniciar
+function loadBahiaTimers() {
+    const data = localStorage.getItem('bahiaTimers');
+    if (data) {
+        try {
+            window.bahiaTimers = JSON.parse(data);
+        } catch (e) {
+            window.bahiaTimers = {};
+        }
+    }
+}
+function saveBahiaTimers() {
+    localStorage.setItem('bahiaTimers', JSON.stringify(window.bahiaTimers));
+}
+loadBahiaTimers();
+
+// Iniciar timer Bahía (reinicia si es segundo ciclo)
+function startBahiaTimer(folio, pulsaciones) {
+    if (!window.bahiaTimers[folio]) {
+        window.bahiaTimers[folio] = { start: Date.now(), elapsed: 0, running: true, pulsaciones: pulsaciones || 1 };
+    } else {
+        window.bahiaTimers[folio].start = Date.now();
+        window.bahiaTimers[folio].elapsed = 0;
+        window.bahiaTimers[folio].running = true;
+        window.bahiaTimers[folio].pulsaciones = pulsaciones || window.bahiaTimers[folio].pulsaciones || 1;
+    }
+    saveBahiaTimers();
+}
+
+// Parar timer Bahía y sumar tiempo
+function stopBahiaTimer(folio) {
+    const t = window.bahiaTimers[folio];
+    if (t && t.running) {
+        t.elapsed += Math.floor((Date.now() - t.start) / 1000);
+        t.running = false;
+        saveBahiaTimers();
+    }
+}
+
+// Obtener segundos totales del timer Bahía
+function getBahiaElapsed(folio) {
+    const t = window.bahiaTimers[folio];
+    if (!t) return 0;
+    if (t.running) {
+        return t.elapsed + Math.floor((Date.now() - t.start) / 1000);
+    }
+    return t.elapsed;
+}
+
+// Saber si el timer Bahía está corriendo
+function isBahiaRunning(folio) {
+    return !!(window.bahiaTimers[folio] && window.bahiaTimers[folio].running);
+}
+
+// --- AJAX para guardar inicio/fin/inicio1/fin1 de Bahía en backend y obtener pulsaciones ---
+async function guardarBahiaEnBackend(folio, tipo) {
+    try {
+        const res = await fetch('/api/bahia', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                folio,
+                tipo
+            })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            Swal.fire('Error', data.message || 'No se pudo guardar el tiempo de Bahía', 'error');
+        }
+        return data;
+    } catch (e) {
+        Swal.fire('Error', 'No se pudo guardar el tiempo de Bahía', 'error');
+        return null;
+    }
+}
+
+// --- Obtener info de bahía desde backend (incluye Pulsaciones) ---
+async function obtenerBahiaInfo(folio) {
+    try {
+        const res = await fetch(`/api/bahia-info/${encodeURIComponent(folio)}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await res.json();
+        return data.bahia || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// --- EVENTOS PARA BOTÓN BAHÍA (delegación) ---
+document.addEventListener('click', async function(e) {
+    if (e.target && e.target.classList.contains('bahia-btn')) {
+        const folio = e.target.getAttribute('data-folio');
+        // Obtener info actual del backend antes de cualquier acción
+        const bahiaInfo = await obtenerBahiaInfo(folio);
+        let pulsaciones = bahiaInfo && bahiaInfo.Pulsaciones ? parseInt(bahiaInfo.Pulsaciones) : 0;
+
+        // Si ya llegó a 4 pulsaciones, no hacer nada
+        if (pulsaciones >= 4) return;
+
+        // Lógica de pulsaciones y tipos
+        let tipo = '';
+        if (isBahiaRunning(folio)) {
+            // Fin Bahía
+            if (pulsaciones === 1) tipo = 'fin';
+            else if (pulsaciones === 3) tipo = 'fin1';
+            else return; // Solo permite fin en los ciclos correctos
+            stopBahiaTimer(folio);
+        } else {
+            // Inicio Bahía
+            if (pulsaciones === 0) tipo = 'inicio';
+            else if (pulsaciones === 2) tipo = 'inicio1';
+            else return; // Solo permite inicio en los ciclos correctos
+            startBahiaTimer(folio, pulsaciones + 1);
+        }
+
+        // Guardar en backend y actualizar pulsaciones en memoria
+        const data = await guardarBahiaEnBackend(folio, tipo);
+        if (data && data.bahia) {
+            pulsaciones = data.bahia.Pulsaciones ? parseInt(data.bahia.Pulsaciones) : (pulsaciones + 1);
+            window.bahiaTimers[folio] = window.bahiaTimers[folio] || {};
+            window.bahiaTimers[folio].pulsaciones = pulsaciones;
+            // Si ya terminó el segundo ciclo (pulsaciones >= 4), detener timer y eliminar del localStorage
+            if (pulsaciones >= 4) {
+                delete window.bahiaTimers[folio];
+                saveBahiaTimers();
+            } else {
+                saveBahiaTimers();
+            }
+        }
+
+        // Forzar re-render de la card para actualizar botón y timer
+        const card = document.querySelector(`[data-folio-card="${folio}"]`);
+        if (card && otMap.has(folio)) {
+            card.outerHTML = renderOTCard(otMap.get(folio));
+            setTimeout(() => initializeTimers(), 10);
+        }
+    }
 });
 
 // --- TEMPORIZADORES ---
@@ -569,6 +827,28 @@ function initializeTimers() {
         const timerId = setInterval(updateTimer, 1000);
         activeTimers.set(folio, timerId);
         updateTimer();
+    });
+
+    // --- TIMER BAHIA ---
+    document.querySelectorAll('.bahia-timer-container').forEach(container => {
+        const folio = container.dataset.folio;
+        const timerBahia = container.querySelector('.timer-bahia');
+        const t = window.bahiaTimers[folio];
+        if (t && (t.running || t.elapsed > 0)) {
+            container.style.display = '';
+            function updateBahia() {
+                let diff = getBahiaElapsed(folio);
+                const h = Math.floor(diff / 3600);
+                const m = Math.floor((diff % 3600) / 60);
+                const s = diff % 60;
+                timerBahia.textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            updateBahia();
+            const timerId = setInterval(updateBahia, 1000);
+            activeTimers.set(`bahia_${folio}`, timerId);
+        } else {
+            container.style.display = 'none';
+        }
     });
 }
 
