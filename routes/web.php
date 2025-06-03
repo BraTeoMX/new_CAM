@@ -71,6 +71,7 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/vinculaciones', [CatalogosController::class, 'saveVinculaciones']);
     Route::delete('/vinculaciones/{id}', [CatalogosController::class, 'deleteVinculacion'])->name('vinculacion.delete');
     Route::post('/reasignar-ot', [AtencionOT::class, 'reasignarOT']);
+    Route::get('/form-ot-data', [FormOTMecaController::class, 'getData']);
 
 
 // Rutas para usuarios sin autenticados

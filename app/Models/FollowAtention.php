@@ -41,4 +41,9 @@ class FollowAtention extends Model
         'TimeEstimado' => 'datetime:H:i',
          'TimeInicio' => 'datetime:H:i',
     ];
+
+    public function asignation_ot()
+    {
+        return $this->belongsTo(AsignationOT::class, 'Folio', 'Folio');
+    }
 }

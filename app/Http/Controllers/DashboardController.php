@@ -313,13 +313,13 @@ class DashboardController extends Controller
 
             if (!$asig->created_at || !$asig->TimeAutReal || !$follow->updated_at) continue;
 
+            // Corregido: TimeAutReal es minutos:segundos
             $parts = explode(':', $asig->TimeAutReal);
-            $h = isset($parts[0]) ? intval($parts[0]) : 0;
-            $m = isset($parts[1]) ? intval($parts[1]) : 0;
-            $s = isset($parts[2]) ? intval($parts[2]) : 0;
+            $min = isset($parts[0]) ? intval($parts[0]) : 0;
+            $sec = isset($parts[1]) ? intval($parts[1]) : 0;
 
             $horaLevantamiento = \Carbon\Carbon::parse($asig->created_at);
-            $horaInicioReal = $horaLevantamiento->copy()->subHours($h)->subMinutes($m)->subSeconds($s);
+            $horaInicioReal = $horaLevantamiento->copy()->subMinutes($min)->subSeconds($sec);
             $horaAtencion = \Carbon\Carbon::parse($follow->updated_at);
             $minutosResolucion = $horaAtencion->diffInMinutes($horaInicioReal);
 
