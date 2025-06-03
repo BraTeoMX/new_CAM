@@ -52,4 +52,4 @@
     </div>
 </div>
 
-<script src="{{ asset('js/active.js') }}" defer></script>
+@vite(['resources/js/active.js'])

@@ -58,7 +58,7 @@ class DashboardController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
         $day = $request->query('day');
-        // Obtener todos los tickets con join a FollowAtention
+
         $query = DB::table('asignation_ots')
             ->join('followatention', 'asignation_ots.Folio', '=', 'followatention.Folio')
             ->select(
@@ -68,35 +68,50 @@ class DashboardController extends Controller
                 'followatention.updated_at as follow_updated'
             );
 
-        // Filtros por año, mes, día sobre la fecha de creación del ticket
-        if ($year) {
-            $query->whereYear('asignation_ots.created_at', $year);
-        }
-        if ($month !== null && $month !== '') {
-            $query->whereMonth('asignation_ots.created_at', $month + 1); // Sumar 1 porque JS envía 0-based
-        }
-        if ($day) {
-            $query->whereDay('asignation_ots.created_at', $day);
-        }
+        if ($year) $query->whereYear('asignation_ots.created_at', $year);
+        if ($month !== null && $month !== '') $query->whereMonth('asignation_ots.created_at', $month + 1);
+        if ($day) $query->whereDay('asignation_ots.created_at', $day);
 
         $tickets = $query->get();
+
+        // Si no hay datos, buscar el mes más reciente con datos
+        if ($tickets->isEmpty()) {
+            $fallback = DB::table('asignation_ots')
+                ->join('followatention', 'asignation_ots.Folio', '=', 'followatention.Folio')
+                ->select(
+                    DB::raw('YEAR(asignation_ots.created_at) as year'),
+                    DB::raw('MONTH(asignation_ots.created_at) as month')
+                )
+                ->orderByDesc('asignation_ots.created_at')
+                ->first();
+            if ($fallback) {
+                $year = $fallback->year;
+                $month = $fallback->month - 1; // JS expects 0-based
+                // Repetir consulta con el mes más reciente
+                $query = DB::table('asignation_ots')
+                    ->join('followatention', 'asignation_ots.Folio', '=', 'followatention.Folio')
+                    ->select(
+                        'asignation_ots.created_at as asignation_created',
+                        'followatention.TimeEstimado',
+                        'followatention.created_at as follow_created',
+                        'followatention.updated_at as follow_updated'
+                    )
+                    ->whereYear('asignation_ots.created_at', $year)
+                    ->whereMonth('asignation_ots.created_at', $month + 1);
+                $tickets = $query->get();
+            }
+        }
 
         $total = $tickets->count();
         $efectivos = 0;
 
         foreach ($tickets as $t) {
-            // Si alguna fecha falta, no se cuenta
             if (!$t->asignation_created || !$t->follow_created || !$t->follow_updated || !$t->TimeEstimado) continue;
-
             $inicio = \Carbon\Carbon::parse($t->follow_created);
             $fin = \Carbon\Carbon::parse($t->follow_updated);
-
             $minutos = $fin->diffInMinutes($inicio);
-
-            // Convertir TimeEstimado ("HH:MM:SS") a minutos
             list($h, $m, $s) = explode(':', $t->TimeEstimado);
-            $estimadoMin = ($h * 60) + $m + ($s > 0 ? 1 : 0); // Redondea hacia arriba si hay segundos
-            // Efectivo si el tiempo real es menor o igual al estimado
+            $estimadoMin = ($h * 60) + $m + ($s > 0 ? 1 : 0);
             if ($minutos <= $estimadoMin) {
                 $efectivos++;
             }
@@ -188,30 +203,73 @@ class DashboardController extends Controller
         $month = $request->query('month');
         $day = $request->query('day');
 
-        // 1. Obtener todas las fechas de creación de OTs (AsignationOT)
-        $creadasQuery = \App\Models\AsignationOT::selectRaw('DATE(created_at) as date, COUNT(*) as creadas');
-        if ($year) $creadasQuery->whereYear('created_at', $year);
-        if ($month !== null && $month !== '') $creadasQuery->whereMonth('created_at', $month + 1); // JS months 0-based
+        // Si no hay año/mes específico, usar el actual
+        if (!$year || !isset($month)) {
+            $now = now();
+            $year = $now->year;
+            $month = $now->month - 1; // JS expects 0-based
+        }
+
+        $creadasQuery = \App\Models\AsignationOT::selectRaw('DATE(created_at) as date, COUNT(*) as creadas')
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month + 1);
+
         if ($day) $creadasQuery->whereDay('created_at', $day);
         $creadasPorDia = $creadasQuery->groupBy('date')->orderBy('date')->get()->keyBy('date');
 
-        // 2. Obtener todas las fechas de OTs completadas (FollowAtention cruzando por Folio)
+        // Si no hay datos para el mes solicitado, buscar el mes más reciente con datos
+        if ($creadasPorDia->isEmpty()) {
+            $lastRecord = \App\Models\AsignationOT::latest('created_at')->first();
+            if ($lastRecord) {
+                $year = $lastRecord->created_at->year;
+                $month = $lastRecord->created_at->month - 1;
+
+                $creadasPorDia = \App\Models\AsignationOT::selectRaw('DATE(created_at) as date, COUNT(*) as creadas')
+                    ->whereYear('created_at', $year)
+                    ->whereMonth('created_at', $month + 1)
+                    ->groupBy('date')->orderBy('date')->get()->keyBy('date');
+            }
+        }
+
         $completadasQuery = FollowAtention::selectRaw('DATE(followatention.updated_at) as date, COUNT(DISTINCT followatention.Folio) as completadas')
             ->join('asignation_ots', 'asignation_ots.Folio', '=', 'followatention.Folio')
-            ->whereNotNull('followatention.updated_at');
-        if ($year) $completadasQuery->whereYear('followatention.updated_at', $year);
-        if ($month !== null && $month !== '') $completadasQuery->whereMonth('followatention.updated_at', $month + 1);
+            ->whereNotNull('followatention.updated_at')
+            ->whereYear('followatention.updated_at', $year)
+            ->whereMonth('followatention.updated_at', $month + 1);
         if ($day) $completadasQuery->whereDay('followatention.updated_at', $day);
         $completadasPorDia = $completadasQuery->groupBy('date')->orderBy('date')->get()->keyBy('date');
 
-        // 3. Unir las fechas para tener todas las posibles
+        // Si ambos están vacíos, buscar el mes más reciente con datos (y traer TODO el mes)
+        if ($creadasPorDia->isEmpty() && $completadasPorDia->isEmpty()) {
+            $lastMonth = \App\Models\AsignationOT::select(
+                    DB::raw('YEAR(created_at) as year'),
+                    DB::raw('MONTH(created_at) as month')
+                )
+                ->orderByDesc('created_at')
+                ->first();
+            if ($lastMonth) {
+                $year = $lastMonth->year;
+                $month = $lastMonth->month - 1; // JS expects 0-based
+
+                $creadasPorDia = \App\Models\AsignationOT::selectRaw('DATE(created_at) as date, COUNT(*) as creadas')
+                    ->whereYear('created_at', $year)
+                    ->whereMonth('created_at', $month + 1)
+                    ->groupBy('date')->orderBy('date')->get()->keyBy('date');
+                $completadasPorDia = FollowAtention::selectRaw('DATE(followatention.updated_at) as date, COUNT(DISTINCT followatention.Folio) as completadas')
+                    ->join('asignation_ots', 'asignation_ots.Folio', '=', 'followatention.Folio')
+                    ->whereNotNull('followatention.updated_at')
+                    ->whereYear('followatention.updated_at', $year)
+                    ->whereMonth('followatention.updated_at', $month + 1)
+                    ->groupBy('date')->orderBy('date')->get()->keyBy('date');
+            }
+        }
+
         $fechas = collect($creadasPorDia->keys())
             ->merge($completadasPorDia->keys())
             ->unique()
             ->sort()
             ->values();
 
-        // 4. Construir el arreglo final
         $result = [];
         foreach ($fechas as $fecha) {
             $result[] = [
@@ -228,6 +286,16 @@ class DashboardController extends Controller
     {
         $asignaciones = \App\Models\AsignationOT::all()->keyBy('Folio');
         $follows = \App\Models\FollowAtention::all()->keyBy('Folio');
+
+        // Si no hay datos, intenta buscar el registro más reciente y devolverlo
+        if ($asignaciones->isEmpty() || $follows->isEmpty()) {
+            $lastAsignacion = \App\Models\AsignationOT::orderByDesc('created_at')->first();
+            $lastFollow = \App\Models\FollowAtention::orderByDesc('updated_at')->first();
+            if ($lastAsignacion && $lastFollow) {
+                $asignaciones = collect([$lastAsignacion])->keyBy('Folio');
+                $follows = collect([$lastFollow])->keyBy('Folio');
+            }
+        }
 
         $modulosPorPlanta = [
             'Planta Ixtlahuaca' => [],

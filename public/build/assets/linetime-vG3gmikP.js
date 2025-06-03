@@ -1,4 +1,4 @@
-import{S as C,r as O,e as K}from"./transform-oMh35NN8.js";function b(e){return typeof e=="string"?new C([[document.querySelector(e)]],[document.documentElement]):new C([[e]],O)}function Q(e){return b(K(e).call(document.documentElement))}function R(e){return new C([document.querySelectorAll(e)],[document.documentElement])}function q(e){const o=document.getElementById("timeline-container");if(!o)return;o.innerHTML=`
+import{S as C,r as O,c as K}from"./transform-BG7eE8b0.js";function b(e){return typeof e=="string"?new C([[document.querySelector(e)]],[document.documentElement]):new C([[e]],O)}function Q(e){return b(K(e).call(document.documentElement))}function R(e){return new C([document.querySelectorAll(e)],[document.documentElement])}function q(e){const o=document.getElementById("timeline-container");if(!o)return;o.innerHTML=`
         <div class="flex text-2xl font-medium tracking-tight text-gray-950 dark:text-white mb-4">
             Línea de tiempo de atención
         </div>

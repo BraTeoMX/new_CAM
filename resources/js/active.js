@@ -38,8 +38,16 @@ function getUserPhotoUrl(id) {
 
 // --- RENDERIZADO DE USUARIOS ---
 function renderActiveUsers(data) {
+    // Render para escritorio (sidebar)
     const userList = $("#active-users-list");
     userList.empty();
+
+    // Render para móvil (barra horizontal)
+    const userListMobile = $("#active-users-list-mobile");
+    if (userListMobile.length) userListMobile.empty();
+
+    // Detecta si es móvil/pantalla chica (ejemplo: <640px)
+    const isMobile = window.innerWidth < 640;
 
     // Ordenar usuarios (Gerente > Jefe > Resto)
     data.sort((a, b) => {
@@ -55,7 +63,10 @@ function renderActiveUsers(data) {
     data.forEach(function(user) {
         const imagePath = getUserPhotoUrl(user.IdPoblacion);
         const tooltipId = `tooltip-${user.IdPoblacion}`;
-        const listItem = `
+        let listItem = "";
+
+        // Desktop sidebar
+        listItem = `
             <li class="py-3 sm:py-4 relative">
                 <div class="flex items-center space-x-3 rtl:space-x-reverse">
                     <div class="shrink-0 relative">
@@ -89,25 +100,39 @@ function renderActiveUsers(data) {
             </li>`;
         userList.append(listItem);
 
-        // Tooltip hover (Desktop)
-        const imgElement = document.getElementById(`user-img-${user.IdPoblacion}`);
-        const tooltipElement = document.getElementById(tooltipId);
+        // Barra vertical móvil
+        if (userListMobile.length) {
+            userListMobile.append(`
+                <li>
+                    <img class="w-10 h-10 rounded-full border-2 border-green-400"
+                        src="${imagePath}"
+                        alt="${escapeHtml(user.IdPoblacion)} image"
+                        onerror="this.onerror=null; this.src='/default-avatar.jpg';">
+                </li>
+            `);
+        }
 
-        if (imgElement && tooltipElement) {
-            imgElement.addEventListener("mouseover", function() {
-                tooltipElement.style.opacity = "1";
-                tooltipElement.style.visibility = "visible";
-            });
-            imgElement.addEventListener("mouseout", function() {
-                tooltipElement.style.opacity = "0";
-                tooltipElement.style.visibility = "hidden";
-            });
-            document.addEventListener("mouseout", function(event) {
-                if (!imgElement.contains(event.target) && !tooltipElement.contains(event.target)) {
+        // Tooltip hover (Desktop)
+        if (!isMobile) {
+            const imgElement = document.getElementById(`user-img-${user.IdPoblacion}`);
+            const tooltipElement = document.getElementById(tooltipId);
+
+            if (imgElement && tooltipElement) {
+                imgElement.addEventListener("mouseover", function() {
+                    tooltipElement.style.opacity = "1";
+                    tooltipElement.style.visibility = "visible";
+                });
+                imgElement.addEventListener("mouseout", function() {
                     tooltipElement.style.opacity = "0";
                     tooltipElement.style.visibility = "hidden";
-                }
-            });
+                });
+                document.addEventListener("mouseout", function(event) {
+                    if (!imgElement.contains(event.target) && !tooltipElement.contains(event.target)) {
+                        tooltipElement.style.opacity = "0";
+                        tooltipElement.style.visibility = "hidden";
+                    }
+                });
+            }
         }
     });
 }
@@ -125,6 +150,8 @@ document.addEventListener("DOMContentLoaded", function() {
             success: function(data) {
                 saveToLocalStorage(ACTIVE_USERS_STORAGE_KEY, data);
                 renderActiveUsers(data);
+                // Guarda para resize
+                activeUsersData = data;
             },
             error: function(error) {
                 console.error("Error obteniendo usuarios:", error);
@@ -133,5 +160,12 @@ document.addEventListener("DOMContentLoaded", function() {
     } else {
         renderActiveUsers(activeUsersData);
     }
+
+    // Redibuja usuarios activos al cambiar tamaño de pantalla
+    window.addEventListener('resize', function() {
+        if (activeUsersData) {
+            renderActiveUsers(activeUsersData);
+        }
+    });
 });
 

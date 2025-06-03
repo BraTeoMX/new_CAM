@@ -187,38 +187,88 @@ function getCache(key, maxAgeMs = 5 * 60 * 1000) {
     return null;
 }
 
-// Modifica fetchAndSetData para usar cache
+// Helper para guardar SIEMPRE los datos del mes corriente/reciente en una clave fija
+function setCurrentMonthCache(data) {
+    localStorage.setItem('creatComplet_current', JSON.stringify({
+        data,
+        ts: Date.now()
+    }));
+}
+
+// Helper para obtener SIEMPRE los datos del mes corriente/reciente de la clave fija
+function getCurrentMonthCache() {
+    const raw = localStorage.getItem('creatComplet_current');
+    if (!raw) return null;
+    try {
+        const obj = JSON.parse(raw);
+        return obj.data;
+    } catch { }
+    return null;
+}
+
+// Función para obtener los filtros actuales del calendario
+function getCurrentCalendarFilters() {
+    const saved = localStorage.getItem('calendar_last_selection');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            return null;
+        }
+    }
+    return null;
+}
+
+// Modifica fetchAndSetData para sincronizar con el calendario
 async function fetchAndSetData(filters) {
+    // Asegúrate de que los filtros sean válidos
+    filters = {
+        year: filters.year || new Date().getFullYear(),
+        month: filters.month !== undefined ? filters.month : new Date().getMonth(),
+        day: filters.day || null
+    };
+
     const cacheKey = getCacheKey(filters);
     let data = getCache(cacheKey);
-    if (data) {
-        globalData = data;
-        globalLabels = data.map(d => d.date);
-        globalCreadas = data.map(d => d.creadas);
-        globalCompletadas = data.map(d => d.completadas);
-        return;
+
+    // Si hay filtro por día, no uses el cache global
+    if (!data || filters.day !== null) {
+        try {
+            let params = [];
+            if (filters.year) params.push(`year=${filters.year}`);
+            if (filters.month !== undefined && filters.month !== null) params.push(`month=${filters.month}`);
+            if (filters.day !== undefined && filters.day !== null) params.push(`day=${filters.day}`);
+            let url = '/api/dashboard/creadas-vs-completadas' + (params.length ? `?${params.join('&')}` : '');
+
+            let res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) throw new Error("Error al obtener datos");
+            data = await res.json();
+
+            if (Array.isArray(data) && data.length > 0) {
+                // Solo guarda en cache si no es filtro por día
+                if (!filters.day) {
+                    setCache(cacheKey, data);
+                    setCurrentMonthCache(data);
+                }
+            } else {
+                throw new Error("No data received");
+            }
+        } catch (e) {
+            console.error('Error fetching data:', e);
+            // Si hay error y no es filtro por día, intenta usar cache
+            if (!filters.day) {
+                data = getCurrentMonthCache();
+            }
+        }
     }
 
-    let params = [];
-    if (filters.year) params.push(`year=${filters.year}`);
-    if (filters.month !== undefined && filters.month !== null && filters.month !== '') params.push(`month=${filters.month}`);
-    if (filters.day !== undefined && filters.day !== null && filters.day !== '') params.push(`day=${filters.day}`);
-    let url = '/api/dashboard/creadas-vs-completadas' + (params.length ? `?${params.join('&')}` : '');
-
-    try {
-        let res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("Error al obtener datos");
-        data = await res.json();
-
-        // Actualiza los arrays globales
+    // Actualiza los datos globales
+    if (data && Array.isArray(data) && data.length > 0) {
         globalData = data;
         globalLabels = data.map(d => d.date);
         globalCreadas = data.map(d => d.creadas);
         globalCompletadas = data.map(d => d.completadas);
-
-        // Guarda en cache
-        setCache(cacheKey, data);
-    } catch (e) {
+    } else {
         globalData = [];
         globalLabels = [];
         globalCreadas = [];
@@ -231,11 +281,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (initialized) return;
     initialized = true;
 
-    // Por defecto: mes y año actual
-    const now = new Date();
-    globalFilters.year = now.getFullYear();
-    globalFilters.month = now.getMonth();
-    globalFilters.day = null;
+    const calendarFilters = getCurrentCalendarFilters();
+    if (calendarFilters) {
+        globalFilters = calendarFilters;
+    } else {
+        const now = new Date();
+        globalFilters = {
+            year: now.getFullYear(),
+            month: now.getMonth(),
+            day: null
+        };
+    }
 
     await fetchAndSetData(globalFilters);
     renderChart();

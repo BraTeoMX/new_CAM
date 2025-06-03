@@ -96,7 +96,7 @@
 
         </div>
         <!-- Livewire Sidebar -->
-        <x-livewire.sidebar-usuarios-activos-nuevo />
+            <x-livewire.sidebar-usuarios-activos-nuevo />
     </div>
     @livewireScriptConfig
 </body>
