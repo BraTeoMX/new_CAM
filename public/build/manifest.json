@@ -10,12 +10,12 @@
       "__commonjsHelpers-Cpj98o6Y.js"
     ]
   },
-  "_transform-oMh35NN8.js": {
-    "file": "assets/transform-oMh35NN8.js",
+  "_transform-BG7eE8b0.js": {
+    "file": "assets/transform-BG7eE8b0.js",
     "name": "transform"
   },
   "resources/css/app.css": {
-    "file": "assets/app-FDSoOk3A.css",
+    "file": "assets/app-v_ZD_KMB.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -50,10 +50,14 @@
     ]
   },
   "resources/js/FormOTMeca.js": {
-    "file": "assets/FormOTMeca-BET6DTxT.js",
+    "file": "assets/FormOTMeca-DNL3S_i9.js",
     "name": "FormOTMeca",
     "src": "resources/js/FormOTMeca.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "resources/js/excellPDF.js",
+      "__commonjsHelpers-Cpj98o6Y.js"
+    ]
   },
   "resources/js/IAChat.js": {
     "file": "assets/IAChat-ix9_B-a7.js",
@@ -132,13 +136,13 @@
     "isEntry": true
   },
   "resources/js/elemento1dashboard.js": {
-    "file": "assets/elemento1dashboard-D6dPbheD.js",
+    "file": "assets/elemento1dashboard-26e5o6S-.js",
     "name": "elemento1dashboard",
     "src": "resources/js/elemento1dashboard.js",
     "isEntry": true,
     "imports": [
       "_pusher-RuRbGOpv.js",
-      "_transform-oMh35NN8.js",
+      "_transform-BG7eE8b0.js",
       "__commonjsHelpers-Cpj98o6Y.js"
     ]
   },
@@ -148,13 +152,22 @@
     "src": "resources/js/events.js",
     "isEntry": true
   },
+  "resources/js/excellPDF.js": {
+    "file": "assets/excellPDF-D7XX8oil.js",
+    "name": "excellPDF",
+    "src": "resources/js/excellPDF.js",
+    "isEntry": true,
+    "imports": [
+      "__commonjsHelpers-Cpj98o6Y.js"
+    ]
+  },
   "resources/js/linetime.js": {
-    "file": "assets/linetime-DY1NZ2G9.js",
+    "file": "assets/linetime-vG3gmikP.js",
     "name": "linetime",
     "src": "resources/js/linetime.js",
     "isEntry": true,
     "imports": [
-      "_transform-oMh35NN8.js"
+      "_transform-BG7eE8b0.js"
     ]
   },
   "resources/js/minmachdesc.js": {

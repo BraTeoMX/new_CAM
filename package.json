@@ -40,6 +40,7 @@
         "crypto-js": "^4.2.0",
         "d3": "^7.9.0",
         "dayjs": "^1.11.13",
+        "exceljs": "^4.4.0",
         "flatpickr": "^4.6.13",
         "fullcalendar": "^6.1.15",
         "gojs": "^3.0.22",
@@ -53,6 +54,6 @@
         "pusher-js": "^8.4.0-rc2",
         "sortablejs": "^1.15.6",
         "sweetalert": "^2.1.2",
-        "sweetalert2": "^11.6.13"
+        "sweetalert2": "^11.22.0"
     }
 }

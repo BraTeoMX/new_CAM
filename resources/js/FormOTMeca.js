@@ -1,3 +1,5 @@
+import { copyTableToClipboard, saveTableAsExcel, saveTableAsPDF } from './excellPDF';
+
 // Global variables
 let dataArray = [];
 const tableId = 'ordenTrabajoTable';
@@ -21,7 +23,6 @@ const fetchData = async () => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log('Datos recibidos del backend:', data); // LOG
         dataArray = data;
         saveDataToLocalStorage(dataArray);
         return dataArray;
@@ -81,7 +82,6 @@ const displayDataInTable = (data) => {
     tbody.innerHTML = ''; // Clear existing data
 
     data.forEach((item, idx) => {
-        console.log(`Fila ${idx}:`, item); // LOG por fila
 
         const row = document.createElement('tr');
         row.className = "bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors";
@@ -123,105 +123,38 @@ const displayDataInTable = (data) => {
     });
 };
 
-// Copy table with formatting
-const copyTableToClipboard = () => {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-    // Clona la tabla para no afectar el DOM
-    const clone = table.cloneNode(true);
-    // Elimina los inputs de filtros si existen
-    clone.querySelectorAll('input').forEach(input => input.remove());
-    // Crea un contenedor temporal
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(clone);
-    // Copia como HTML
-    const range = document.createRange();
-    range.selectNode(tempDiv);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-    try {
-        document.execCommand('copy');
-    } catch (err) {
-        // fallback
-        navigator.clipboard.writeText(tempDiv.innerHTML);
-    }
-    window.getSelection().removeAllRanges();
-    // Opcional: feedback visual
-    alert('Tabla copiada al portapapeles');
-};
-
-// Save table as Excel
-const saveTableAsExcel = () => {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-    // Elimina los inputs de filtros si existen
-    const clone = table.cloneNode(true);
-    clone.querySelectorAll('input').forEach(input => input.remove());
-    // Convierte la tabla a hoja de cálculo
-    const wb = XLSX.utils.table_to_book(clone, {sheet: "OT Mecánicos"});
-    XLSX.writeFile(wb, "OT_Mecanicos.xlsx");
-};
-
-// Save table as PDF
-const saveTableAsPDF = () => {
-    const table = document.getElementById(tableId);
-    if (!table) return;
-    // Elimina los inputs de filtros si existen
-    const clone = table.cloneNode(true);
-    clone.querySelectorAll('input').forEach(input => input.remove());
-    // Usa html2canvas + jsPDF para mejor resultado
-    import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(() => {
-        html2canvas(clone).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new window.jspdf.jsPDF({
-                orientation: 'landscape',
-                unit: 'pt',
-                format: 'a4'
-            });
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pageWidth - 40;
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
-            pdf.save('OT_Mecanicos.pdf');
-        });
-    });
-};
-
-// Modal logic
-const saveModal = document.getElementById('save-modal');
+// Botones de acción
+const copyBtn = document.getElementById('copy-table-btn');
 const saveBtn = document.getElementById('save-table-btn');
+const saveModal = document.getElementById('save-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const downloadExcelBtn = document.getElementById('download-excel-btn');
 const downloadPdfBtn = document.getElementById('download-pdf-btn');
 
+if (copyBtn) {
+    copyBtn.addEventListener('click', () => copyTableToClipboard(tableId));
+}
 if (saveBtn) {
     saveBtn.addEventListener('click', () => {
-        saveModal.classList.remove('hidden');
+        if (saveModal) saveModal.classList.remove('hidden');
     });
 }
 if (closeModalBtn) {
     closeModalBtn.addEventListener('click', () => {
-        saveModal.classList.add('hidden');
+        if (saveModal) saveModal.classList.add('hidden');
     });
 }
 if (downloadExcelBtn) {
     downloadExcelBtn.addEventListener('click', () => {
-        saveTableAsExcel();
-        saveModal.classList.add('hidden');
+        saveTableAsExcel(tableId);
+        if (saveModal) saveModal.classList.add('hidden');
     });
 }
 if (downloadPdfBtn) {
     downloadPdfBtn.addEventListener('click', () => {
-        saveTableAsPDF();
-        saveModal.classList.add('hidden');
+        saveTableAsPDF(tableId);
+        if (saveModal) saveModal.classList.add('hidden');
     });
-}
-
-// Copy button logic
-const copyBtn = document.getElementById('copy-table-btn');
-if (copyBtn) {
-    copyBtn.addEventListener('click', copyTableToClipboard);
 }
 
 // Main function
