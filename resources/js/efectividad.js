@@ -92,8 +92,7 @@ function renderGaugeEfectividad() {
                 }
             },
             lineWidth: 0,
-            plotBands: [
-                {
+            plotBands: [{
                     from: 0,
                     to: 70,
                     color: '#DF5353',
@@ -158,16 +157,13 @@ function renderGaugeEfectividad() {
 
 // Obtiene y actualiza la efectividad desde el backend
 async function fetchAndUpdateEfectividad(params) {
-    // Evita peticiones duplicadas si los parámetros no han cambiado
-    const last = window.EfectividadState.lastParams;
-    if (
-        last.year === params.year &&
-        last.month === params.month &&
-        last.day === params.day
-    ) {
-        return; // No hay cambios, no volver a renderizar
-    }
-    window.EfectividadState.lastParams = { ...params };
+    console.log('[Efectividad] fetchAndUpdateEfectividad params:', params);
+    // Limpiar el estado previo antes de pedir nuevos datos
+    window.EfectividadState.efectividad = 0;
+    window.EfectividadState.total = 0;
+    window.EfectividadState.efectivos = 0;
+    window.EfectividadState.lastParams = {...params };
+    renderGaugeEfectividad(); // Limpia el gauge mientras carga
 
     try {
         const urlParams = new URLSearchParams();
@@ -204,6 +200,7 @@ async function fetchAndUpdateEfectividad(params) {
 // Escucha el evento de cambio de calendario y actualiza la efectividad
 window.addEventListener('calendar:change', (e) => {
     const detail = e.detail || {};
+    console.log('[Efectividad] calendar:change', detail);
     fetchAndUpdateEfectividad({
         year: detail.year,
         month: detail.month,
