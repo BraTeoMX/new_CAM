@@ -138,6 +138,8 @@
                         {{-- Aquí se insertan las filas dinámicamente con JS --}}
                     </tbody>
                 </table>
+                <!-- PAGINATION CONTAINER -->
+                <div id="pagination-container" class="mt-4 flex justify-center"></div>
             </div>
         </div>
     </div>

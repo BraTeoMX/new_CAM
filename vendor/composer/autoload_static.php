@@ -880,6 +880,7 @@ class ComposerStaticInit6ecd41da054c391420f9d18f906460ea
         'App\\Models\\Causa' => __DIR__ . '/../..' . '/app/Models/Causa.php',
         'App\\Models\\ClasseMaquina' => __DIR__ . '/../..' . '/app/Models/ClasseMaquina.php',
         'App\\Models\\DataFeed' => __DIR__ . '/../..' . '/app/Models/DataFeed.php',
+        'App\\Models\\Encuesta' => __DIR__ . '/../..' . '/app/Models/Encuesta.php',
         'App\\Models\\Event' => __DIR__ . '/../..' . '/app/Models/Event.php',
         'App\\Models\\Falla' => __DIR__ . '/../..' . '/app/Models/Falla.php',
         'App\\Models\\FollowAtention' => __DIR__ . '/../..' . '/app/Models/FollowAtention.php',

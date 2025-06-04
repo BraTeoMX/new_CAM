@@ -75,13 +75,77 @@ const parseTimeEstimadoToMinutes = (timeEstimado) => {
     return null;
 };
 
+// --- PAGINACIÓN ---
+const ROWS_PER_PAGE = 10;
+let currentPage = 1;
+let paginatedData = [];
+
+const renderPagination = (totalRows, currentPage) => {
+    const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE);
+    if (totalPages <= 1) {
+        document.getElementById('pagination-container').innerHTML = '';
+        return;
+    }
+    let html = `
+    <nav class="flex justify-center mt-4" aria-label="Table navigation">
+      <ul class="inline-flex -space-x-px text-sm">
+        <li>
+          <button class="pagination-btn px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>
+            Anterior
+          </button>
+        </li>
+    `;
+    for (let i = 1; i <= totalPages; i++) {
+        html += `
+        <li>
+          <button class="pagination-btn px-3 py-2 leading-tight border border-gray-300 ${i === currentPage ? 'bg-blue-700 text-white dark:bg-blue-600' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'}"
+            data-page="${i}">
+            ${i}
+          </button>
+        </li>
+        `;
+    }
+    html += `
+        <li>
+          <button class="pagination-btn px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>
+            Siguiente
+          </button>
+        </li>
+      </ul>
+    </nav>
+    `;
+    document.getElementById('pagination-container').innerHTML = html;
+    // Eventos
+    document.querySelectorAll('.pagination-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const page = parseInt(btn.getAttribute('data-page'));
+            if (!isNaN(page) && page >= 1 && page <= totalPages && page !== currentPage) {
+                setPage(page);
+            }
+        });
+    });
+};
+
+const setPage = (page) => {
+    currentPage = page;
+    displayDataInTable(paginatedData);
+    renderPagination(paginatedData.length, currentPage);
+};
+
 // Function to display data in the table
 const displayDataInTable = (data) => {
+    paginatedData = data;
     const table = document.getElementById(tableId);
     const tbody = table.querySelector('tbody');
     tbody.innerHTML = ''; // Clear existing data
 
-    data.forEach((item, idx) => {
+    const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+    const endIdx = startIdx + ROWS_PER_PAGE;
+    const pageData = data.slice(startIdx, endIdx);
+
+    pageData.forEach((item, idx) => {
 
         const row = document.createElement('tr');
         row.className = "bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors";
@@ -160,7 +224,16 @@ if (downloadPdfBtn) {
 // Main function
 const main = async () => {
     let data = await fetchData();
+    currentPage = 1;
     displayDataInTable(data);
+    // Agrega el contenedor de paginación si no existe
+    if (!document.getElementById('pagination-container')) {
+        const pagDiv = document.createElement('div');
+        pagDiv.id = 'pagination-container';
+        pagDiv.className = 'mt-4 flex justify-center';
+        table.parentNode.appendChild(pagDiv);
+    }
+    renderPagination(data.length, currentPage);
 };
 
 // Run the main function when the page loads

@@ -58,6 +58,7 @@ return array(
     'App\\Models\\Causa' => $baseDir . '/app/Models/Causa.php',
     'App\\Models\\ClasseMaquina' => $baseDir . '/app/Models/ClasseMaquina.php',
     'App\\Models\\DataFeed' => $baseDir . '/app/Models/DataFeed.php',
+    'App\\Models\\Encuesta' => $baseDir . '/app/Models/Encuesta.php',
     'App\\Models\\Event' => $baseDir . '/app/Models/Event.php',
     'App\\Models\\Falla' => $baseDir . '/app/Models/Falla.php',
     'App\\Models\\FollowAtention' => $baseDir . '/app/Models/FollowAtention.php',
