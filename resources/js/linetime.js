@@ -46,9 +46,27 @@ function renderTimelineBarJS(data) {
 
     // --- FIN NUEVO ---
 
+    // --- PAGINACIÓN ---
+    const ITEMS_PER_PAGE = 5;
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // Crear contenedor de paginación si no existe
+    let paginationDiv = document.getElementById('timeline-pagination');
+    if (!paginationDiv) {
+        paginationDiv = document.createElement('div');
+        paginationDiv.id = 'timeline-pagination';
+        paginationDiv.className = "flex justify-center mt-4";
+        container.appendChild(paginationDiv);
+    } else {
+        paginationDiv.innerHTML = '';
+    }
+
+    // --- FIN PAGINACIÓN ---
+
     // Función para renderizar la línea de tiempo filtrada
     function renderFilteredTimeline() {
-        // Limpiar todo menos los filtros
+        // Limpiar todo menos los filtros y paginación
         container.querySelectorAll('.w-full.mb-8').forEach(el => el.remove());
 
         const filtroMecanico = selectMecanico.value;
@@ -62,11 +80,15 @@ function renderTimelineBarJS(data) {
             filteredData = filteredData.filter(item => item.Modulo === filtroModulo);
         }
 
-        // Definir helpers aquí para que estén disponibles en el scope de renderFilteredTimeline
-        const formatDate = (d) => new Date(d).toLocaleDateString();
-        const formatTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        // --- PAGINACIÓN: calcular páginas ---
+        totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+        if (currentPage > totalPages) currentPage = totalPages || 1;
+        const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIdx = startIdx + ITEMS_PER_PAGE;
+        const pageData = filteredData.slice(startIdx, endIdx);
 
-        filteredData.forEach((item, idx) => {
+        // Renderizar solo los elementos de la página actual
+        pageData.forEach((item, idx) => {
             const start = new Date(item.AsignationCreated);
             const attention = new Date(item.FollowCreated);
             const end = item.TimeFin ? new Date(item.TimeFin) : attention;
@@ -133,16 +155,15 @@ function renderTimelineBarJS(data) {
                     .attr("cy", height / 2)
                     .attr("r", 8) // antes 12, ahora 8
                     .attr("fill", color)
-                    .attr("stroke", "#374151")
                     .attr("stroke-width", 3) // antes 4, ahora 3
                     .attr("class", "timeline-point")
                     .attr("data-tooltip", `
-                        <div class='font-bold mb-1 text-gray-800 dark:text-gray-100'>${label}</div>
-                        <div class='text-xs mb-1 text-gray-800 dark:text-gray-100'>
+                        <div class='font-bold mb-1 bg-white dark:bg-gray-800  text-gray-800 dark:text-gray-100'>${label}</div>
+                        <div class='text-xs mb-1 bg-white dark:bg-gray-800  text-gray-800 dark:text-gray-100'>
                             <span class='font-semibold'>Fecha:</span> ${formatDate(date)}<br>
                             <span class='font-semibold'>Hora:</span> ${formatTime(date)}
                         </div>
-                        <div class='text-gray-800 dark:text-gray-100'>${tooltipExtra}</div>
+                        <div class='bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100'>${tooltipExtra}</div>
                     `);
 
                 // Etiqueta de hora debajo
@@ -213,6 +234,9 @@ function renderTimelineBarJS(data) {
             }
         });
 
+        // --- PAGINACIÓN: renderizar controles ---
+        renderPaginationControls();
+
         // Tooltips con D3 y Tailwind
         d3.selectAll(".timeline-point")
             .on("mouseenter", function (event) {
@@ -239,9 +263,71 @@ function renderTimelineBarJS(data) {
             });
     }
 
+    // --- PAGINACIÓN: función para renderizar controles ---
+    function renderPaginationControls() {
+        paginationDiv.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        // Flowbite/Tailwind pagination
+        const nav = document.createElement('nav');
+        nav.setAttribute('aria-label', 'Paginación');
+        nav.className = "flex items-center space-x-2";
+
+        // Botón anterior
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
+        prevBtn.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>Anterior`;
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderFilteredTimeline();
+            }
+        });
+        nav.appendChild(prevBtn);
+
+        // Números de página (máximo 5)
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `px-3 py-2 text-sm font-medium border border-gray-300 ${i === currentPage ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700'}`;
+            pageBtn.innerText = i;
+            if (i === currentPage) pageBtn.setAttribute('aria-current', 'page');
+            pageBtn.addEventListener('click', () => {
+                currentPage = i;
+                renderFilteredTimeline();
+            });
+            nav.appendChild(pageBtn);
+        }
+
+        // Botón siguiente
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`;
+        nextBtn.innerHTML = `Siguiente<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`;
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderFilteredTimeline();
+            }
+        });
+        nav.appendChild(nextBtn);
+
+        paginationDiv.appendChild(nav);
+    }
+
     // Listeners para los filtros
-    selectMecanico.addEventListener('change', renderFilteredTimeline);
-    selectModulo.addEventListener('change', renderFilteredTimeline);
+    selectMecanico.addEventListener('change', () => {
+        currentPage = 1;
+        renderFilteredTimeline();
+    });
+    selectModulo.addEventListener('change', () => {
+        currentPage = 1;
+        renderFilteredTimeline();
+    });
 
     // Render inicial
     renderFilteredTimeline();
