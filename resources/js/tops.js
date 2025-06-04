@@ -1,4 +1,4 @@
-import { Carousel } from 'flowbite';
+import Carousel from 'flowbite/lib/esm/components/carousel';
 
 // --- CONSTANTES Y ARRAYS GLOBALES ---
 const TOPS_STORAGE_KEY = 'dashboard_tops_data_v1';
