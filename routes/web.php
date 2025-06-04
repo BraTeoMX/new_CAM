@@ -101,3 +101,5 @@ Route::get('/api/dashboard/creadas-vs-completadas', [DashboardController::class,
 Route::get('/dashboard/minmachdesc', [DashboardController::class, 'minutosMaquinasDescompuestas']);
 Route::post('/api/bahia', [FollowAtentionController::class, 'guardarBahia']);
 Route::get('/api/bahia-info/{folio}', [FollowAtentionController::class, 'getBahiaInfo']);
+Route::post('/reasignar-sin-asignar', [\App\Http\Controllers\AtencionOT::class, 'reasignarSinAsignar']);
+Route::post('/api/encuesta-satisfaccion', [FollowAtentionController::class, 'guardarEncuestaSatisfaccion']);

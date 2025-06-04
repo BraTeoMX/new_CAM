@@ -8,6 +8,15 @@
         </div>
         <!-- Contenedor Principal -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+             <!-- Sección 1: OT's Sin Asignacion -->
+            <div>
+                <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Sin asignación
+                </h2>
+                <div id="SIN_ASIGNAR"
+                    class="space-y-4 bg-gray-850 p-2 md:p-4 rounded-lg shadow-md">
+                    <!-- Cards dinámicas se insertarán aquí -->
+                </div>
+            </div>
             <!-- Sección 1: OT's Asignadas -->
             <div>
                 <h2 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">OT's Asignadas

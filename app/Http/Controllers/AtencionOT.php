@@ -69,10 +69,21 @@ class AtencionOT extends Controller
             'id' => 'required|integer|exists:asignation_ots,id',
             'num_mecanico' => 'required|string',
             'nombre' => 'required|string',
+            'status' => 'nullable|string',
         ]);
         $ot = AsignationOT::findOrFail($validated['id']);
-        $ot->Num_Mecanico = $validated['num_mecanico'];
-        $ot->Mecanico = $validated['nombre'];
+
+        // Si el status recibido es SIN_ASIGNAR, cambia a ASIGNADO y actualiza todo
+        if (isset($validated['status']) && $validated['status'] === 'SIN_ASIGNAR') {
+            $ot->Num_Mecanico = $validated['num_mecanico'];
+            $ot->Mecanico = $validated['nombre'];
+            $ot->Status = 'ASIGNADO';
+        } else {
+            // Solo actualiza num_mecanico y mecanico
+            $ot->Num_Mecanico = $validated['num_mecanico'];
+            $ot->Mecanico = $validated['nombre'];
+            // No cambia el status
+        }
         $ot->save();
 
         // Emitir evento broadcast para que lo escuche AsignationOt.js

@@ -560,7 +560,67 @@ document.getElementById('finalizar-atencion-form').addEventListener('submit', as
         // Forzar recarga de la lista para reflejar el cambio y detener cualquier cronómetro remanente
         const modulo = document.getElementById('modulo-select').value;
         if (modulo) await cargarSeguimientoOTs(modulo);
-        Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success');
+        Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success').then(async () => {
+            // --- NUEVO: Encuesta de satisfacción con iconos ---
+            const encuestaHtml = `
+                <div style="text-align:left;">
+                    <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
+                        <input type="radio" name="satisfaccion" value="Excelente" style="margin-right:8px;">
+                        <span style="font-size:1.5em;margin-right:8px;">🌟</span>
+                        <span>Excelente</span>
+                    </label>
+                    <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
+                        <input type="radio" name="satisfaccion" value="Bueno" style="margin-right:8px;">
+                        <span style="font-size:1.5em;margin-right:8px;">👍</span>
+                        <span>Bueno</span>
+                    </label>
+                    <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
+                        <input type="radio" name="satisfaccion" value="Regular" style="margin-right:8px;">
+                        <span style="font-size:1.5em;margin-right:8px;">😐</span>
+                        <span>Regular</span>
+                    </label>
+                    <label style="display:flex;align-items:center;cursor:pointer;">
+                        <input type="radio" name="satisfaccion" value="Malo" style="margin-right:8px;">
+                        <span style="font-size:1.5em;margin-right:8px;">👎</span>
+                        <span>Malo</span>
+                    </label>
+                </div>
+            `;
+            const { value: satisfaccion } = await Swal.fire({
+                title: 'Califica que tan buena fue la atención',
+                html: encuestaHtml,
+                focusConfirm: false,
+                preConfirm: () => {
+                    const selected = document.querySelector('input[name="satisfaccion"]:checked');
+                    if (!selected) {
+                        Swal.showValidationMessage('Debes seleccionar una opción');
+                        return false;
+                    }
+                    return selected.value;
+                },
+                confirmButtonText: 'Enviar',
+                showCancelButton: false,
+                customClass: {
+                    htmlContainer: 'swal2-radio-group'
+                }
+            });
+            if (satisfaccion) {
+                await fetch('/api/encuesta-satisfaccion', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        folio: folio,
+                        encuesta: satisfaccion
+                    })
+                });
+                Swal.fire('¡Gracias!', 'Tu opinión ha sido registrada.', 'success');
+            }
+        });
         document.getElementById('drawer-form-finalizar').classList.add('-translate-x-full');
     } else {
         Swal.fire('Error', 'No se pudo finalizar la atención', 'error');

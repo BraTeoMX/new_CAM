@@ -1,7 +1,7 @@
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
 
 // Estados posibles de las OT
-const OT_STATUSES = ["PENDIENTE", "ASIGNADO", "PROCESO", "ATENDIDO", "FINALIZADO"];
+const OT_STATUSES = ["SIN_ASIGNAR", "PENDIENTE", "ASIGNADO", "PROCESO", "ATENDIDO", "FINALIZADO"];
 
 // Contenedores globales para cada estado
 const containers = {};
@@ -16,6 +16,8 @@ function initContainers() {
 // Obtiene el color correspondiente al estado
 function getStatusColor(status) {
     switch (status) {
+        case 'SIN_ASIGNAR':
+            return 'bg-gray-300 text-gray-800';
         case 'FINALIZADO':
             return 'bg-blue-800 text-blue-100';
         case 'ASIGNADO':
@@ -81,9 +83,10 @@ function insertOTCard(ot) {
 
 // Inicializa SortableJS en todos los contenedores
 function initializeSortable() {
-    Object.values(containers).forEach((container) => {
+    Object.entries(containers).forEach(([status, container]) => {
+        if (!container) return;
         Sortable.create(container, {
-            group: "shared",
+            group: status === "SIN_ASIGNAR" ? { name: "shared", put: false } : "shared",
             animation: 150,
             ghostClass: "bg-blue-100",
             onEnd: handleDragEnd,
@@ -271,6 +274,15 @@ function showReasignarModal() {
 
 // Modifica la función para enviar también el nombre
 function reasignarOt(otId, cvetra, nombre) {
+    // Obtener el status actual de la card
+    const card = document.querySelector(`[data-id="${otId}"]`);
+    let status = null;
+    if (card) {
+        const statusElem = card.querySelector('span');
+        if (statusElem) {
+            status = statusElem.textContent.trim();
+        }
+    }
     fetch('/reasignar-ot', {
         method: 'POST',
         headers: {
@@ -278,7 +290,7 @@ function reasignarOt(otId, cvetra, nombre) {
             'Accept': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
         },
-        body: JSON.stringify({ id: otId, num_mecanico: cvetra, nombre: nombre }),
+        body: JSON.stringify({ id: otId, num_mecanico: cvetra, nombre: nombre, status: status }),
     })
         .then(res => {
             const contentType = res.headers.get('content-type');
@@ -291,7 +303,6 @@ function reasignarOt(otId, cvetra, nombre) {
             if (data.success) {
                 reasignarModal.classList.add('hidden');
                 // Actualizar el nombre del mecánico en la card de inmediato
-                const card = document.querySelector(`[data-id="${otId}"]`);
                 if (card) {
                     const mecElem = card.querySelector('p:nth-child(3)');
                     if (mecElem) {

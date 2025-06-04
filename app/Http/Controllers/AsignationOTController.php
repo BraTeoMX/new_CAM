@@ -63,10 +63,44 @@ class AsignationOTController extends Controller
 
         if ($mecanicos->isEmpty()) {
             Log::info("No hay mecánicos presentes en planta para el módulo: $modulo");
+            // Buscar supervisor por el módulo (primer supervisor encontrado)
+            $supervisor = Vinculacion::where('Modulo', $modulo)->value('Supervisor');
+            // Guardar la asignación con mecánico y cve_mecanico null y status SIN_ASIGNAR, pero con supervisor si existe
+            $asignacion = AsignationOT::create([
+                'Folio'     => $request->input('folio'),
+                'Modulo'    => $modulo,
+                'Operario'  => $request->input('operario'),
+                'NombreOperario' => $request->input('nombreoperario'),
+                'Num_Mecanico' => null,
+                'Mecanico'  => null,
+                'TimeAutEst' => $request->input('timeAutonomo'),
+                'TimeAutReal' => $request->input('timerealAutonomo'),
+                'Supervisor'=> $supervisor,
+                'Maquina' => $request->input('maquina'),
+                'Problema'  => $request->input('descripcion'),
+                'Status'    => 'SIN_ASIGNAR',
+                'ComidaBreak' => null,
+                'TerminoComidaBreack' => null,
+            ]);
+            Log::info("Asignación OT guardada como SIN_ASIGNAR: " . json_encode($asignacion->toArray()));
+            // Emitir evento broadcast si es necesario
+            broadcast(new AsignacionOTCreated($asignacion))->toOthers();
             return response()->json([
-                'success' => false,
-                'message' => 'No hay mecánicos presentes en planta para este módulo.'
-            ], 404);
+                'success' => true,
+                'folio' => $request->input('folio'),
+                'modulo' => $modulo,
+                'operario' => $request->input('Operario'),
+                'nombre_operario' => $request->input('NombreOperario'),
+                'cve_mecanico' => null,
+                'mecanico_asignado' => null,
+                'supervisor' => $supervisor,
+                'Maquina' => $request->input('maquina'),
+                'problema' => $request->input('descripcion'),
+                'status' => 'SIN_ASIGNAR',
+                'asignacion_hora' => now()->toDateTimeString(),
+                'ComidaBreak' => null,
+                'termino_comida_break' => null,
+            ]);
         }
 
         $now = Carbon::parse($createdAt);

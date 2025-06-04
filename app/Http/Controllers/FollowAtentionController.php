@@ -13,6 +13,7 @@ use App\Models\Falla;
 use App\Models\Causa;
 use App\Models\Accion;
 use App\Models\Bahia;
+use App\Models\Encuesta;
 
 class FollowAtentionController extends Controller
 {
@@ -237,5 +238,20 @@ class FollowAtentionController extends Controller
     public function getBahiaInfo($folio) {
         $bahia = \App\Models\Bahia::where('Folio', $folio)->first();
         return response()->json(['success' => true, 'bahia' => $bahia]);
+    }
+
+    public function guardarEncuestaSatisfaccion(Request $request)
+    {
+        $request->validate([
+            'folio' => 'required|string|max:255',
+            'encuesta' => 'required|string|max:255',
+        ]);
+
+        $encuesta = Encuesta::create([
+            'folio' => $request->folio,
+            'encuesta' => $request->encuesta,
+        ]);
+
+        return response()->json(['success' => true, 'data' => $encuesta]);
     }
 }
