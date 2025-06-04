@@ -461,169 +461,191 @@ async function cargarCatalogoSelect2(url, selector, textKey) {
 // --- SUBMIT FINALIZAR ATENCION ---
 document.getElementById('finalizar-atencion-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const folio = window.finalizarAtencionFolio;
-    const falla = $('#falla-select').val();
-    const causa = $('#causa-select').val();
-    const accion = $('#accion-select').val();
-    const comentarios = $('#comentarios-finalizar').val();
+    // --- Mostrar spinner de carga ---
+    let spinnerDiv = document.createElement('div');
+    spinnerDiv.id = 'finalizar-atencion-spinner';
+    spinnerDiv.className = 'flex justify-center items-center my-4';
+    spinnerDiv.innerHTML = `
+        <div role="status">
+          <svg aria-hidden="true" class="w-8 h-8 mr-2 text-gray-200 animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span class="sr-only">Cargando...</span>
+        </div>
+    `;
+    // Insertar spinner al principio del drawer
+    const drawer = document.getElementById('drawer-form-finalizar');
+    if (drawer) drawer.prepend(spinnerDiv);
 
-    if (!falla || !causa || !accion) {
-        Swal.fire('Error', 'Debe seleccionar una opción en cada catálogo.', 'error');
-        return;
-    }
+    try {
+        const folio = window.finalizarAtencionFolio;
+        const falla = $('#falla-select').val();
+        const causa = $('#causa-select').val();
+        const accion = $('#accion-select').val();
+        const comentarios = $('#comentarios-finalizar').val();
 
-    // Tiempos
-    const now = new Date();
-    const timeFinal = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    const timerDiv = document.querySelector(`.timer-countdown[data-folio="${folio}"], .timer-finalizado[data-folio="${folio}"]`);
-    let timeReal = '00:00';
-    if (timerDiv) {
-        timeReal = timerDiv.textContent.replace('-', '').trim();
-    }
-    const followData = followAtentionMap.get(folio);
-    let timeInicio = followData?.TimeInicio || window.finalizarAtencionTimeInicio || '';
-    let timeEstimado = parseEstimadoToMinutes(followData?.TimeEstimado || window.finalizarAtencionTimeEstimado || '');
-    let timeEjecucion = 0;
-    if (timeInicio && timeFinal) {
-        const [h1, m1] = timeInicio.split(':').map(Number);
-        const [h2, m2] = timeFinal.split(':').map(Number);
-        timeEjecucion = (h2 * 60 + m2) - (h1 * 60 + m1);
-        if (timeEjecucion < 0) timeEjecucion += 24 * 60;
-    }
-
-    // --- Detener el cronómetro de inmediato y actualizar el valor en la variable global ---
-    if (activeTimers.has(folio)) {
-        clearInterval(activeTimers.get(folio));
-        activeTimers.delete(folio);
-    }
-    if (followData) {
-        followData.TimeEjecucion = timeEjecucion;
-    }
-
-    // --- LIBERAR LOCALSTORAGE DEL BAHIA SI EXISTE ---
-    if (window.bahiaTimers[folio]) {
-        delete window.bahiaTimers[folio];
-        saveBahiaTimers();
-    }
-
-    // --- Mostrar el valor de TimeEjecucion en el cronómetro y cambiar el label ---
-    if (timerDiv) {
-        const labelSpan = timerDiv.parentElement?.previousElementSibling?.querySelector('span.text-gray-800');
-        if (labelSpan) labelSpan.textContent = 'Tiempo total de atención:';
-        timerDiv.classList.remove('text-green-600', 'text-orange-500', 'text-red-600', 'timer-countdown');
-        timerDiv.classList.add('text-blue-700', 'timer-finalizado');
-        timerDiv.textContent = minutosAHoraMinutos(timeEjecucion);
-    }
-
-    // Enviar datos al backend
-    const res = await fetch('/api/finalizar-atencion', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({
-            folio,
-            falla,
-            causa,
-            accion,
-            comentarios,
-            time_final: timeFinal,
-            time_real: timeReal,
-            time_ejecucion: timeEjecucion
-        })
-    });
-    const data = await res.json();
-    if (data.success) {
-        // Cambia status a ATENDIDO usando la ruta correcta y activa Echo
-        // Necesita el id de la OT (asignation_ots.id)
-        let otId = null;
-        if (otMap.has(folio)) {
-            otId = otMap.get(folio).id;
-            otMap.get(folio).Status = 'ATENDIDO';
+        if (!falla || !causa || !accion) {
+            Swal.fire('Error', 'Debe seleccionar una opción en cada catálogo.', 'error');
+            return;
         }
-        if (otId) {
-            await fetch('/broadcast-status-ot', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    id: otId,
-                    status: 'ATENDIDO'
-                })
-            });
+
+        // Tiempos
+        const now = new Date();
+        const timeFinal = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        const timerDiv = document.querySelector(`.timer-countdown[data-folio="${folio}"], .timer-finalizado[data-folio="${folio}"]`);
+        let timeReal = '00:00';
+        if (timerDiv) {
+            timeReal = timerDiv.textContent.replace('-', '').trim();
         }
-        // Forzar recarga de la lista para reflejar el cambio y detener cualquier cronómetro remanente
-        const modulo = document.getElementById('modulo-select').value;
-        if (modulo) await cargarSeguimientoOTs(modulo);
-        Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success').then(async () => {
-            // --- NUEVO: Encuesta de satisfacción con iconos ---
-            const encuestaHtml = `
-                <div style="text-align:left;">
-                    <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
-                        <input type="radio" name="satisfaccion" value="Excelente" style="margin-right:8px;">
-                        <span style="font-size:1.5em;margin-right:8px;">🌟</span>
-                        <span>Excelente</span>
-                    </label>
-                    <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
-                        <input type="radio" name="satisfaccion" value="Bueno" style="margin-right:8px;">
-                        <span style="font-size:1.5em;margin-right:8px;">👍</span>
-                        <span>Bueno</span>
-                    </label>
-                    <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
-                        <input type="radio" name="satisfaccion" value="Regular" style="margin-right:8px;">
-                        <span style="font-size:1.5em;margin-right:8px;">😐</span>
-                        <span>Regular</span>
-                    </label>
-                    <label style="display:flex;align-items:center;cursor:pointer;">
-                        <input type="radio" name="satisfaccion" value="Malo" style="margin-right:8px;">
-                        <span style="font-size:1.5em;margin-right:8px;">👎</span>
-                        <span>Malo</span>
-                    </label>
-                </div>
-            `;
-            const { value: satisfaccion } = await Swal.fire({
-                title: 'Califica que tan buena fue la atención',
-                html: encuestaHtml,
-                focusConfirm: false,
-                preConfirm: () => {
-                    const selected = document.querySelector('input[name="satisfaccion"]:checked');
-                    if (!selected) {
-                        Swal.showValidationMessage('Debes seleccionar una opción');
-                        return false;
-                    }
-                    return selected.value;
-                },
-                confirmButtonText: 'Enviar',
-                showCancelButton: false,
-                customClass: {
-                    htmlContainer: 'swal2-radio-group'
-                }
-            });
-            if (satisfaccion) {
-                await fetch('/api/encuesta-satisfaccion', {
+        const followData = followAtentionMap.get(folio);
+        let timeInicio = followData?.TimeInicio || window.finalizarAtencionTimeInicio || '';
+        let timeEstimado = parseEstimadoToMinutes(followData?.TimeEstimado || window.finalizarAtencionTimeEstimado || '');
+        let timeEjecucion = 0;
+        if (timeInicio && timeFinal) {
+            const [h1, m1] = timeInicio.split(':').map(Number);
+            const [h2, m2] = timeFinal.split(':').map(Number);
+            timeEjecucion = (h2 * 60 + m2) - (h1 * 60 + m1);
+            if (timeEjecucion < 0) timeEjecucion += 24 * 60;
+        }
+
+        // --- Detener el cronómetro de inmediato y actualizar el valor en la variable global ---
+        if (activeTimers.has(folio)) {
+            clearInterval(activeTimers.get(folio));
+            activeTimers.delete(folio);
+        }
+        if (followData) {
+            followData.TimeEjecucion = timeEjecucion;
+        }
+
+        // --- LIBERAR LOCALSTORAGE DEL BAHIA SI EXISTE ---
+        if (window.bahiaTimers[folio]) {
+            delete window.bahiaTimers[folio];
+            saveBahiaTimers();
+        }
+
+        // --- Mostrar el valor de TimeEjecucion en el cronómetro y cambiar el label ---
+        if (timerDiv) {
+            const labelSpan = timerDiv.parentElement?.previousElementSibling?.querySelector('span.text-gray-800');
+            if (labelSpan) labelSpan.textContent = 'Tiempo total de atención:';
+            timerDiv.classList.remove('text-green-600', 'text-orange-500', 'text-red-600', 'timer-countdown');
+            timerDiv.classList.add('text-blue-700', 'timer-finalizado');
+            timerDiv.textContent = minutosAHoraMinutos(timeEjecucion);
+        }
+
+        // Enviar datos al backend
+        const res = await fetch('/api/finalizar-atencion', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                folio,
+                falla,
+                causa,
+                accion,
+                comentarios,
+                time_final: timeFinal,
+                time_real: timeReal,
+                time_ejecucion: timeEjecucion
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Cambia status a ATENDIDO usando la ruta correcta y activa Echo
+            // Necesita el id de la OT (asignation_ots.id)
+            let otId = null;
+            if (otMap.has(folio)) {
+                otId = otMap.get(folio).id;
+                otMap.get(folio).Status = 'ATENDIDO';
+            }
+            if (otId) {
+                await fetch('/broadcast-status-ot', {
                     method: 'POST',
                     headers: {
-                        'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
                     body: JSON.stringify({
-                        folio: folio,
-                        encuesta: satisfaccion
+                        id: otId,
+                        status: 'ATENDIDO'
                     })
                 });
-                Swal.fire('¡Gracias!', 'Tu opinión ha sido registrada.', 'success');
             }
-        });
-        document.getElementById('drawer-form-finalizar').classList.add('-translate-x-full');
-    } else {
-        Swal.fire('Error', 'No se pudo finalizar la atención', 'error');
+            // Forzar recarga de la lista para reflejar el cambio y detener cualquier cronómetro remanente
+            const modulo = document.getElementById('modulo-select').value;
+            if (modulo) await cargarSeguimientoOTs(modulo);
+            Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success').then(async () => {
+                // --- NUEVO: Encuesta de satisfacción con iconos ---
+                const encuestaHtml = `
+                    <div style="text-align:left;">
+                        <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
+                            <input type="radio" name="satisfaccion" value="Excelente" style="margin-right:8px;">
+                            <span style="font-size:1.5em;margin-right:8px;">🌟</span>
+                            <span>Excelente</span>
+                        </label>
+                        <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
+                            <input type="radio" name="satisfaccion" value="Bueno" style="margin-right:8px;">
+                            <span style="font-size:1.5em;margin-right:8px;">👍</span>
+                            <span>Bueno</span>
+                        </label>
+                        <label style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;">
+                            <input type="radio" name="satisfaccion" value="Regular" style="margin-right:8px;">
+                            <span style="font-size:1.5em;margin-right:8px;">😐</span>
+                            <span>Regular</span>
+                        </label>
+                        <label style="display:flex;align-items:center;cursor:pointer;">
+                            <input type="radio" name="satisfaccion" value="Malo" style="margin-right:8px;">
+                            <span style="font-size:1.5em;margin-right:8px;">👎</span>
+                            <span>Malo</span>
+                        </label>
+                    </div>
+                `;
+                const { value: satisfaccion } = await Swal.fire({
+                    title: 'Califica que tan buena fue la atención',
+                    html: encuestaHtml,
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const selected = document.querySelector('input[name="satisfaccion"]:checked');
+                        if (!selected) {
+                            Swal.showValidationMessage('Debes seleccionar una opción');
+                            return false;
+                        }
+                        return selected.value;
+                    },
+                    confirmButtonText: 'Enviar',
+                    showCancelButton: false,
+                    customClass: {
+                        htmlContainer: 'swal2-radio-group'
+                    }
+                });
+                if (satisfaccion) {
+                    await fetch('/api/encuesta-satisfaccion', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            folio: folio,
+                            encuesta: satisfaccion
+                        })
+                    });
+                    Swal.fire('¡Gracias!', 'Tu opinión ha sido registrada.', 'success');
+                }
+            });
+            document.getElementById('drawer-form-finalizar').classList.add('-translate-x-full');
+        } else {
+            Swal.fire('Error', 'No se pudo finalizar la atención', 'error');
+        }
+    } finally {
+        // Remover spinner después de terminar
+        if (spinnerDiv && spinnerDiv.parentNode) spinnerDiv.parentNode.removeChild(spinnerDiv);
     }
 });
 
@@ -1044,7 +1066,25 @@ document.addEventListener('click', function(e) {
     if (e.target && e.target.classList.contains('iniciar-atencion-btn')) {
         const folio = e.target.getAttribute('data-folio');
         const maquina = e.target.getAttribute('data-maquina');
-        mostrarSelectorClase(folio, maquina);
+        // --- Mostrar modal spinner centrado ---
+        let modalSpinner = document.createElement('div');
+        modalSpinner.id = 'modal-iniciar-atencion-spinner';
+        modalSpinner.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40';
+        modalSpinner.innerHTML = `
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg flex flex-col items-center px-8 py-6">
+                <svg aria-hidden="true" class="w-12 h-12 mb-3 text-gray-200 animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                  <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                </svg>
+                <span class="text-lg font-semibold text-gray-700 dark:text-gray-100">Cargando...</span>
+            </div>
+        `;
+        document.body.appendChild(modalSpinner);
+
+        mostrarSelectorClase(folio, maquina).finally(() => {
+            // Remover modal spinner después de terminar
+            if (modalSpinner && modalSpinner.parentNode) modalSpinner.parentNode.removeChild(modalSpinner);
+        });
     }
 });
 

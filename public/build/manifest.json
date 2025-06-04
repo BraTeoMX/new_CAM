@@ -15,7 +15,7 @@
     "name": "transform"
   },
   "resources/css/app.css": {
-    "file": "assets/app-pKov7xOi.css",
+    "file": "assets/app-BXktYGK7.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -40,7 +40,7 @@
     ]
   },
   "resources/js/FollowAtention.js": {
-    "file": "assets/FollowAtention-BMNqQVRK.js",
+    "file": "assets/FollowAtention-BU7ua-FM.js",
     "name": "FollowAtention",
     "src": "resources/js/FollowAtention.js",
     "isEntry": true,
@@ -60,7 +60,7 @@
     ]
   },
   "resources/js/IAChat.js": {
-    "file": "assets/IAChat-ix9_B-a7.js",
+    "file": "assets/IAChat-Xych-hUV.js",
     "name": "IAChat",
     "src": "resources/js/IAChat.js",
     "isEntry": true
