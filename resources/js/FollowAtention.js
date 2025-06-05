@@ -64,6 +64,7 @@ function getRingClass(status) {
             return "ring-gray-400 dark:ring-gray-400 bg-gray-400";
     }
 }
+
 function formatDateTime(dateStr) {
     return dateStr ? new Date(dateStr).toLocaleString() : '';
 }
@@ -339,9 +340,10 @@ function renderOTCard(ot) {
     ` : '';
     const ringClass = getRingClass(ot.Status);
 
-     const imgUrl = ot.Status === "AUTONOMO"
-        ? "/images/Avatar.webp" // Reemplaza con la ruta correcta
-        : "http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/" + ot.Num_Mecanico + ".jpg";
+    const imgUrl = ot.Status === "AUTONOMO" ?
+        "/images/Avatar.webp" // Reemplaza con la ruta correcta
+        :
+        "http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/" + ot.Num_Mecanico + ".jpg";
     // --- Agrega un data-folio-card para poder actualizar solo esta card ---
     return `
     <div class="relative max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700 flex flex-col" data-folio-card="${ot.Folio}">
@@ -499,8 +501,8 @@ document.getElementById('finalizar-atencion-form').addEventListener('submit', as
             timeReal = timerDiv.textContent.replace('-', '').trim();
         }
         const followData = followAtentionMap.get(folio);
-        let timeInicio = followData?.TimeInicio || window.finalizarAtencionTimeInicio || '';
-        let timeEstimado = parseEstimadoToMinutes(followData?.TimeEstimado || window.finalizarAtencionTimeEstimado || '');
+        let timeInicio = (followData && followData.TimeInicio) ? followData.TimeInicio : (window.finalizarAtencionTimeInicio || '');
+        let timeEstimado = parseEstimadoToMinutes((followData && followData.TimeEstimado) ? followData.TimeEstimado : (window.finalizarAtencionTimeEstimado || ''));
         let timeEjecucion = 0;
         if (timeInicio && timeFinal) {
             const [h1, m1] = timeInicio.split(':').map(Number);
@@ -526,7 +528,7 @@ document.getElementById('finalizar-atencion-form').addEventListener('submit', as
 
         // --- Mostrar el valor de TimeEjecucion en el cronómetro y cambiar el label ---
         if (timerDiv) {
-            const labelSpan = timerDiv.parentElement?.previousElementSibling?.querySelector('span.text-gray-800');
+            const labelSpan = timerDiv.parentElement && timerDiv.parentElement.previousElementSibling ? timerDiv.parentElement.previousElementSibling.querySelector('span.text-gray-800') : null;
             if (labelSpan) labelSpan.textContent = 'Tiempo total de atención:';
             timerDiv.classList.remove('text-green-600', 'text-orange-500', 'text-red-600', 'timer-countdown');
             timerDiv.classList.add('text-blue-700', 'timer-finalizado');
@@ -578,7 +580,7 @@ document.getElementById('finalizar-atencion-form').addEventListener('submit', as
             // Forzar recarga de la lista para reflejar el cambio y detener cualquier cronómetro remanente
             const modulo = document.getElementById('modulo-select').value;
             if (modulo) await cargarSeguimientoOTs(modulo);
-            Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success').then(async () => {
+            Swal.fire('¡Éxito!', 'Atención finalizada correctamente', 'success').then(async() => {
                 // --- NUEVO: Encuesta de satisfacción con iconos ---
                 const encuestaHtml = `
                     <div style="text-align:left;">
@@ -676,6 +678,7 @@ function loadBahiaTimers() {
         }
     }
 }
+
 function saveBahiaTimers() {
     localStorage.setItem('bahiaTimers', JSON.stringify(window.bahiaTimers));
 }
@@ -918,6 +921,7 @@ function initializeTimers() {
         const t = window.bahiaTimers[folio];
         if (t && (t.running || t.elapsed > 0)) {
             container.style.display = '';
+
             function updateBahia() {
                 let diff = getBahiaElapsed(folio);
                 const h = Math.floor(diff / 3600);
@@ -941,8 +945,10 @@ async function renderAndFilterOTs(data) {
     data = data.filter(ot => ot.Status !== "CANCELADO" && ot.Status !== "FINALIZADO");
     data.forEach(ot => otMap.set(ot.Folio, ot));
 
-    const search = document.getElementById('search-ot')?.value?.toLowerCase() || '';
-    const status = document.getElementById('filter-status')?.value || '';
+    const searchElem = document.getElementById('search-ot');
+    const search = searchElem && searchElem.value ? searchElem.value.toLowerCase() : '';
+    const filterElem = document.getElementById('filter-status');
+    const status = filterElem && filterElem.value ? filterElem.value : '';
     let filtered = data.slice(); // copia
 
     // --- Orden personalizado de status ---
@@ -1053,12 +1059,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // Filtros
     const searchInput = document.getElementById('search-ot');
     const filterSelect = document.getElementById('filter-status');
+
     function triggerIfModuloSelected() {
         const modulo = document.getElementById('modulo-select').value;
         if (modulo) cargarSeguimientoOTs(modulo);
     }
     if (searchInput) searchInput.addEventListener('input', triggerIfModuloSelected);
     if (filterSelect) filterSelect.addEventListener('change', triggerIfModuloSelected);
+
+    // NUEVO: Selección automática de módulo por query param
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    // Selección automática de módulo si viene en la URL
+    const moduloParam = getQueryParam('modulo');
+    if (moduloParam) {
+        const select = document.getElementById('modulo-select');
+        // Esperar a que se llenen las opciones
+        const trySelectModulo = () => {
+            const option = Array.from(select.options).find(opt => opt.value === moduloParam);
+            if (option) {
+                select.value = moduloParam;
+                $('#modulo-select').trigger('change');
+            } else {
+                setTimeout(trySelectModulo, 100);
+            }
+        };
+        trySelectModulo();
+    }
 });
 
 // Delegación de eventos para el botón "Iniciar Atención"
@@ -1107,8 +1137,8 @@ async function mostrarSelectorClase(folio, maquina) {
         const numeroMaquina = data.numeroMaquina || [];
 
         const { value: formValues } = await Swal.fire({
-            title: 'Seleccionar Clase y Número de Máquina',
-            html: `
+                    title: 'Seleccionar Clase y Número de Máquina',
+                    html: `
                 <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Clase de Máquina:</label>
                 <select id="clase-select" class="swal2-select" style="width: 100%">
                     <option></option>

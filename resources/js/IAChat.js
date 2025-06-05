@@ -104,9 +104,110 @@ class ChatManager {
     }
 
     async startConversation(chatMessages) {
+        // PRIMERO: Saludo con avatar y animación
         const greeting = this.getTimeBasedGreeting();
         await this.appendChatMessage(`${greeting}`, chatMessages);
-        await this.askModule(chatMessages);
+        // LUEGO: Pregunta de acción con botones, como mensaje del asistente
+        await this.appendActionMessage(chatMessages);
+    }
+
+    // NUEVO: Mensaje de acción con botones, usando el formato del asistente
+    async appendActionMessage(chatMessages) {
+        await this.showTypingIndicator(chatMessages);
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'text-left mb-4 flex items-start gap-2';
+        // Avatar
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
+        avatarDiv.innerHTML = `
+            <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                 src="/images/Avatar.webp"
+                 alt="AI Avatar">
+        `;
+        // Contenido con botones
+        const responseSpan = document.createElement('span');
+        responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%] flex flex-col sm:flex-row w-full gap-2';
+        responseSpan.innerHTML = `
+            <strong>¿Qué es lo que deseas hacer?</strong><br>
+            <div class="flex flex-col sm:flex-row w-full gap-2 mt-3">
+                <button id="btn-crear-ticket" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">Crear ticket</button>
+                <button id="btn-seguimiento-ticket" class="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">Dar seguimiento a un ticket</button>
+            </div>
+        `;
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(responseSpan);
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Listeners para los botones
+        setTimeout(() => {
+            document.getElementById('btn-crear-ticket').onclick = async() => {
+                // Limpia el chat y sigue el flujo normal
+                chatMessages.innerHTML = '';
+                const greeting = this.getTimeBasedGreeting();
+                await this.appendChatMessage(`${greeting}`, chatMessages);
+                await this.askModule(chatMessages);
+            };
+            document.getElementById('btn-seguimiento-ticket').onclick = async() => {
+                // Limpia el chat y muestra el select de módulos
+                chatMessages.innerHTML = '';
+                await this.askModuloSeguimiento(chatMessages);
+            };
+        }, 100);
+    }
+
+    // NUEVO: Pregunta de módulo para seguimiento
+    async askModuloSeguimiento(chatMessages) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'text-left mb-4';
+        const responseSpan = document.createElement('span');
+        responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+        responseSpan.innerHTML = `¿A qué módulo quieres dar seguimiento 🧐? <br><select id="modulo-seguimiento" style="width:100%"></select>`;
+        loadingDiv.appendChild(responseSpan);
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        setTimeout(() => {
+            if (window.$ && $('#modulo-seguimiento').length) {
+                $('#modulo-seguimiento').select2({
+                    placeholder: 'Selecciona un módulo',
+                    ajax: {
+                        url: '/obtener-modulos',
+                        type: 'GET',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return { search: params.term || '' };
+                        },
+                        processResults: function(data, params) {
+                            let results = $.map(data, function(item) {
+                                return { id: item.Modulo, text: item.Modulo };
+                            });
+                            if (params.term && params.term.length > 0) {
+                                const term = params.term.toLowerCase();
+                                results = results.filter(r => r.text.toLowerCase().includes(term));
+                            }
+                            return { results };
+                        }
+                    },
+                    minimumResultsForSearch: 0
+                });
+                $('#modulo-seguimiento').on('select2:select', (e) => {
+                    const modulo = e.params.data.text;
+                    // Mostrar spinner/modal
+                    Swal.fire({
+                        title: 'Espera',
+                        text: 'Estamos procesando tu petición',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    // Redirigir con el módulo como query param
+                    setTimeout(() => {
+                        window.location.href = `http://128.150.102.40:8020/FollowOT?modulo=${encodeURIComponent(modulo)}`;
+                    }, 1200);
+                });
+            }
+        }, 100);
     }
 
     setupEventListeners() {
@@ -232,24 +333,24 @@ class ChatManager {
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
-                        data: function (params) {
+                        data: function(params) {
                             return {
                                 search: params.term || ''
                             };
                         },
-                        processResults: function (data, params) {
-                            let results = $.map(data, function (item) {
+                        processResults: function(data, params) {
+                            let results = $.map(data, function(item) {
                                 return {
                                     id: item.Modulo,
                                     text: item.Modulo
-                            };
-                        });
-                        // Filtrar en frontend si hay término de búsqueda y el backend no filtra
-                        if (params.term && params.term.length > 0) {
-                            const term = params.term.toLowerCase();
-                            results = results.filter(r => r.text.toLowerCase().includes(term));
-                        }
-                        return { results };
+                                };
+                            });
+                            // Filtrar en frontend si hay término de búsqueda y el backend no filtra
+                            if (params.term && params.term.length > 0) {
+                                const term = params.term.toLowerCase();
+                                results = results.filter(r => r.text.toLowerCase().includes(term));
+                            }
+                            return { results };
                         }
                     },
                     // Eliminar minimumInputLength para mostrar opciones al abrir
@@ -303,26 +404,26 @@ class ChatManager {
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
-                        data: function (params) {
+                        data: function(params) {
                             // Enviar el término de búsqueda y el módulo
                             return {
                                 modulo: modulo,
                                 search: params.term || ''
                             };
                         },
-                        processResults: function (data, params) {
-                            let results = $.map(data, function (item) {
+                        processResults: function(data, params) {
+                            let results = $.map(data, function(item) {
                                 return {
                                     id: item.NumOperario,
                                     text: `${item.Nombre} - ${item.NumOperario}`
-                            };
-                        });
-                        // Filtrar en frontend si hay término de búsqueda y el backend no filtra
-                        if (params.term && params.term.length > 0) {
-                            const term = params.term.toLowerCase();
-                            results = results.filter(r => r.text.toLowerCase().includes(term));
-                        }
-                        return { results };
+                                };
+                            });
+                            // Filtrar en frontend si hay término de búsqueda y el backend no filtra
+                            if (params.term && params.term.length > 0) {
+                                const term = params.term.toLowerCase();
+                                results = results.filter(r => r.text.toLowerCase().includes(term));
+                            }
+                            return { results };
                         }
                     },
                     minimumResultsForSearch: 0 // muestra el buscador siempre
@@ -411,7 +512,7 @@ class ChatManager {
         window.GLOBAL_CHAT_MACHINE_INDEX = machineIndex; // Guardar globalmente
 
         // Configurar el manejador para la siguiente respuesta
-        this.state.nextResponseHandler = async (message) => {
+        this.state.nextResponseHandler = async(message) => {
             this.state.userProblem = message || '';
             window.GLOBAL_CHAT_PROBLEM = this.state.userProblem; // Guardar globalmente
 
@@ -597,14 +698,14 @@ class ChatManager {
         // --- Botones ---
         questionSpan.innerHTML = `
             <p>¿Pudiste resolver el problema, con los pasos de ayuda?</p>
-            <div class="flex gap-4 mt-3">
-                <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(true)">
+            <div class="flex flex flex-col sm:flex-row w-full gap-4 mt-3">
+                <button class=" w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(true)">
                     SI
                 </button>
-                <button class="bg-orange-400 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(false)">
+                <button class=" w-full sm:w-auto bg-orange-400 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(false)">
                     NO
                 </button>
-                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse('CANCELADO')">
+                <button class=" w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse('CANCELADO')">
                     Cancelar ticket
                 </button>
             </div>
@@ -651,9 +752,9 @@ class ChatManager {
             const modulo = this.state.userModule || window.GLOBAL_CHAT_MODULE;
             const problema = this.state.userProblem || window.GLOBAL_CHAT_PROBLEM;
             const selectedMachineIndex =
-                (typeof this.state.selectedMachineIndex === 'number' && !isNaN(this.state.selectedMachineIndex))
-                ? this.state.selectedMachineIndex
-                : window.GLOBAL_CHAT_MACHINE_INDEX;
+                (typeof this.state.selectedMachineIndex === 'number' && !isNaN(this.state.selectedMachineIndex)) ?
+                this.state.selectedMachineIndex :
+                window.GLOBAL_CHAT_MACHINE_INDEX;
 
             console.log('Valores antes de enviar:', {
                 modulo,
@@ -661,8 +762,7 @@ class ChatManager {
                 selectedMachineIndex
             });
 
-            if (
-                !modulo ||
+            if (!modulo ||
                 !problema ||
                 selectedMachineIndex === null ||
                 typeof selectedMachineIndex === 'undefined'
@@ -797,9 +897,9 @@ class ChatManager {
                     );
                 } else if (statusToSend === 'CANCELADO') {
                     await this.appendChatMessage(
-                        triggeredByTimeout
-                            ? 'Por inactividad se ha cancelado tu ticket.<br>Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte'
-                            : 'Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte',
+                        triggeredByTimeout ?
+                        'Por inactividad se ha cancelado tu ticket.<br>Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte' :
+                        'Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte',
                         chatMessages
                     );
                 }
@@ -823,27 +923,119 @@ class ChatManager {
         }
     }
 
-    showFinalResetQuestion(chatMessages) {
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'text-left mb-4';
-        const questionSpan = document.createElement('span');
-        questionSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+    // Mostrar pregunta final con ambos botones y flujos correctos
+    async showFinalResetQuestion(chatMessages) {
+        // Mostrar animación de escribiendo
+        await this.showTypingIndicator(chatMessages);
 
-        questionSpan.innerHTML = `
-            <p>¿Quieres generar una nueva asistencia?</p>
-            <div class="flex gap-4 mt-3">
-                <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResetResponse(true)">
-                    SI
-                </button>
-                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResetResponse(false)">
-                    NO
-                </button>
+        // Crear el contenedor del mensaje
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'text-left mb-4 flex items-start gap-3';
+
+        // Avatar del asistente
+        messageDiv.innerHTML = `
+            <div class="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0">
+                <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                     src="/images/Avatar.webp"
+                     alt="AI Avatar">
+            </div>
+            <div>
+                <div class="bg-gray-100 dark:bg-gray-700 dark:text-white p-3 rounded-lg mb-2">
+                    <strong>¿Qué es lo que deseas hacer ahora?</strong>
+                    <div class="flex flex-col sm:flex-row w-full gap-2 mt-3">
+                        <button id="btn-crear-ticket-final" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">Crear ticket</button>
+                        <button id="btn-seguimiento-ticket-final" class="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">Dar seguimiento a un ticket</button>
+                    </div>
+                </div>
             </div>
         `;
 
-        questionDiv.appendChild(questionSpan);
-        chatMessages.appendChild(questionDiv);
+        chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Botón "Crear ticket"
+        messageDiv.querySelector('#btn-crear-ticket-final').onclick = async() => {
+            // Limpiar el chat y reiniciar el flujo
+            chatMessages.innerHTML = '';
+            this.selectedModulo = null;
+            this.selectedOperario = null;
+            this.selectedProblema = null;
+            this.selectedMaquina = null;
+            this.selectedClase = null;
+            this.selectedNumeroMaquina = null;
+            this.selectedCausa = null;
+            this.selectedAccion = null;
+            this.selectedComentarios = null;
+            this.ticketFolio = null;
+            await this.startConversation(chatMessages);
+        };
+
+        // Botón "Dar seguimiento a un ticket"
+        messageDiv.querySelector('#btn-seguimiento-ticket-final').onclick = async() => {
+            // Preguntar el módulo y redirigir
+            await this.askModuloForSeguimiento(chatMessages);
+        };
+    }
+
+    // Nueva función para preguntar el módulo y redirigir
+    async askModuloForSeguimiento(chatMessages) {
+        await this.showTypingIndicator(chatMessages);
+
+        // Crear el mensaje con el select de módulos
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'text-left mb-4 flex items-start gap-3';
+        messageDiv.innerHTML = `
+            <div class="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0">
+                <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+                     src="/images/Avatar.webp"
+                     alt="AI Avatar">
+            </div>
+            <div>
+                <div class="bg-gray-100 dark:bg-gray-700 dark:text-white p-3 rounded-lg mb-2">
+                    <strong>¿A qué módulo quieres dar seguimiento 🧐?</strong>
+                    <br>
+                    <select id="modulo-seguimiento" class="mt-2 w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"></select>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Llenar el select con los módulos
+        const select = messageDiv.querySelector('#modulo-seguimiento');
+        try {
+            const res = await axios.get('/obtener-modulos');
+            res.data.forEach(mod => {
+                let value = mod.Modulo || mod.moduleid || mod.MODULEID || mod.value || mod;
+                let text = mod.Modulo || mod.moduleid || mod.MODULEID || mod.value || mod;
+                if (value && text) {
+                    let option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = text;
+                    select.appendChild(option);
+                }
+            });
+        } catch (e) {
+            let option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Error al cargar módulos';
+            select.appendChild(option);
+        }
+
+        // Al seleccionar un módulo, mostrar spinner y redirigir
+        select.onchange = () => {
+            if (select.value) {
+                Swal.fire({
+                    title: 'Espera',
+                    text: 'Estamos procesando tu petición...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                window.location.href = `http://128.150.102.40:8020/FollowOT?modulo=${encodeURIComponent(select.value)}`;
+            }
+        };
     }
 
     handleResetResponse(wantsNewChat) {
