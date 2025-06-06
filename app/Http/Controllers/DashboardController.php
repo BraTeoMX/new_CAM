@@ -323,10 +323,30 @@ class DashboardController extends Controller
             $horaAtencion = \Carbon\Carbon::parse($follow->updated_at);
             $minutosResolucion = $horaAtencion->diffInMinutes($horaInicioReal);
 
+            $operario = $asig->Operario;
+            $num_operario = $asig->NombreOperario;
+            $operario_label = $operario . ' - ' . $num_operario;
+
             $globalMinutos += $minutosResolucion;
             $globalTickets++;
 
-            if ($minutosResolucion <= 60) $eficientes++;
+            // --- NUEVO: Calcular eficiencia usando TimeEstimado de FollowAtention ---
+            $estimadoMin = 0;
+            $timeEstimado = $follow->TimeEstimado;
+            // Si viene como objeto Carbon (por el cast del modelo)
+            if ($timeEstimado instanceof \Carbon\Carbon) {
+                $estimadoMin = ($timeEstimado->hour * 60) + $timeEstimado->minute + ($timeEstimado->second > 0 ? 1 : 0);
+            } elseif (!empty($timeEstimado)) {
+                // Si viene como string "H:i" o "H:i:s"
+                $parts = explode(':', $timeEstimado);
+                $h = isset($parts[0]) ? intval($parts[0]) : 0;
+                $m = isset($parts[1]) ? intval($parts[1]) : 0;
+                $s = isset($parts[2]) ? intval($parts[2]) : 0;
+                $estimadoMin = ($h * 60) + $m + ($s > 0 ? 1 : 0);
+            }
+            if ($estimadoMin > 0 && $minutosResolucion <= $estimadoMin) {
+                $eficientes++;
+            }
 
             $modulo = intval($follow->Modulo);
             if ($modulo >= 100 && $modulo < 200) {
@@ -352,6 +372,8 @@ class DashboardController extends Controller
                 'modulo' => $modulo,
                 'minutos' => $minutosResolucion,
                 'supervisor' => $follow->Supervisor ?? '',
+                'operario' => $operario_label,
+                'mecanicos' => $follow->Mecanico ?? '',
             ];
 
             // Para tabla global
@@ -361,6 +383,8 @@ class DashboardController extends Controller
                 'minutos' => $minutosResolucion,
                 'planta' => $planta,
                 'supervisor' => $follow->Supervisor ?? '',
+                'operario' => $operario_label,
+                'mecanicos' => $follow->Mecanico ?? '',
             ];
         }
 
@@ -388,6 +412,9 @@ class DashboardController extends Controller
                 'tickets' => $totalTickets,
                 'modulos' => $modulosArr,
                 'detalle' => $detallePlanta,
+                'operario' => $operario_label,
+                'mecanicos' => $follow->Mecanico ?? '',
+
             ];
         }
 
@@ -396,13 +423,16 @@ class DashboardController extends Controller
         // Ejemplo de cálculo extra: promedio de minutos por ticket
         $promedioMin = $globalTickets > 0 ? round($globalMinutos / $globalTickets, 2) : 0;
 
+
         return response()->json([
             'global' => [
+                'operario' => $operario_label,
                 'minutos' => $globalMinutos,
                 'tickets' => $globalTickets,
                 'eficiencia' => $eficiencia,
                 'promedio_min' => $promedioMin,
                 'detalle' => $detalleFolios,
+                'mecanicos' => $follow->Mecanico ?? '',
             ],
             'plantas' => $plantas,
         ]);

@@ -47,6 +47,7 @@
         "highcharts": "^12.2.0",
         "highcharts-vue": "^2.0.1",
         "jquery": "^3.7.1",
+        "jspdf": "^3.0.1",
         "laravel-echo": "^1.17.1",
         "moment": "^2.30.1",
         "nprogress": "^0.2.0",
@@ -54,6 +55,6 @@
         "pusher-js": "^8.4.0-rc2",
         "sortablejs": "^1.15.6",
         "sweetalert": "^2.1.2",
-        "sweetalert2": "^11.22.0"
+        "sweetalert2": "^11.6.13"
     }
 }
