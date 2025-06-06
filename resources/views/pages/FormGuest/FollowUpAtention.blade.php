@@ -99,5 +99,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/flowbite@2.2.1/dist/flowbite.min.js"></script>
+
     @vite(['resources/js/FollowAtention.js', 'resources/js/AsisVirFlo.js'])
 </x-guest-layout>
