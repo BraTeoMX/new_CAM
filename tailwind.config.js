@@ -160,6 +160,5 @@ export default {
       });
     }),
     require('flowbite/plugin'), // add the flowbite plugin
-    require('daisyui'), // add the daisyui plugin
   ],
 };
