@@ -159,6 +159,7 @@ export default {
                                 modifySelectors(({ className }) => `.sidebar-expanded .${e(`sidebar-expanded${separator}${className}`)}`);
       });
     }),
-    require('flowbite/plugin') // add the flowbite plugin
+    require('flowbite/plugin'), // add the flowbite plugin
+    require('daisyui'), // add the daisyui plugin
   ],
 };

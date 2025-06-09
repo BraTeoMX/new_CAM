@@ -56,7 +56,7 @@ class UserController extends Controller
         }
 
         $filename = $id . '.jpg';
-        $externalUrl = "http://128.150.102.45:8000/Intimark/Fotos%20Credenciales/" . $filename;
+        $externalUrl = "http://128.150.102.45:8000/Intimark/" . $filename;
 
         try {
             // Intenta obtener la imagen del servidor externo
