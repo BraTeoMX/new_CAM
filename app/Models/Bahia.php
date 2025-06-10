@@ -5,6 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $Folio
+ * @property string|null $Pulsaciones
+ * @property \Illuminate\Support\Carbon $InicioBahia
+ * @property \Illuminate\Support\Carbon|null $FinBahia
+ * @property \Illuminate\Support\Carbon|null $InicioBahia1
+ * @property \Illuminate\Support\Carbon|null $FinBahia1
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereFinBahia($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereFinBahia1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereFolio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereInicioBahia($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereInicioBahia1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia wherePulsaciones($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Bahia whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Bahia extends Model
 {
     use HasFactory;

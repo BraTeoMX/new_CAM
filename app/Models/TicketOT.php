@@ -7,6 +7,37 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Events\NewOrderNotification;
 
+/**
+ * 
+ *
+ * @property int $id
+ * @property string|null $Folio
+ * @property string|null $Modulo
+ * @property string|null $Tip_prob
+ * @property string|null $Descrip_prob
+ * @property string|null $Maquina
+ * @property string|null $Status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT query()
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereDescripProb($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereFolio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereMaquina($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereModulo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereTipProb($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|TicketOT withoutTrashed()
+ * @mixin \Eloquent
+ */
 class TicketOT extends Model
 {
     use HasFactory, SoftDeletes;
