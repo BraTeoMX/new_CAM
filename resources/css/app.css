@@ -12,6 +12,12 @@
 @tailwind utilities;
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
+@tailwindcss/forms;
+@tailwindcss/typography;
+@tailwindcss/aspect-ratio;
+@tailwindcss/line-clamp;
+@tailwindcss/container-queries;
+
 
 @keyframes slideIn {
     from {

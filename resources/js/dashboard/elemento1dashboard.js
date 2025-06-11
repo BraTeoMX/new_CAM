@@ -1,5 +1,6 @@
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
+import * as d3 from "d3";
 
 // --- Configuración de Echo/Pusher ---
 window.Pusher = Pusher;
@@ -11,235 +12,43 @@ window.Echo = new Echo({
     encrypted: true,
 });
 
+/**
+ * Módulo para la gráfica de barras de Status de Tickets (D3).
+ * Implementa Lazy Loading y contiene todas las funcionalidades visuales.
+ */
+const StatusChartModule = (function () {
 
-import * as d3 from "d3";
-
-let elemento1Data = [];
-
-async function cargarElemento1() {
-    try {
-        elemento1Data = await window.getCardsAteOTsData();
-        // ...usa elemento1Data para renderizar tu componente...
-        // Ejemplo: renderElemento1(elemento1Data);
-    } catch (e) {
-        console.error('Error cargando datos para elemento1:', e);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', cargarElemento1);
-
-// Si necesitas actualizar por filtro, escucha el evento calendar:change
-window.addEventListener('calendar:change', async (e) => {
-    await cargarElemento1();
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const container = document.getElementById("dashboard-elemento1");
-    if (!container) return;
-
-    const STATUS_LIST = [
-        'PENDIENTE',
-        'ASIGNADO',
-        'PROCESO',
-        'ATENDIDO',
-        'AUTONOMO',
-        'CANCELADO',
-        'FINALIZADO',
-    ];
-
-    // Gradientes tailwind para cada status
-    const STATUS_CONFIG = {
-        'PENDIENTE': {
-            icon: '<span class="material-symbols-outlined text-red-800 text-3xl">pending_actions</span>',
-            color: "from-red-300 to-red-400"
-        },
-        'ASIGNADO': {
-            icon: '<span class="material-symbols-outlined text-blue-400 text-3xl">assignment_ind</span>',
-            color: "from-blue-300 to-blue-400"
-        },
-        'PROCESO': {
-            icon: '<span class="material-symbols-outlined text-yellow-800 text-3xl">av_timer</span>',
-            color: "from-yellow-300 to-yellow-400"
-        },
-        'ATENDIDO': {
-            icon: '<span class="material-symbols-outlined text-green-800 text-3xl">preliminary</span>',
-            color: "from-green-300 to-green-400"
-        },
-        'AUTONOMO': {
-            icon: '<span class="material-symbols-outlined text-violet-800 text-3xl">smart_toy</span>',
-            color: "from-violet-300 to-violet-400"
-        },
-        'CANCELADO': {
-            icon: '<span class="material-symbols-outlined text-orange-800 text-3xl">dangerous</span>',
-            color: "from-orange-300 to-orange-400"
-        },
-        'FINALIZADO': {
-            icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">fact_check</span>',
-            color: "from-blue-300 to-blue-400"
-        }
+    // --- ESTADO Y CONFIGURACIÓN PRIVADOS ---
+    const state = {
+        isInitialized: false,
+        container: null,
+        rawData: [],
     };
 
-    function renderBarChart(data) {
-        // Procesar datos
-        const statusCounts = {};
-        STATUS_LIST.forEach(status => statusCounts[status] = 0);
-        data.forEach(item => {
-            const status = (item.Status || "").toUpperCase();
-            if (STATUS_LIST.includes(status)) {
-                statusCounts[status]++;
-            }
-        });
+    const STATUS_LIST = ['PENDIENTE', 'ASIGNADO', 'PROCESO', 'ATENDIDO', 'AUTONOMO', 'CANCELADO', 'FINALIZADO'];
+    const STATUS_CONFIG = {
+        'PENDIENTE': { icon: '<span class="material-symbols-outlined text-red-800 text-3xl">pending_actions</span>', color: "from-red-300 to-red-400" },
+        'ASIGNADO': { icon: '<span class="material-symbols-outlined text-blue-400 text-3xl">assignment_ind</span>', color: "from-blue-300 to-blue-400" },
+        'PROCESO': { icon: '<span class="material-symbols-outlined text-yellow-800 text-3xl">av_timer</span>', color: "from-yellow-300 to-yellow-400" },
+        'ATENDIDO': { icon: '<span class="material-symbols-outlined text-green-800 text-3xl">preliminary</span>', color: "from-green-300 to-green-400" },
+        'AUTONOMO': { icon: '<span class="material-symbols-outlined text-violet-800 text-3xl">smart_toy</span>', color: "from-violet-300 to-violet-400" },
+        'CANCELADO': { icon: '<span class="material-symbols-outlined text-orange-800 text-3xl">dangerous</span>', color: "from-orange-300 to-orange-400" },
+        'FINALIZADO': { icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">fact_check</span>', color: "from-blue-300 to-blue-400" },
+    };
 
-        // Convertir a formato para el gráfico
-        const chartData = Object.entries(statusCounts)
-            .map(([key, value]) => ({
-                key,
-                value,
-                color: STATUS_CONFIG[key].color,
-                icon: STATUS_CONFIG[key].icon
-            }))
-            .filter(d => d.value > 0)
-            .sort((a, b) => b.value - a.value);
+    // --- FUNCIONES INTERNAS ---
 
-        // Escalas
-        const maxValue = Math.max(...chartData.map(d => d.value), 1);
-        const yScale = d3.scaleBand()
-            .domain(chartData.map(d => d.key))
-            .range([0, 100])
-            .padding(0.175);
-
-        const xScale = d3.scaleLinear()
-            .domain([0, maxValue])
-            .range([0, 100]);
-
-        // Limpiar contenedor
-        container.innerHTML = `
-         <div class="flex text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Conteo de status
-                        de
-                        tickets</div>
-            <div class="relative w-full h-72"
-                style="--marginTop:0px;--marginRight:0px;--marginBottom:16px;--marginLeft:60px;">
-                <div class="absolute inset-0 z-10 h-[calc(100%-var(--marginTop)-var(--marginBottom))]
-                    translate-y-[var(--marginTop)] w-[calc(100%-var(--marginLeft)-var(--marginRight))]
-                    translate-x-[var(--marginLeft)] overflow-visible" id="bar-chart-area"></div>
-                <div class="h-[calc(100%-var(--marginTop)-var(--marginBottom))]
-                    w-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible" id="bar-chart-yaxis"></div>
-            </div>
-        `;
-
-        const chartArea = container.querySelector("#bar-chart-area");
-        const yAxisArea = container.querySelector("#bar-chart-yaxis");
-
-        // Render Y axis (icon + label)
-        chartData.forEach((entry, i) => {
-            const y = yScale(entry.key) + yScale.bandwidth() / 2;
-            const labelDiv = document.createElement("div");
-            labelDiv.className = "absolute flex items-center gap-1 text-xs text-gray-400 -translate-y-1/2 w-full text-right";
-            labelDiv.style.top = `${y}%`;
-            labelDiv.style.left = "-8px";
-            labelDiv.innerHTML = `<span>${entry.icon}</span><span>${entry.key}</span>`;
-            yAxisArea.appendChild(labelDiv);
-        });
-
-        // Render bars
-        chartData.forEach((d, index) => {
-            const barWidth = xScale(d.value);
-            const barHeight = yScale.bandwidth();
-            const y = yScale(d.key);
-
-            // Barra
-            const bar = document.createElement("div");
-            bar.className = `absolute bg-gradient-to-b ${d.color} group cursor-pointer transition-all duration-300`;
-            bar.style.left = "0";
-            bar.style.top = `${y}%`;
-            bar.style.width = `${barWidth}%`;
-            bar.style.height = `${barHeight}%`;
-            bar.style.borderRadius = "0 8px 8px 0";
-
-            // Tooltip
-            bar.addEventListener("mouseenter", function (e) {
-                let tooltip = document.getElementById("bar-tooltip");
-                if (!tooltip) {
-                    tooltip = document.createElement("div");
-                    tooltip.id = "bar-tooltip";
-                    tooltip.className = "fixed z-50 px-4 py-2 rounded-lg shadow-lg bg-gray-900 text-white text-xs pointer-events-none";
-                    document.body.appendChild(tooltip);
-                }
-                tooltip.innerHTML = `
-                    <div class="flex items-center gap-2 mb-1">${d.icon}<span class="font-bold">${d.key}</span></div>
-                    <div class="text-gray-300 text-sm">Total: <span class="font-bold">${d.value}</span></div>
-                `;
-                tooltip.style.opacity = 1;
-                tooltip.style.left = (e.clientX + 10) + "px";
-                tooltip.style.top = (e.clientY - 10) + "px";
-            });
-            bar.addEventListener("mousemove", function (e) {
-                const tooltip = document.getElementById("bar-tooltip");
-                if (tooltip) {
-                    tooltip.style.left = (e.clientX + 10) + "px";
-                    tooltip.style.top = (e.clientY - 10) + "px";
-                }
-            });
-            bar.addEventListener("mouseleave", function () {
-                const tooltip = document.getElementById("bar-tooltip");
-                if (tooltip) tooltip.style.opacity = 0;
-            });
-
-            chartArea.appendChild(bar);
-
-            // Valor numérico al final de la barra
-            const valueLabel = document.createElement("span");
-            valueLabel.className = "absolute right-2 text-sm font-bold text-gray-900 dark:text-white";
-            valueLabel.style.top = `${y + barHeight / 2}%`;
-            valueLabel.style.transform = "translateY(-50%)";
-            valueLabel.style.left = `${barWidth}%`;
-            valueLabel.innerText = d.value;
-            chartArea.appendChild(valueLabel);
-        });
-
-        // Render grid lines (SVG)
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("class", "absolute h-full w-full pointer-events-none");
-        svg.setAttribute("viewBox", "0 0 100 100");
-        svg.setAttribute("preserveAspectRatio", "none");
-        xScale.ticks(8).forEach((tick) => {
-            const x = xScale(tick);
-            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", x);
-            line.setAttribute("x2", x);
-            line.setAttribute("y1", "0");
-            line.setAttribute("y2", "100");
-            line.setAttribute("stroke", "#d1d5db");
-            line.setAttribute("stroke-dasharray", "6,5");
-            line.setAttribute("stroke-width", "0.5");
-            svg.appendChild(line);
-        });
-        chartArea.appendChild(svg);
-
-        // Render X axis values
-        xScale.ticks(4).forEach((value) => {
-            const x = xScale(value);
-            const label = document.createElement("div");
-            label.className = "absolute text-xs -translate-x-1/2 tabular-nums text-gray-400";
-            label.style.left = `${x}%`;
-            label.style.top = "100%";
-            label.innerText = value;
-            chartArea.appendChild(label);
-        });
-    }
-
-    // --- FILTRO MES/AÑO/DÍA ---
-    function getSelectedMonthYearDay() {
+    function getSelectedFilters() {
         const monthSelect = document.getElementById('calendar-month');
         const yearSelect = document.getElementById('calendar-year');
         const daySelect = document.getElementById('calendar-day');
-        const month = monthSelect ? parseInt(monthSelect.value, 10) : (new Date()).getMonth();
-        const year = yearSelect ? parseInt(yearSelect.value, 10) : (new Date()).getFullYear();
+        const month = monthSelect ? parseInt(monthSelect.value, 10) : new Date().getMonth();
+        const year = yearSelect ? parseInt(yearSelect.value, 10) : new Date().getFullYear();
         const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
         return { month, year, day };
     }
 
-    function filterByMonthYearDay(data, year, month, day) {
+    function filterDataByDate(data, year, month, day) {
         return data.filter(item => {
             if (!item.created_at) return false;
             const date = new Date(item.created_at);
@@ -249,61 +58,197 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    let dashboardData = null;
-    function fetchAndRender() {
-        window.getCardsAteOTsData()
-            .then((data) => {
-                dashboardData = data;
-                const { month, year, day } = getSelectedMonthYearDay();
-                const filtered = filterByMonthYearDay(dashboardData, year, month, day);
-                renderBarChart(filtered);
-            })
-            .catch(() => {
-                container.innerHTML = '<div class="text-red-500 p-4">No se pudo cargar el dashboard.</div>';
+    function renderBarChart(data) {
+        if (!state.container) return;
+
+        const statusCounts = {};
+        STATUS_LIST.forEach(status => statusCounts[status] = 0);
+        data.forEach(item => {
+            const status = (item.Status || "").toUpperCase();
+            if (STATUS_LIST.includes(status)) statusCounts[status]++;
+        });
+
+        const chartData = Object.entries(statusCounts)
+            .map(([key, value]) => ({ key, value, ...STATUS_CONFIG[key] }))
+            .filter(d => d.value > 0)
+            .sort((a, b) => b.value - a.value);
+
+        const totalTickets = chartData.reduce((sum, d) => sum + d.value, 0);
+        const maxValue = Math.max(...chartData.map(d => d.value), 1);
+        const yScale = d3.scaleBand().domain(chartData.map(d => d.key)).range([0, 100]).padding(0.25);
+        const xScale = d3.scaleLinear().domain([0, maxValue]).range([0, 100]);
+
+        state.container.innerHTML = `
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Conteo de Status de Tickets</h2>
+                <div class="text-base text-gray-500 dark:text-gray-400">Total: <span class="font-bold text-gray-800 dark:text-gray-200">${totalTickets}</span></div>
+            </div>
+            <div class="relative w-full h-72" style="--marginTop:0px;--marginRight:0px;--marginBottom:16px;--marginLeft:60px;">
+                <div id="bar-chart-area" class="absolute inset-0 z-10 h-[calc(100%-var(--marginTop)-var(--marginBottom))] w-[calc(100%-var(--marginLeft)-var(--marginRight))] translate-x-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible"></div>
+                <div id="bar-chart-yaxis" class="h-[calc(100%-var(--marginTop)-var(--marginBottom))] w-[var(--marginLeft)] translate-y-[var(--marginTop)] overflow-visible"></div>
+            </div>`;
+
+        const chartArea = state.container.querySelector("#bar-chart-area");
+        const yAxisArea = state.container.querySelector("#bar-chart-yaxis");
+
+        chartData.forEach(entry => {
+            const y = yScale(entry.key) + yScale.bandwidth() / 2;
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "absolute flex items-center gap-1 text-xs text-gray-400 -translate-y-1/2 w-full text-right";
+            labelDiv.style.top = `${y}%`;
+            labelDiv.style.left = "-8px";
+            labelDiv.innerHTML = `<span>${entry.icon}</span><span class="font-semibold">${entry.key}</span>`;
+            yAxisArea.appendChild(labelDiv);
+        });
+
+        chartData.forEach(d => {
+            const barWidth = xScale(d.value);
+            const barHeight = yScale.bandwidth();
+            const y = yScale(d.key);
+            const bar = document.createElement("div");
+            bar.className = `absolute bg-gradient-to-r ${d.color} group cursor-pointer transition-all duration-300 hover:brightness-110`;
+            bar.style.left = "0";
+            bar.style.top = `${y}%`;
+            bar.style.width = `${barWidth}%`;
+            bar.style.height = `${barHeight}%`;
+            bar.style.borderRadius = "0 4px 4px 0";
+            chartArea.appendChild(bar);
+
+            const valueLabel = document.createElement("span");
+            valueLabel.className = "absolute text-xs font-bold text-white pointer-events-none";
+            valueLabel.style.top = `${y + barHeight / 2}%`;
+            valueLabel.style.left = `calc(${barWidth}% - 22px)`;
+            valueLabel.style.transform = "translateY(-50%)";
+            valueLabel.innerText = d.value;
+            chartArea.appendChild(valueLabel);
+
+            // --- LÓGICA DE TOOLTIPS RESTAURADA ---
+            bar.addEventListener("mouseenter", function (e) {
+                let tooltip = document.getElementById("bar-tooltip");
+                if (!tooltip) {
+                    tooltip = document.createElement("div");
+                    tooltip.id = "bar-tooltip";
+                    tooltip.className = "fixed z-50 px-4 py-2 rounded-lg shadow-lg bg-gray-900 text-white text-xs pointer-events-none transition-opacity duration-200 opacity-0";
+                    document.body.appendChild(tooltip);
+                }
+                tooltip.innerHTML = `<div class="flex items-center gap-2 mb-1">${d.icon}<span class="font-bold">${d.key}</span></div><div class="text-gray-300 text-sm">Total: <span class="font-bold">${d.value}</span></div>`;
+                tooltip.style.left = (e.clientX + 15) + "px";
+                tooltip.style.top = (e.clientY) + "px";
+                setTimeout(() => tooltip.style.opacity = '1', 10);
             });
+            bar.addEventListener("mousemove", function (e) {
+                const tooltip = document.getElementById("bar-tooltip");
+                if (tooltip) {
+                    tooltip.style.left = (e.clientX + 15) + "px";
+                    tooltip.style.top = (e.clientY) + "px";
+                }
+            });
+            bar.addEventListener("mouseleave", function () {
+                const tooltip = document.getElementById("bar-tooltip");
+                if (tooltip) tooltip.style.opacity = '0';
+            });
+        });
+
+        // --- LÓGICA DE LÍNEAS GUÍA (GRID) RESTAURADA ---
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "absolute top-0 left-0 h-full w-full pointer-events-none");
+        svg.setAttribute("viewBox", "0 0 100 100");
+        svg.setAttribute("preserveAspectRatio", "none");
+
+        xScale.ticks(5).forEach((tick) => {
+            if (tick === 0) return;
+            const x = xScale(tick);
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", x);
+            line.setAttribute("x2", x);
+            line.setAttribute("y1", "0");
+            line.setAttribute("y2", "100");
+            line.setAttribute("stroke", "#e5e7eb"); // Color para tema claro
+            if (document.documentElement.classList.contains('dark')) {
+                line.setAttribute("stroke", "#3f3f46"); // Color para tema oscuro
+            }
+            line.setAttribute("stroke-dasharray", "2,4");
+            line.setAttribute("stroke-width", "0.5");
+            svg.appendChild(line);
+        });
+        chartArea.appendChild(svg);
+
+        xScale.ticks(5).forEach((value) => {
+             const x = xScale(value);
+             const label = document.createElement("div");
+             label.className = "absolute text-xs -translate-x-1/2 tabular-nums text-gray-400 dark:text-zinc-500";
+             label.style.left = `${x}%`;
+             label.style.top = "100%";
+             label.style.marginTop = "4px";
+             label.innerText = value;
+             chartArea.appendChild(label);
+        });
     }
 
-    fetchAndRender();
-
-    // --- Escuchar eventos de Echo para actualizar el dashboard ---
-    if (window.Echo) {
-        window.Echo.channel("asignaciones-ot")
-            .listen("AsignacionOTCreated", (e) => {
-                // Forzar actualización y mapear SIN_ASIGNAR a ASIGNADO
-                window.getCardsAteOTsData()
-                    .then((data) => {
-                        // Mapear status SIN_ASIGNAR a ASIGNADO
-                        const mapped = data.map(item => {
-                            if ((item.Status || item.status) === "SIN_ASIGNAR") {
-                                return { ...item, Status: "ASIGNADO" };
-                            }
-                            return item;
-                        });
-                        dashboardData = mapped;
-                        const { month, year, day } = getSelectedMonthYearDay();
-                        const filtered = filterByMonthYearDay(dashboardData, year, month, day);
-                        renderBarChart(filtered);
-                    })
-                    .catch(() => {
-                        container.innerHTML = '<div class="text-red-500 p-4">No se pudo cargar el dashboard.</div>';
-                    });
-            })
-            .listen("StatusOTUpdated", () => fetchAndRender());
+    async function fetchAndRender() {
+        if (state.rawData.length === 0) {
+            try {
+                state.rawData = await window.getCardsAteOTsData();
+            } catch (e) {
+                console.error("StatusChart: Error fetching data:", e);
+                state.container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar los datos del gráfico.</div>';
+                return;
+            }
+        }
+        const filters = getSelectedFilters();
+        const filteredData = filterDataByDate(state.rawData, filters.year, filters.month, filters.day);
+        renderBarChart(filteredData);
     }
 
-    window.addEventListener('calendar:change', () => {
-        if (dashboardData) {
-            const { month, year, day } = getSelectedMonthYearDay();
-            const filtered = filterByMonthYearDay(dashboardData, year, month, day);
-            renderBarChart(filtered);
-        }
-    });
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
 
-    window.addEventListener("resize", () => {
-        if (dashboardData) {
-            const { month, year, day } = getSelectedMonthYearDay();
-            const filtered = filterByMonthYearDay(dashboardData, year, month, day);
-            renderBarChart(filtered);
+    async function initializeComponent() {
+        if (state.isInitialized) return;
+        state.isInitialized = true;
+
+        state.container.innerHTML = `<div class="w-full min-h-[400px] flex items-center justify-center text-gray-400 animate-pulse">Cargando Gráfico...</div>`;
+
+        window.addEventListener('calendar:change', fetchAndRender);
+        window.addEventListener('resize', debounce(fetchAndRender, 200));
+
+        if (window.Echo) {
+            window.Echo.channel("asignaciones-ot")
+                .listen("StatusOTUpdated", () => {
+                    state.rawData = []; // Forzar refetch en la siguiente acción
+                    fetchAndRender();
+                });
         }
-    });
-});
+
+        await fetchAndRender();
+    }
+
+    function init() {
+        state.container = document.getElementById('dashboard-elemento1');
+        if (!state.container) {
+            console.error("StatusChart: Container #dashboard-elemento1 not found.");
+            return;
+        }
+        const observer = new IntersectionObserver((entries, observerInstance) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    initializeComponent();
+                    observerInstance.unobserve(state.container);
+                }
+            });
+        }, { threshold: 0.05 });
+        observer.observe(state.container);
+    }
+
+    return {
+        init: init
+    };
+})();
+
+// --- PUNTO DE ENTRADA ÚNICO ---
+document.addEventListener('DOMContentLoaded', StatusChartModule.init);

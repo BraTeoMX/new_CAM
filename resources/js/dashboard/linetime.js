@@ -1,243 +1,248 @@
 import * as d3 from "d3";
 
-// Renderiza la línea de tiempo usando D3 y tooltips bonitos estilo Tailwind
-function renderTimelineBarJS(data) {
-    const container = document.getElementById('timeline-container');
-    if (!container) return;
-    container.innerHTML = `
-        <div class="flex text-2xl font-medium tracking-tight text-gray-950 dark:text-white mb-4">
-            Línea de tiempo de atención
-        </div>
-    `;
+/**
+ * Módulo para la Línea de Tiempo de Atención (D3).
+ * Implementa Lazy Loading y una estructura de renderizado más eficiente.
+ * Versión 100% completa, con cálculo de tiempo restaurado.
+ */
+const TimelineModule = (function () {
 
-    // Helper para formatear fecha/hora
-    const formatDate = (d) => new Date(d).toLocaleDateString();
-    const formatTime = (d) => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    // --- ESTADO Y CONSTANTES PRIVADAS ---
+    const state = {
+        isInitialized: false,
+        container: null,
+        rawData: [],
+        currentPage: 1,
+        itemsPerPage: 5,
+        filtroMecanico: '',
+        filtroModulo: ''
+    };
 
-    // --- NUEVO: Selects para filtrar ---
-    // Obtener valores únicos de Mecanico y Modulo
-    const mecanicos = [...new Set(data.map(item => item.Mecanico).filter(Boolean))];
-    const modulos = [...new Set(data.map(item => item.Modulo).filter(Boolean))];
+    // --- FUNCIONES DE UTILIDAD ---
+    const formatDate = (d) => d ? new Date(d).toLocaleDateString('es-MX') : 'N/A';
+    const formatTime = (d) => d ? new Date(d).toLocaleTimeString('es-MX', { hour: "2-digit", minute: "2-digit" }) : 'N/A';
 
-    // Crear contenedor de filtros si no existe
-    let filterDiv = document.getElementById('timeline-filters');
-    if (!filterDiv) {
-        filterDiv = document.createElement('div');
-        filterDiv.id = 'timeline-filters';
-        filterDiv.className = "flex flex-wrap gap-4 mb-6 items-center";
-        container.appendChild(filterDiv);
-    } else {
-        filterDiv.innerHTML = '';
+    // --- LÓGICA DE RENDERIZADO ---
+
+    function renderShell() {
+        state.container.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Línea de tiempo de atención</h2>
+            </div>
+            <div id="timeline-filters" class="flex flex-wrap gap-4 mb-6 items-center"></div>
+            <div id="timeline-content" class="space-y-8"></div>
+            <div id="timeline-pagination" class="flex justify-center mt-6"></div>
+        `;
     }
 
-    // Select de Mecanico
-    const selectMecanico = document.createElement('select');
-    selectMecanico.className = "select2-mecanico border rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100";
-    selectMecanico.innerHTML = `<option value="">Todos los Mecánicos</option>` +
-        mecanicos.map(m => `<option value="${m}">${m}</option>`).join('');
-    filterDiv.appendChild(selectMecanico);
+    function renderFilters() {
+        const filterContainer = state.container.querySelector('#timeline-filters');
+        if (!filterContainer) return;
 
-    // Select de Modulo
-    const selectModulo = document.createElement('select');
-    selectModulo.className = "select2-modulo border rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100";
-    selectModulo.innerHTML = `<option value="">Todos los Módulos</option>` +
-        modulos.map(m => `<option value="${m}">${m}</option>`).join('');
-    filterDiv.appendChild(selectModulo);
+        const mecanicos = [...new Set(state.rawData.map(item => item.Mecanico).filter(Boolean))].sort();
+        const modulos = [...new Set(state.rawData.map(item => item.Modulo).filter(Boolean))].sort();
 
-    // --- FIN NUEVO ---
+        filterContainer.innerHTML = `
+            <div>
+                <select id="timeline-mecanico-filter" class="border rounded px-2 py-1 bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos los Mecánicos</option>
+                    ${mecanicos.map(m => `<option value="${m}">${m}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <select id="timeline-modulo-filter" class="border rounded px-2 py-1 bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos los Módulos</option>
+                    ${modulos.map(m => `<option value="${m}">${m}</option>`).join('')}
+                </select>
+            </div>
+        `;
 
-    // --- PAGINACIÓN ---
-    const ITEMS_PER_PAGE = 5;
-    let currentPage = 1;
-    let totalPages = 1;
-
-    // Crear contenedor de paginación si no existe
-    let paginationDiv = document.getElementById('timeline-pagination');
-    if (!paginationDiv) {
-        paginationDiv = document.createElement('div');
-        paginationDiv.id = 'timeline-pagination';
-        paginationDiv.className = "flex justify-center mt-4";
-        container.appendChild(paginationDiv);
-    } else {
-        paginationDiv.innerHTML = '';
+        state.container.querySelector('#timeline-mecanico-filter').addEventListener('change', (e) => {
+            state.filtroMecanico = e.target.value;
+            state.currentPage = 1;
+            render();
+        });
+        state.container.querySelector('#timeline-modulo-filter').addEventListener('change', (e) => {
+            state.filtroModulo = e.target.value;
+            state.currentPage = 1;
+            render();
+        });
     }
 
-    // --- FIN PAGINACIÓN ---
+    function render() {
+        const { month, year, day } = getSelectedCalendarFilters();
 
-    // Función para renderizar la línea de tiempo filtrada
-    function renderFilteredTimeline() {
-        // Limpiar todo menos los filtros y paginación
-        container.querySelectorAll('.w-full.mb-8').forEach(el => el.remove());
-
-        const filtroMecanico = selectMecanico.value;
-        const filtroModulo = selectModulo.value;
-
-        let filteredData = data;
-        if (filtroMecanico) {
-            filteredData = filteredData.filter(item => item.Mecanico === filtroMecanico);
+        let filteredData = state.rawData.filter(item => {
+            if (!item.created_at) return false;
+            const date = new Date(item.created_at);
+            if (date.getFullYear() !== year || date.getMonth() !== month) return false;
+            if (day !== null && date.getDate() !== day) return false;
+            return true;
+        });
+        if (state.filtroMecanico) {
+            filteredData = filteredData.filter(item => item.Mecanico === state.filtroMecanico);
         }
-        if (filtroModulo) {
-            filteredData = filteredData.filter(item => item.Modulo === filtroModulo);
+        if (state.filtroModulo) {
+            filteredData = filteredData.filter(item => item.Modulo === state.filtroModulo);
         }
 
-        // --- PAGINACIÓN: calcular páginas ---
-        totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-        if (currentPage > totalPages) currentPage = totalPages || 1;
-        const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIdx = startIdx + ITEMS_PER_PAGE;
-        const pageData = filteredData.slice(startIdx, endIdx);
+        const totalPages = Math.ceil(filteredData.length / state.itemsPerPage);
+        state.currentPage = Math.min(state.currentPage, totalPages || 1);
+        const startIdx = (state.currentPage - 1) * state.itemsPerPage;
+        const pageData = filteredData.slice(startIdx, startIdx + state.itemsPerPage);
 
-        // Renderizar solo los elementos de la página actual
-        pageData.forEach((item, idx) => {
-            const start = new Date(item.AsignationCreated);
-            const attention = new Date(item.FollowCreated);
-            const end = item.TimeFin ? new Date(item.TimeFin) : attention;
-            const total = end - start || 1;
+        const contentDiv = state.container.querySelector('#timeline-content');
+        contentDiv.innerHTML = '';
 
-            // TimeInicio
-            let timeInicioDate = null;
-            let timeInicioPos = null;
-            if (item.TimeInicio) {
-                const baseDate = new Date(item.FollowCreated);
-                const [h, m] = item.TimeInicio.split(":");
-                timeInicioDate = new Date(baseDate);
-                timeInicioDate.setHours(Number(h), Number(m), 0, 0);
-                timeInicioPos = ((timeInicioDate - start) / total);
-            }
+        if (pageData.length === 0) {
+            contentDiv.innerHTML = `<div class="text-center text-gray-500 py-8">No hay registros que coincidan con los filtros seleccionados.</div>`;
+        } else {
+            pageData.forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = "w-full";
+                wrapper.innerHTML = `<div class="mb-2 text-sm font-semibold break-all text-left text-gray-800 dark:text-gray-100">Módulo: ${item.Modulo || 'N/A'} | Folio: ${item.Folio || 'N/A'}</div>`;
 
-            const posStart = 0;
-            const posAttention = ((attention - start) / total);
-            const posEnd = 1;
+                const svg = createTimelineSVG(item);
+                wrapper.appendChild(svg.node());
 
-            // SVG dimensions
-            const width = 700;
-            const height = 44; // antes 60, ahora más pequeño
-            const margin = { left: 30, right: 30, top: 20, bottom: 20 }; // menos margen
+                // ==========================================================
+                //  CÁLCULO DE TIEMPO TOTAL - RESTAURADO
+                // ==========================================================
+                if (typeof item.TiempoAtencionMin !== "undefined" && item.TiempoAtencionMin !== null) {
+                    let min = parseInt(item.TiempoAtencionMin, 10);
+                    const dias = Math.floor(min / 1440);
+                    min %= 1440;
+                    const horas = Math.floor(min / 60);
+                    min %= 60;
 
-            // Create wrapper div
-            const wrapper = document.createElement('div');
-            wrapper.className = "w-full mb-8";
-            wrapper.innerHTML = `
-            <div class="mb-2 text-sm font-semibold break-all text-left text-gray-800 dark:text-gray-100">Modulo: ${item.Modulo}</div>`;
-            container.appendChild(wrapper);
+                    let tiempoStr = [];
+                    if (dias > 0) tiempoStr.push(`${dias} día${dias > 1 ? 's' : ''}`);
+                    if (horas > 0) tiempoStr.push(`${horas} hora${horas > 1 ? 's' : ''}`);
+                    if (min > 0 || tiempoStr.length === 0) tiempoStr.push(`${min} min`);
 
-            // Create SVG
-            const svg = d3.create("svg")
-                .attr("width", "100%")
-                .attr("viewBox", `0 0 ${width} ${height}`)
-                .classed("block", true);
+                    const tiempoDiv = document.createElement('div');
+                    tiempoDiv.className = "mt-2 text-center text-sm font-bold text-gray-800 dark:text-gray-100";
+                    tiempoDiv.innerText = `Tiempo completo: ${tiempoStr.join(' : ')}`;
+                    wrapper.appendChild(tiempoDiv);
+                }
+                // ==========================================================
 
-            // Gradient bar
-            svg.append("rect")
-                .attr("x", margin.left)
-                .attr("y", height / 2 - 4) // antes -6, ahora -4
-                .attr("width", width - margin.left - margin.right)
-                .attr("height", 8) // antes 12, ahora 8
-                .attr("rx", 4) // antes 6, ahora 4
-                .attr("fill", "url(#timeline-gradient)");
+                contentDiv.appendChild(wrapper);
+            });
+        }
 
-            // Define gradient: verde -> naranja -> rojo
-            const defs = svg.append("defs");
-            const gradient = defs.append("linearGradient")
-                .attr("id", "timeline-gradient")
-                .attr("x1", "0%").attr("x2", "100%")
-                .attr("y1", "0%").attr("y2", "0%");
-            gradient.append("stop").attr("offset", "0%").attr("stop-color", "#ef4444");   // rojo
-            gradient.append("stop").attr("offset", "60%").attr("stop-color", "#f59e42");  // naranja
-            gradient.append("stop").attr("offset", "100%").attr("stop-color", "#22c55e"); // verde
+        renderPaginationControls(totalPages);
+        setupTooltips();
+    }
 
-            // Helper for points
-            function drawPoint(pos, color, label, date, tooltipExtra = "") {
-                const x = margin.left + pos * (width - margin.left - margin.right);
-                // Punto principal
-                svg.append("circle")
-                    .attr("cx", x)
-                    .attr("cy", height / 2)
-                    .attr("r", 8) // antes 12, ahora 8
-                    .attr("fill", color)
-                    .attr("stroke-width", 3) // antes 4, ahora 3
-                    .attr("class", "timeline-point")
-                    .attr("data-tooltip", `
-                        <div class='font-bold mb-1 bg-white dark:bg-gray-800  text-gray-800 dark:text-gray-100'>${label}</div>
-                        <div class='text-xs mb-1 bg-white dark:bg-gray-800  text-gray-800 dark:text-gray-100'>
-                            <span class='font-semibold'>Fecha:</span> ${formatDate(date)}<br>
-                            <span class='font-semibold'>Hora:</span> ${formatTime(date)}
-                        </div>
-                        <div class='bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100'>${tooltipExtra}</div>
-                    `);
+    function createTimelineSVG(item) {
+        const start = item.AsignationCreated ? new Date(item.AsignationCreated) : null;
+        const attention = item.FollowCreated ? new Date(item.FollowCreated) : null;
+        const end = item.TimeFin ? new Date(item.TimeFin) : attention;
 
-                // Etiqueta de hora debajo
-                svg.append("text")
-                    .attr("x", x)
-                    .attr("y", height / 2 + 18) // antes +30, ahora +18
-                    .attr("text-anchor", "middle")
-                    .attr("class", "fill-gray-800 dark:fill-gray-100 text-xs")
-                    .text(formatTime(date));
-            }
+        if (!start || !attention || !end) return d3.create("svg");
 
-            // Tooltip extra info
-            const tooltipExtra = `
-                <div><span class='font-semibold'>Folio:</span> ${item.Folio}</div>
-                <div><span class='font-semibold'>Módulo:</span> ${item.Modulo}</div>
-                <div><span class='font-semibold'>Problema:</span> ${item.Problema}</div>
-                <div><span class='font-semibold'>Máquina:</span> ${item.Maquina}</div>
-                <div><span class='font-semibold'>Mecánico:</span> ${item.Mecanico}</div>
-            `;
+        const total = end - start || 1;
+        const width = 700, height = 44, margin = { left: 30, right: 30 };
+        const svg = d3.create("svg").attr("width", "100%").attr("viewBox", `0 0 ${width} ${height}`).classed("block", true);
 
-            // Draw points
-            drawPoint(posStart, "#ef4444", "Inicio", item.AsignationCreated, tooltipExtra);
+        const defs = svg.append("defs");
+        const gradient = defs.append("linearGradient").attr("id", "timeline-gradient").attr("x1", "0%").attr("x2", "100%");
+        gradient.append("stop").attr("offset", "0%").attr("stop-color", "#ef4444");
+        gradient.append("stop").attr("offset", "60%").attr("stop-color", "#f59e42");
+        gradient.append("stop").attr("offset", "100%").attr("stop-color", "#22c55e");
 
-            // Nuevo: marca para la hora de inicio de atención (created_at de FollowAtention)
-            // Calcula la posición relativa de la marca de inicio de atención
-            const attentionMarkDate = item.TimeInicio ? new Date(item.TimeInicio) : null;
-            let attentionMarkPos = null;
-            if (item.TimeInicio) {
-                // Si TimeInicio es una fecha/hora válida, calcula la posición
-                attentionMarkPos = ((attentionMarkDate - start) / total);
-                // Dibuja el punto de inicio de atención (puedes ajustar el color y label)
-                drawPoint(attentionMarkPos, "#f59e42", "Inicio Atención", attentionMarkDate, tooltipExtra);
-            }
+        svg.append("rect").attr("x", margin.left).attr("y", height / 2 - 4).attr("width", width - margin.left - margin.right).attr("height", 8).attr("rx", 4).attr("fill", "url(#timeline-gradient)");
 
-            drawPoint(posAttention, "#3b82f6", "Atención", item.FollowCreated, tooltipExtra);
-            if (timeInicioPos !== null && !isNaN(timeInicioPos)) {
+        function drawPoint(pos, color, label, date, tooltipExtra) {
+            if (pos === null || isNaN(pos) || !date) return;
+            const x = margin.left + pos * (width - margin.left - margin.right);
+
+            svg.append("circle")
+                .attr("cx", x)
+                .attr("cy", height / 2)
+                .attr("r", 8)
+                .attr("fill", color)
+                .attr("stroke-width", 3)
+                .attr("class", "timeline-point")
+                .attr("data-tooltip", `
+                    <div class='font-bold mb-1'>${label}</div>
+                    <div class='text-xs mb-1'>
+                        <span class='font-semibold'>Fecha:</span> ${formatDate(date)}<br>
+                        <span class='font-semibold'>Hora:</span> ${formatTime(date)}
+                    </div>
+                    <div>${tooltipExtra}</div>
+                `);
+
+            svg.append("text")
+                .attr("x", x)
+                .attr("y", height / 2 + 18)
+                .attr("text-anchor", "middle")
+                .attr("class", "fill-current text-gray-600 dark:text-gray-300 text-xs")
+                .text(formatTime(date));
+        }
+
+        const tooltipExtra = `
+            <div class='text-xs mt-2 border-t border-gray-600 pt-1'>
+              <div><span class='font-semibold'>Mecánico:</span> ${item.Mecanico || '-'}</div>
+              <div><span class='font-semibold'>Problema:</span> ${item.Problema || '-'}</div>
+            </div>`;
+
+        drawPoint(0, "#ef4444", "Inicio", start, tooltipExtra);
+        drawPoint(((attention - start) / total), "#3b82f6", "Atención", attention, tooltipExtra);
+        drawPoint(1, "#22c55e", "Fin", end, tooltipExtra);
+
+        if (item.TimeInicio) {
+            const timeInicioDate = new Date(item.TimeInicio);
+            if (!isNaN(timeInicioDate.getTime())) {
+                const timeInicioPos = (timeInicioDate - start) / total;
                 drawPoint(timeInicioPos, "#fde047", "TimeInicio", timeInicioDate, tooltipExtra);
             }
-            drawPoint(posEnd, "#22c55e", "Fin", item.TimeFin ? item.TimeFin : item.FollowCreated, tooltipExtra);
+        }
 
-            // Add SVG to wrapper
-            wrapper.appendChild(svg.node());
+        return svg;
+    }
 
-            // Etiquetas de texto
-            const labelDiv = document.createElement('div');
-            labelDiv.className = "flex justify-between w-full min-w-[340px] mt-2 text-xs font-semibold text-gray-800 dark:text-gray-100";
-            labelDiv.innerHTML = `
-                <span>Inicio</span>
-                <span>Fin</span>
-            `;
-            wrapper.appendChild(labelDiv);
+    function renderPaginationControls(totalPages) {
+        const paginationDiv = state.container.querySelector('#timeline-pagination');
+        paginationDiv.innerHTML = '';
+        if (totalPages <= 1) return;
 
-            // Mostrar tiempo completo calculado
-            if (typeof item.TiempoAtencionMin !== "undefined" && item.TiempoAtencionMin !== null) {
-                let min = item.TiempoAtencionMin;
-                let dias = Math.floor(min / 1440);
-                min = min % 1440;
-                let horas = Math.floor(min / 60);
-                min = min % 60;
-                let tiempoStr = [];
-                if (dias > 0) tiempoStr.push(`${dias} día${dias > 1 ? 's' : ''}`);
-                if (horas > 0) tiempoStr.push(`${horas} hora${horas > 1 ? 's' : ''}`);
-                if (min > 0 || tiempoStr.length === 0) tiempoStr.push(`${min} min`);
-                const tiempoDiv = document.createElement('div');
-                tiempoDiv.className = "mt-2 text-center text-sm font-bold text-gray-800 dark:text-gray-100";
-                tiempoDiv.innerText = `Tiempo completo: ${tiempoStr.join(' : ')}`;
-                wrapper.appendChild(tiempoDiv);
-            }
-        });
+        const nav = document.createElement('nav');
+        nav.setAttribute('aria-label', 'Paginación');
+        nav.className = "flex items-center space-x-2";
 
-        // --- PAGINACIÓN: renderizar controles ---
-        renderPaginationControls();
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 ${state.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
+        prevBtn.innerHTML = `Anterior`;
+        prevBtn.disabled = state.currentPage === 1;
+        prevBtn.onclick = () => { if (state.currentPage > 1) { state.currentPage--; render(); } };
+        nav.appendChild(prevBtn);
 
-        // Tooltips con D3 y Tailwind
+        let startPage = Math.max(1, state.currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `px-3 py-2 text-sm font-medium border border-gray-300 ${i === state.currentPage ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700'}`;
+            pageBtn.innerText = i;
+            if (i === state.currentPage) pageBtn.setAttribute('aria-current', 'page');
+            pageBtn.onclick = () => { state.currentPage = i; render(); };
+            nav.appendChild(pageBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 ${state.currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`;
+        nextBtn.innerHTML = `Siguiente`;
+        nextBtn.disabled = state.currentPage === totalPages;
+        nextBtn.onclick = () => { if (state.currentPage < totalPages) { state.currentPage++; render(); } };
+        nav.appendChild(nextBtn);
+
+        paginationDiv.appendChild(nav);
+    }
+
+    function setupTooltips() {
         d3.selectAll(".timeline-point")
             .on("mouseenter", function (event) {
                 const tooltipHtml = this.getAttribute("data-tooltip");
@@ -250,133 +255,69 @@ function renderTimelineBarJS(data) {
                 }
                 tooltip.html(tooltipHtml)
                     .style("opacity", 1)
-                    .style("left", (event.clientX + 10) + "px")
-                    .style("top", (event.clientY - 10) + "px");
+                    .style("left", (event.clientX + 15) + "px")
+                    .style("top", (event.clientY) + "px");
             })
             .on("mousemove", function (event) {
                 d3.select("#d3-timeline-tooltip")
-                    .style("left", (event.clientX + 10) + "px")
-                    .style("top", (event.clientY - 10) + "px");
+                    .style("left", (event.clientX + 15) + "px")
+                    .style("top", (event.clientY) + "px");
             })
             .on("mouseleave", function () {
                 d3.select("#d3-timeline-tooltip").style("opacity", 0);
             });
     }
 
-    // --- PAGINACIÓN: función para renderizar controles ---
-    function renderPaginationControls() {
-        paginationDiv.innerHTML = '';
-        if (totalPages <= 1) return;
+    function getSelectedCalendarFilters() {
+        const monthSelect = document.getElementById('calendar-month');
+        const yearSelect = document.getElementById('calendar-year');
+        const daySelect = document.getElementById('calendar-day');
+        const month = monthSelect ? parseInt(monthSelect.value, 10) : new Date().getMonth();
+        const year = yearSelect ? parseInt(yearSelect.value, 10) : new Date().getFullYear();
+        const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
+        return { month, year, day };
+    }
 
-        // Flowbite/Tailwind pagination
-        const nav = document.createElement('nav');
-        nav.setAttribute('aria-label', 'Paginación');
-        nav.className = "flex items-center space-x-2";
+    async function initializeComponent() {
+        if (state.isInitialized) return;
+        state.isInitialized = true;
 
-        // Botón anterior
-        const prevBtn = document.createElement('button');
-        prevBtn.className = `flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
-        prevBtn.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>Anterior`;
-        prevBtn.disabled = currentPage === 1;
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderFilteredTimeline();
-            }
-        });
-        nav.appendChild(prevBtn);
+        state.container.innerHTML = `<div class="w-full min-h-[500px] flex items-center justify-center text-gray-400 animate-pulse">Cargando Línea de Tiempo...</div>`;
 
-        // Números de página (máximo 5)
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, startPage + 4);
-        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-        for (let i = startPage; i <= endPage; i++) {
-            const pageBtn = document.createElement('button');
-            pageBtn.className = `px-3 py-2 text-sm font-medium border border-gray-300 ${i === currentPage ? 'bg-blue-600 text-white dark:bg-blue-500' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700'}`;
-            pageBtn.innerText = i;
-            if (i === currentPage) pageBtn.setAttribute('aria-current', 'page');
-            pageBtn.addEventListener('click', () => {
-                currentPage = i;
-                renderFilteredTimeline();
-            });
-            nav.appendChild(pageBtn);
+        try {
+            state.rawData = await fetch('/dashboard/timeline-data').then(res => res.json());
+        } catch (e) {
+            console.error("Timeline: Error fetching data:", e);
+            state.container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar datos.</div>';
+            return;
         }
 
-        // Botón siguiente
-        const nextBtn = document.createElement('button');
-        nextBtn.className = `flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`;
-        nextBtn.innerHTML = `Siguiente<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`;
-        nextBtn.disabled = currentPage === totalPages;
-        nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderFilteredTimeline();
-            }
-        });
-        nav.appendChild(nextBtn);
+        renderShell();
+        renderFilters();
+        render(); // Render inicial
 
-        paginationDiv.appendChild(nav);
+        window.addEventListener('calendar:change', () => {
+            state.currentPage = 1; // Resetear página en cambio de calendario
+            render();
+        });
     }
 
-    // Listeners para los filtros
-    selectMecanico.addEventListener('change', () => {
-        currentPage = 1;
-        renderFilteredTimeline();
-    });
-    selectModulo.addEventListener('change', () => {
-        currentPage = 1;
-        renderFilteredTimeline();
-    });
-
-    // Render inicial
-    renderFilteredTimeline();
-}
-
-// NUEVO: Utilidad para obtener mes/año/día seleccionados globalmente
-function getSelectedMonthYearDay() {
-    const monthSelect = document.getElementById('calendar-month');
-    const yearSelect = document.getElementById('calendar-year');
-    const daySelect = document.getElementById('calendar-day');
-    const month = monthSelect ? parseInt(monthSelect.value, 10) : (new Date()).getMonth();
-    const year = yearSelect ? parseInt(yearSelect.value, 10) : (new Date()).getFullYear();
-    const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
-    return { month, year, day };
-}
-
-// NUEVO: Filtrar datos por mes/año/día
-function filterByMonthYearDay(data, year, month, day) {
-    return data.filter(item => {
-        if (!item.created_at) return false;
-        const date = new Date(item.created_at);
-        if (date.getFullYear() !== year || date.getMonth() !== month) return false;
-        if (day !== null && date.getDate() !== day) return false;
-        return true;
-    });
-}
-
-let timelineData = null;
-function fetchTimelineData() {
-    fetch('/dashboard/timeline-data')
-        .then(res => res.json())
-        .then(data => {
-            timelineData = data;
-            const { month, year, day } = getSelectedMonthYearDay();
-            const filtered = filterByMonthYearDay(timelineData, year, month, day);
-            renderTimelineBarJS(filtered);
-        })
-        .catch(error => {
-            console.error('Error al obtener la línea de tiempo:', error);
-        });
-}
-
-// NUEVO: Escuchar cambios globales de mes/año
-window.addEventListener('calendar:change', () => {
-    if (timelineData) {
-        const { month, year, day } = getSelectedMonthYearDay();
-        const filtered = filterByMonthYearDay(timelineData, year, month, day);
-        renderTimelineBarJS(filtered);
+    function init() {
+        state.container = document.getElementById('timeline-container');
+        if (!state.container) return;
+        const observer = new IntersectionObserver((entries, observerInstance) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    initializeComponent();
+                    observerInstance.unobserve(state.container);
+                }
+            });
+        }, { threshold: 0.05 });
+        observer.observe(state.container);
     }
-});
 
-document.addEventListener('DOMContentLoaded', fetchTimelineData);
+    return {
+        init: init
+    };
+})();
+document.addEventListener('DOMContentLoaded', TimelineModule.init);
