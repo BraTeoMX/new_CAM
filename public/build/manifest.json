@@ -11,7 +11,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-DljSxR_Q.css",
+    "file": "assets/app-CM0bLVL-.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -26,7 +26,7 @@
     "isEntry": true
   },
   "resources/js/AsignationOt.js": {
-    "file": "assets/AsignationOt-DJg5w4X5.js",
+    "file": "assets/AsignationOt-wUU5pVvf.js",
     "name": "AsignationOt",
     "src": "resources/js/AsignationOt.js",
     "isEntry": true,
@@ -36,13 +36,13 @@
     ]
   },
   "resources/js/AsisVirFlo.js": {
-    "file": "assets/AsisVirFlo-BifRd6U4.js",
+    "file": "assets/AsisVirFlo-CselJih5.js",
     "name": "AsisVirFlo",
     "src": "resources/js/AsisVirFlo.js",
     "isEntry": true
   },
   "resources/js/FollowAtention.js": {
-    "file": "assets/FollowAtention-DDPKy3yj.js",
+    "file": "assets/FollowAtention-CAalVroF.js",
     "name": "FollowAtention",
     "src": "resources/js/FollowAtention.js",
     "isEntry": true,
@@ -62,9 +62,21 @@
     ]
   },
   "resources/js/IAChat.js": {
-    "file": "assets/IAChat-BLwS5oem.js",
+    "file": "assets/IAChat--3PwqtBc.js",
     "name": "IAChat",
     "src": "resources/js/IAChat.js",
+    "isEntry": true
+  },
+  "resources/js/IAChat/ChatIA.js": {
+    "file": "assets/ChatIA-CArlutRA.js",
+    "name": "ChatIA",
+    "src": "resources/js/IAChat/ChatIA.js",
+    "isEntry": true
+  },
+  "resources/js/IAChat/select2Modulo.js": {
+    "file": "assets/select2Modulo-DirkTVGd.js",
+    "name": "select2Modulo",
+    "src": "resources/js/IAChat/select2Modulo.js",
     "isEntry": true
   },
   "resources/js/Pussher.js": {

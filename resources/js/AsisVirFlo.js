@@ -28,7 +28,7 @@
         const avatar = document.createElement('img');
         avatar.src = '/images/Avatar.webp';
         avatar.alt = 'AI Avatar';
-        avatar.className = 'w-16 h-16 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500';
+        avatar.className = 'w-20 h-20 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500';
 
         button.appendChild(avatar);
 

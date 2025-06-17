@@ -118,9 +118,9 @@ class ChatManager {
         messageDiv.className = 'text-left mb-4 flex items-start gap-2';
         // Avatar
         const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
+        avatarDiv.className = 'relative w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
         avatarDiv.innerHTML = `
-            <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+            <img class="w-20 h-20 p-1 rounded-full ring-2 ring-blue-300 dark:ring-blue-500"
                  src="/images/Avatar.webp"
                  alt="AI Avatar">
         `;
@@ -238,9 +238,9 @@ class ChatManager {
 
         // Agregar avatar
         const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
+        avatarDiv.className = 'relative w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
         avatarDiv.innerHTML = `
-            <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+            <img class="w-20 h-20 p-1 rounded-full ring-2 ring-blue-300 dark:ring-blue-500"
                  src="/images/Avatar.webp"
                  alt="AI Avatar">
         `;
@@ -265,9 +265,9 @@ class ChatManager {
 
         // Agregar avatar
         const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
+        avatarDiv.className = 'relative w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0';
         avatarDiv.innerHTML = `
-            <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+            <img class="w-20 h-20 p-1 rounded-full ring-2 ring-blue-300 dark:ring-blue-500"
                  src="/images/Avatar.webp"
                  alt="AI Avatar">
         `;
@@ -934,8 +934,8 @@ class ChatManager {
 
         // Avatar del asistente
         messageDiv.innerHTML = `
-            <div class="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0">
-                <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+            <div class="relative w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0">
+                <img class="w-20 h-20 p-1 rounded-full ring-2 ring-blue-300 dark:ring-blue-500"
                      src="/images/Avatar.webp"
                      alt="AI Avatar">
             </div>
@@ -985,8 +985,8 @@ class ChatManager {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'text-left mb-4 flex items-start gap-3';
         messageDiv.innerHTML = `
-            <div class="relative w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0">
-                <img class="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 dark:ring-gray-500"
+            <div class="relative w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 flex-shrink-0">
+                <img class="w-20 h-20 p-1 rounded-full ring-2 ring-blue-300 dark:ring-blue-500"
                      src="/images/Avatar.webp"
                      alt="AI Avatar">
             </div>

@@ -14,8 +14,10 @@ export default {
         "./resources/**/*.js",
         "./resources/**/*.vue",
         "./node_modules/flowbite/**/*.js",
+        "./vendor/livewire/flux-pro/stubs/**/*.blade.php",
+        "./vendor/livewire/flux/stubs/**/*.blade.php",
     ],
-    
+
     darkMode: 'class',
     theme: {
         extend: {
@@ -114,6 +116,7 @@ export default {
             },
             fontFamily: {
                 inter: ['Inter', 'sans-serif'],
+                sans: ['Inter', 'sans-serif'],
             },
             fontSize: {
                 xs: ['0.75rem', { lineHeight: '1.5' }],

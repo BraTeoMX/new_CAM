@@ -15,6 +15,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AsignationOTController;
 use App\Http\Controllers\FollowAtentionController;
 use App\Http\Controllers\FormOTMecaController;
+use App\Http\Controllers\InteractionIA;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -104,3 +105,12 @@ Route::get('/api/bahia-info/{folio}', [FollowAtentionController::class, 'getBahi
 Route::post('/reasignar-sin-asignar', [\App\Http\Controllers\AtencionOT::class, 'reasignarSinAsignar']);
 Route::post('/api/encuesta-satisfaccion', [FollowAtentionController::class, 'guardarEncuestaSatisfaccion']);
 
+
+Route::get('/InteractionIA',[InteractionIA::class, 'index']);
+Route::post('/chatbot/render-user-bubble', [InteractionIA::class, 'renderUserBubble'])->name('chatbot.renderUserBubble');
+Route::post('/chatbot/start', [InteractionIA::class, 'startConversation'])->name('chatbot.start');
+Route::post('/chatbot/create-ticket-flow', [InteractionIA::class, 'handleCreateTicket'])->name('chatbot.createTicketFlow');
+Route::post('/chatbot/track-ticket-flow', [InteractionIA::class, 'handleTrackTicket'])->name('chatbot.trackTicketFlow');
+
+// Ruta para obtener módulos (ahora apunta a getModules)
+Route::get('/obtener-modulo', [InteractionIA::class, 'getModules'])->name('chatbot.getModules');
