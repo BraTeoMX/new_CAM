@@ -11,20 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class AdminControlController extends Controller
 {
-    public function Admin()
+    public function index() // SUGERENCIA: Renombrar 'Admin' a 'index' es una convención RESTful.
     {
-        try {
-            // Obtener Segundas y Terceras Generales
-            return view('profile.Admin');
-        } catch (\Exception $e) {
-            // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
-
-            return response()->json([
-                'message' => 'Error al obtener los datos.',
-                'status' => 'error'
-            ], 500);
-        }
+        return view('profile.admin'); // SUGERENCIA: Nombres de vistas en minúscula.
     }
 
     public function getUsers()

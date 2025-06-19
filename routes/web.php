@@ -34,7 +34,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Rutas solo para Administradores
     Route::middleware(['role:Administrador'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/AdminControl', [AdminControlController::class, 'Admin'])->name('Admin');
+        Route::get('/AdminControl', [AdminControlController::class, 'index'])->name('admin.index');
         Route::get('/admin-control/users', [AdminControlController::class, 'getUsers'])->name('admin-control.users');
         Route::post('/admin-control/users', [AdminControlController::class, 'store']);
         Route::get('/admin-control/users/{id}', [AdminControlController::class, 'edit']);
