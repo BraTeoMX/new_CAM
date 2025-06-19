@@ -82,6 +82,7 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/obtener-operarios', [FormGuestController::class, 'ObtenerOperarios']);
     Route::post('/ticketsOT', [FormGuestController::class, 'ticketsOT']);
     Route::get('/asignaciones-ot', [AsignationOTController::class, 'getAsignaciones']);
+    Route::get('/catalogo-problemas', [AsignationOTController::class, 'catalogoProblemas']);
 //Otras rutas
  Route::get('/FollowOT', [FollowAtentionController::class, 'FollowOT']);
 Route::get('/api/clases-maquina/{maquina}', [FollowAtentionController::class, 'getClasesMaquina']);

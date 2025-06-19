@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Vinculacion;
 use App\Models\AsignationOT;
+use App\Models\CatalogoProblema;
 use Carbon\Carbon;
 use App\Events\AsignacionOTCreated;
 use App\Events\ComidaBreakLimpiado; // Agrega este use
@@ -264,5 +265,13 @@ class AsignationOTController extends Controller
         // Emitir evento para que todos los clientes recarguen
         broadcast(new ComidaBreakLimpiado())->toOthers();
         return response()->json(['success' => true]);
+    }
+
+    public function catalogoProblemas()
+    {
+        $problemas = CatalogoProblema::where('estatus', 1)
+            ->orderBy('nombre', 'asc')
+            ->get(['id', 'nombre', 'descripcion']);
+        return response()->json($problemas);
     }
 }

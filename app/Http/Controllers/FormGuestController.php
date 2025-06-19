@@ -61,13 +61,14 @@ class FormGuestController extends Controller
             ], 500);
         }
     }
-        public function ObtenerOperarios(request $request)
+
+    public function ObtenerOperarios(request $request)
     {
         try {
+            // CAMBIO 1: La llave del caché ahora es dinámica e incluye el módulo.
+            $cacheKey = 'operarios_modulo_' . $request->modulo;
 
-            $cacheKey = 'operarios';
-
-            Log::info('Verificando el caché...');
+            Log::info('Verificando el caché para la llave: ' . $cacheKey);
             if (cache()->has($cacheKey)) {
                 Log::info('Cargando operarios desde el caché...');
                 $operarios = cache()->get($cacheKey);
@@ -82,7 +83,8 @@ class FormGuestController extends Controller
 
                 Log::info('Operarios obtenidos: ', $operarios->toArray());
 
-                cache()->put($cacheKey, $operarios, now()->addDay());
+                // CAMBIO 2: El tiempo de expiración ahora es de 5 minutos.
+                cache()->put($cacheKey, $operarios, now()->addMinutes(5));
                 Log::info('Operarios almacenados en caché.');
             }
 

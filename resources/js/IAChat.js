@@ -6,6 +6,7 @@ window.GLOBAL_CHAT_MODULE = null;
 window.GLOBAL_CHAT_MACHINE_INDEX = null;
 window.GLOBAL_CHAT_PROBLEM = null;
 window.GLOBAL_OPERARIO = undefined; // Nueva variable global para operario
+window.GLOBAL_CHAT_PROBLEM_ID = null; // NUEVA variable global para el ID del problema
 
 // Constantes globales
 const MACHINES = [
@@ -56,6 +57,13 @@ class ChatManager {
         // Bind de métodos críticos
         this.handleSubmit = this.handleSubmit.bind(this);
         this.cleanup = this.cleanup.bind(this);
+
+        this.state = {
+            userProblem: '',
+            selectedProblemId: null, // NUEVO: Para almacenar el ID del problema
+            userModule: '',
+            // ... resto de propiedades
+        };
     }
 
     /**
@@ -475,7 +483,7 @@ class ChatManager {
         this.setupMachineSelectListener();
     }
 
-    setupMachineSelectListener() {
+    setupMachineSelectListener() { 
         const select = document.getElementById('machine-select');
         if (!select) return;
 
@@ -502,28 +510,68 @@ class ChatManager {
 
     async askUserProblem(machineIndex) {
         const chatMessages = this.elements.chatMessages;
-        await this.appendChatMessage('Por favor, describe el problema que estás teniendo con la máquina:', chatMessages);
-
-        // Habilitar input para la respuesta
-        this.elements.messageInput.disabled = false;
-        this.elements.messageInput.focus();
-
         this.state.selectedMachineIndex = machineIndex;
-        window.GLOBAL_CHAT_MACHINE_INDEX = machineIndex; // Guardar globalmente
+        window.GLOBAL_CHAT_MACHINE_INDEX = machineIndex;
 
-        // Configurar el manejador para la siguiente respuesta
-        this.state.nextResponseHandler = async(message) => {
-            this.state.userProblem = message || '';
-            window.GLOBAL_CHAT_PROBLEM = this.state.userProblem; // Guardar globalmente
+        // Crear y mostrar el mensaje con el contenedor del select
+        const problemDiv = document.createElement('div');
+        problemDiv.className = 'text-left mb-4';
+        const problemSpan = document.createElement('span');
+        problemSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+        problemSpan.innerHTML = `Excelente. Ahora, por favor, selecciona el problema:<br>
+                                <select id="problema-select" style="width:100%; margin-top: 8px;"></select>`;
+        problemDiv.appendChild(problemSpan);
+        chatMessages.appendChild(problemDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Mostrar el resumen antes de los pasos
-            await this.showSummary(chatMessages);
+        // Deshabilitar el input de texto, ya que no se usará
+        this.elements.messageInput.disabled = true;
 
-            // Continuar con los pasos después de un breve delay
-            setTimeout(() => {
-                this.showSteps(this.state.selectedMachineIndex);
-            }, 1000);
-        };
+        // Inicializar Select2
+        setTimeout(() => {
+            if (window.$ && $('#problema-select').length) {
+                $('#problema-select').select2({
+                    placeholder: 'Busca o selecciona un problema',
+                    ajax: {
+                        url: '/catalogo-problemas', // TU RUTA DEL BACKEND
+                        type: 'GET',
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function(data) {
+                            // Mapea la respuesta del backend al formato que Select2 espera
+                            const results = $.map(data, function(item) {
+                                return {
+                                    id: item.id,
+                                    text: item.nombre // El texto que se mostrará en las opciones
+                                };
+                            });
+                            return { results };
+                        },
+                        cache: true
+                    },
+                    minimumResultsForSearch: 0
+                });
+
+                // Manejar la selección del usuario
+                $('#problema-select').on('select2:select', async (e) => {
+                    const selectedProblem = e.params.data; // {id: "123", text: "Nombre del problema"}
+
+                    // Guardar tanto el ID como el TEXTO del problema
+                    this.state.selectedProblemId = selectedProblem.id;
+                    this.state.userProblem = selectedProblem.text;
+                    
+                    // Guardar en las variables globales también
+                    window.GLOBAL_CHAT_PROBLEM_ID = selectedProblem.id;
+                    window.GLOBAL_CHAT_PROBLEM = selectedProblem.text;
+
+                    // Continuar con el flujo normal
+                    await this.showSummary(chatMessages);
+                    setTimeout(() => {
+                        this.showSteps(this.state.selectedMachineIndex);
+                    }, 1000);
+                });
+            }
+        }, 100);
     }
 
     showSummary(chatMessages) {
@@ -815,6 +863,7 @@ class ChatManager {
                 modulo: modulo,
                 problema: problema,
                 descripcion: problema,
+                problema_id: this.state.selectedProblemId || window.GLOBAL_CHAT_PROBLEM_ID, // <-- LÍNEA AÑADIDA
                 status: statusToSend,
                 maquina: MACHINES[selectedMachineIndex],
                 tiempo_estimado_ia: tiempo_estimado_ia,
@@ -1057,6 +1106,8 @@ class ChatManager {
         this.state.actualStepTimes = {}; // Resetear tiempos reales
         window.iaChatStep = 0;
         window.GLOBAL_OPERARIO = undefined; // Limpiar variable global al resetear
+        this.state.selectedProblemId = null; // NUEVO: Resetear el ID del problema
+        this.state.nextResponseHandler = null;
     }
 
     escapeHtml(text) {
