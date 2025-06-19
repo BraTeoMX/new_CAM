@@ -120,6 +120,7 @@ class FollowAtentionController extends Controller
     // Nuevo método para obtener datos de FollowAtention por folio (si no existe, regresa TimeEjecucion = 0)
     public function getFollowAtentionByFolio($folio)
     {
+        Log::info("Obteniendo datos de FollowAtention para el folio: $folio");
         $follow = \App\Models\FollowAtention::where('Folio', $folio)->first();
         if ($follow) {
             return response()->json([
