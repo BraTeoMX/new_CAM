@@ -46,16 +46,21 @@ class UserAdminController extends Controller
             'puesto' => 'required|string|max:255',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'num_empleado' => $validated['num_empleado'],
-            'password' => bcrypt($validated['password']),
-            'puesto' => $validated['puesto'],
-            'status' => 'Activo', // Puedes ajustar el valor por defecto si lo necesitas
-        ]);
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'num_empleado' => $validated['num_empleado'],
+                'password' => bcrypt($validated['password']),
+                'puesto' => $validated['puesto'],
+            ]);
 
-        return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user]);
+            return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user], 201); // 201 Created es más semántico
+
+        } catch (\Exception $e) {
+            Log::error('Error al crear usuario: ' . $e->getMessage());
+            return response()->json(['message' => 'Ocurrió un error inesperado al crear el usuario.'], 500);
+        }
     }
 
     public function edit($id)
