@@ -50,6 +50,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         //nuevo enfoque de rutas para usuarios
         Route::get('/UserAdmin', [UserAdminController::class, 'index'])->name('user.index');
         Route::get('/UserAdmin/puestos', [UserAdminController::class, 'getPuestos']);
+        Route::post('/UserAdmin/users', [UserAdminController::class, 'store']);
     });
 
 

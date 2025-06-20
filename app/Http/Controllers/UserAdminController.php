@@ -57,6 +57,7 @@ class UserAdminController extends Controller
 
         return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user]);
     }
+
     public function edit($id)
     {
         $user = User::where('id', $id)->firstOrFail();
