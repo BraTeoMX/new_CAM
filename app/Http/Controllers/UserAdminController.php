@@ -18,9 +18,28 @@ class UserAdminController extends Controller
 
     public function getUsers()
     {
-        $users = User::select('id','name', 'email', 'num_empleado', 'puesto', 'status')->get();
-        return response()->json($users);
+        try {
+            $users = User::select(
+                'id',
+                'name',
+                'email',
+                'num_empleado',
+                'puesto',
+                DB::raw("CASE 
+                            WHEN status = 1 THEN 'Activo' 
+                            WHEN status = 0 THEN 'Baja' 
+                            ELSE 'Desconocido' 
+                         END AS status") // Asigna un valor por defecto si no es 0 o 1
+            )->get();
+
+            return response()->json($users);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener la lista de usuarios: ' . $e->getMessage());
+            return response()->json(['message' => 'No se pudo obtener la lista de usuarios.'], 500);
+        }
     }
+
     public function getPuestos()
     {
         $puestos = DB::connection('sqlsrv_dev')

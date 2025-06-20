@@ -51,6 +51,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/UserAdmin', [UserAdminController::class, 'index'])->name('user.index');
         Route::get('/UserAdmin/puestos', [UserAdminController::class, 'getPuestos']);
         Route::post('/UserAdmin/users', [UserAdminController::class, 'store']);
+        Route::get('/UserAdmin/listaUsuarios', [UserAdminController::class, 'getUsers'])->name('users.listaUsuarios');
     });
 
 

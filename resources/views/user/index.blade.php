@@ -32,7 +32,7 @@
                             <th class="px-6 py-3">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="users-table-body" data-users-route="{{ route('admin-control.users') }}">
+                    <tbody id="users-table-body" data-users-route="{{ route('users.listaUsuarios') }}">
                         <script></script>
                     </tbody>
                 </table>
