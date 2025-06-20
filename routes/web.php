@@ -16,6 +16,7 @@ use App\Http\Controllers\AsignationOTController;
 use App\Http\Controllers\FollowAtentionController;
 use App\Http\Controllers\FormOTMecaController;
 use App\Http\Controllers\InteractionIA;
+use App\Http\Controllers\UserAdminController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,6 +47,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/supervisores', [CatalogosController::class, 'getSupervisores']);
         Route::get('/user-photo/{id}', [UserController::class, 'userPhoto'])->middleware('auth');
         Route::get('/FormOTMeca', [FormOTMecaController::class, 'FormOTMec'])->name('FormOTMeca');
+        //nuevo enfoque de rutas para usuarios
+        Route::get('/UserAdmin', [UserAdminController::class, 'index'])->name('user.index');
     });
 
 
