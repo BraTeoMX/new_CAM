@@ -106,8 +106,7 @@
                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Nueva contraseña
                                 </label>
-                                <input type="password" id="edit-password" name="password"
-                                    placeholder="Nueva contraseña"
+                                <input type="password" id="edit-password" name="password" placeholder="Nueva contraseña"
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </div>
                         </div>
@@ -123,21 +122,24 @@
                                 Actualizar
                             </button>
                         </div>
+                    </div>
                 </form>
             </div>
         </div>
         <!-- Nuevo modal para crear usuario -->
-        <div id="modal-usercreate" class="fixed top-0 left-0 right-0 z-50 items-center justify-center hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div id="modal-usercreate"
+            class="fixed top-0 left-0 right-0 z-50 items-center justify-center hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
             <div class="relative w-full max-w-2xl max-h-full">
                 <form id="form-usercreate" class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
-                    <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600 border-gray-200">
+                    <div
+                        class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600 border-gray-200">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
                             Crear Nuevo Usuario
                         </h3>
                         <button type="button" id="btn-close-usercreate"
                             class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
-                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 14 14">
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 14 14">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                     stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                             </svg>
@@ -147,35 +149,41 @@
                     <div class="p-6 space-y-6">
                         <div class="grid grid-cols-6 gap-6">
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="usercreate-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="usercreate-name"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Nombre
                                 </label>
                                 <input type="text" name="usercreate-name" id="usercreate-name" required
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500">
                             </div>
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="usercreate-email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="usercreate-email"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Email
                                 </label>
                                 <input type="email" name="usercreate-email" id="usercreate-email" required
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500">
                             </div>
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="usercreate-num_empleado" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="usercreate-num_empleado"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Número de Empleado
                                 </label>
-                                <input type="text" name="usercreate-num_empleado" id="usercreate-num_empleado" required
+                                <input type="text" name="usercreate-num_empleado" id="usercreate-num_empleado"
+                                    required
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500">
                             </div>
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="usercreate-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="usercreate-password"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Contraseña
                                 </label>
                                 <input type="password" name="usercreate-password" id="usercreate-password" required
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500">
                             </div>
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="usercreate-puesto" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="usercreate-puesto"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Puesto
                                 </label>
                                 <select name="usercreate-puesto" id="usercreate-puesto" required
@@ -185,8 +193,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-end p-6 space-x-3 border-t border-gray-200 rounded-b dark:border-gray-600">
-                        <button type="button" id="btn-cancel-usercreate" class="px-4 py-2 bg-gray-500 text-white rounded">
+                    <div
+                        class="flex items-center justify-end p-6 space-x-3 border-t border-gray-200 rounded-b dark:border-gray-600">
+                        <button type="button" id="btn-cancel-usercreate"
+                            class="px-4 py-2 bg-gray-500 text-white rounded">
                             Cancelar
                         </button>
                         <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">
@@ -200,5 +210,5 @@
     <!-- CSRF Token for JS -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Scripts -->
-    @vite(['resources/js/adminuser.js'])
+    @vite(['resources/js/user/userAdmin.js'])
 </x-app-layout>

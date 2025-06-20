@@ -28,7 +28,8 @@ export default defineConfig({
                 'resources/js/AsisVirFlo.js',
                 'resources/js/dashboard/dashboard.js',
                 'resources/js/IAChat/ChatIA.js',
-                'resources/js/IAChat/select2Modulo.js'
+                'resources/js/IAChat/select2Modulo.js',
+                'resources/js/user/userAdmin.js',
             ],
             refresh: true,
         }),
