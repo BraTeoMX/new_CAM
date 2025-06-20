@@ -49,6 +49,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/FormOTMeca', [FormOTMecaController::class, 'FormOTMec'])->name('FormOTMeca');
         //nuevo enfoque de rutas para usuarios
         Route::get('/UserAdmin', [UserAdminController::class, 'index'])->name('user.index');
+        Route::get('/UserAdmin/puestos', [UserAdminController::class, 'getPuestos']);
     });
 
 

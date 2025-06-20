@@ -34,6 +34,7 @@ class UserAdminController extends Controller
 
         return response()->json($puestos);
     }
+
     // Crear usuario
     public function store(Request $request)
     {
