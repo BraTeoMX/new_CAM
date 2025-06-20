@@ -21,22 +21,34 @@ document.addEventListener('DOMContentLoaded', function () {
         botonCancelarModal.addEventListener('click', cerrarModal);
     }
 
-    const selectPuesto = document.getElementById('usercreate-puesto');
+    const selectPuestoCreacion = document.getElementById('usercreate-puesto');
+    const selectPuestoEdicion = document.getElementById('edit-puesto'); // Nueva referencia
 
     async function cargarPuestos() {
         try {
             const response = await fetch('/UserAdmin/puestos');
             if (!response.ok) { throw new Error(`Error del servidor: ${response.status}`); }
             const puestos = await response.json();
-            selectPuesto.innerHTML = '';
-            selectPuesto.add(new Option('Seleccione un puesto', ''));
+
+            // Limpiamos y llenamos el SELECT DE CREACIÓN
+            selectPuestoCreacion.innerHTML = '';
+            selectPuestoCreacion.add(new Option('Seleccione un puesto', ''));
             puestos.forEach(puesto => {
-                const opcion = new Option(puesto, puesto);
-                selectPuesto.add(opcion);
+                selectPuestoCreacion.add(new Option(puesto, puesto));
             });
+
+            // Limpiamos y llenamos el SELECT DE EDICIÓN
+            selectPuestoEdicion.innerHTML = '';
+            selectPuestoEdicion.add(new Option('Seleccione un puesto', ''));
+            puestos.forEach(puesto => {
+                selectPuestoEdicion.add(new Option(puesto, puesto));
+            });
+
         } catch (error) {
             console.error('No se pudieron cargar los puestos:', error);
-            selectPuesto.innerHTML = '<option value="">Error al cargar puestos</option>';
+            // Mostramos error en ambos selects
+            selectPuestoCreacion.innerHTML = '<option value="">Error al cargar</option>';
+            selectPuestoEdicion.innerHTML = '<option value="">Error al cargar</option>';
         }
     }
 
@@ -171,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
             hiddenUserIdInput.value = ''; // Limpiamos el ID al cerrar
             document.getElementById('edit-name').value = '';
             document.getElementById('edit-email').value = '';
+            document.getElementById('edit-puesto').value = '';
         }
     };
 
@@ -188,8 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Llenamos los campos del formulario con los datos recibidos.
             document.getElementById('edit-name').value = user.name;
             document.getElementById('edit-email').value = user.email;
-            
-            // Los otros campos (puesto y contraseña) los dejamos para después.
+            document.getElementById('edit-puesto').value = user.puesto;
 
         } catch (error) {
             console.error('Error al llenar el formulario de edición:', error);
@@ -223,6 +235,69 @@ document.addEventListener('DOMContentLoaded', function () {
         boton.addEventListener('click', cerrarModalEdicion);
     });
 
+    // 1. Obtenemos la referencia al formulario de edición
+    const formEdicion = document.getElementById('editUserForm');
+
+    if (formEdicion) {
+        // 2. Escuchamos el evento 'submit'
+        formEdicion.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevenimos la recarga de la página
+
+            // 3. Obtenemos los datos del formulario
+            const formData = new FormData(formEdicion);
+            const userId = formData.get('edit-user-id'); // Obtenemos el ID del campo oculto
+
+            // Si no tenemos un ID, no podemos continuar.
+            if (!userId) {
+                alert('Error: No se ha identificado al usuario a editar.');
+                return;
+            }
+            
+            // Convertimos a un objeto simple
+            const data = Object.fromEntries(formData.entries());
+
+            // 4. Lógica clave: si la contraseña está vacía, la eliminamos del objeto
+            // para que el backend no la procese.
+            if (!data.password) {
+                delete data.password;
+            }
+
+            // Obtenemos el token CSRF
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            try {
+                // 5. Hacemos la petición PUT a la ruta de actualización
+                const response = await fetch(`/UserAdmin/users/${userId}`, {
+                    method: 'PUT', // Usamos PUT como definimos en la ruta
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 422) { // Error de validación
+                        alert('Por favor, corrige los errores: ' + Object.values(result.errors).join('\n'));
+                    } else {
+                        throw new Error(result.message || 'Error en el servidor.');
+                    }
+                } else {
+                    // 6. Éxito: mostramos mensaje, cerramos modal y refrescamos la tabla
+                    alert(result.message);
+                    cerrarModalEdicion();
+                    cargarUsuarios(); // ¡Fundamental para ver los cambios reflejados en la tabla!
+                }
+
+            } catch (error) {
+                console.error('Error al actualizar el usuario:', error);
+                alert('No se pudo actualizar el usuario.');
+            }
+        });
+    }
     // --- Llamamos a la función para cargar los usuarios cuando la página esté lista. ---
     cargarUsuarios();
 

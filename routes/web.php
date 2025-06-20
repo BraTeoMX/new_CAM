@@ -53,6 +53,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/UserAdmin/users', [UserAdminController::class, 'store']);
         Route::get('/UserAdmin/listaUsuarios', [UserAdminController::class, 'getUsers'])->name('users.listaUsuarios');
         Route::get('/UserAdmin/users/{user}', [UserAdminController::class, 'show'])->name('users.show');
+        Route::put('/UserAdmin/users/{user}', [UserAdminController::class, 'update'])->name('users.update');
     });
 
 

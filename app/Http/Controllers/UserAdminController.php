@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserAdminController extends Controller
 {
@@ -88,22 +89,37 @@ class UserAdminController extends Controller
     }
 
     // Actualizar usuario
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user) // <-- PASO 1: Firma corregida
     {
-        $request->validate([
+        // Usamos $user->id para ignorar el email del propio usuario en la regla 'unique'
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $id . ',id',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'puesto' => 'required|string|max:255',
+            'password' => 'nullable|string|min:6', // <-- PASO 2: 'nullable' es la clave
         ]);
 
-        $user = User::where('id', $id)->firstOrFail();
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'puesto' => $request->puesto
-        ]);
+        try {
+            // PASO 3: Eliminamos la búsqueda manual, Laravel ya nos dio el $user.
+            // $user = User::where('id', $id)->firstOrFail(); // <-- Ya no es necesaria
 
-        return response()->json(['message' => 'Usuario actualizado correctamente']);
+            // Si se proporcionó una nueva contraseña, la encriptamos.
+            if (!empty($validatedData['password'])) {
+                $validatedData['password'] = Hash::make($validatedData['password']);
+            } else {
+                // Si la contraseña está vacía, la eliminamos del array para no sobreescribirla.
+                unset($validatedData['password']);
+            }
+
+            // Actualizamos el usuario con los datos validados.
+            $user->update($validatedData);
+
+            return response()->json(['message' => 'Usuario actualizado correctamente']);
+
+        } catch (\Exception $e) { // <-- PASO 4: Implementación del try-catch
+            Log::error('Error al actualizar usuario: ' . $e->getMessage());
+            return response()->json(['message' => 'Ocurrió un error inesperado al actualizar el usuario.'], 500);
+        }
     }
 
     // Eliminar usuario
