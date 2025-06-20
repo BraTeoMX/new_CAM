@@ -80,7 +80,7 @@
                                                 @if (Request::segment(1) === 'user.index') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif"
                                                 href="{{ route('user.index') }}">
                                                 <span class="material-symbols-outlined">admin_panel_settings</span>
-                                                <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Panel Admin</span>
+                                                <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Administrar Usuarios</span>
                                             </a>
                                         </li>
                                         <li class="rounded-lg">
