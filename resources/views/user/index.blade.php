@@ -1,16 +1,9 @@
 <x-app-layout>
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-        <!-- Título -->
-        <div class="sm:flex sm:justify-between sm:items-center mb-8">
-            <div class="mb-4 sm:mb-0">
-                <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Admin Control</h1>
-            </div>
-        </div>
         <div class="bg-white dark:bg-gray-800 rounded shadow-md overflow-hidden">
             <div class="p-6 sm:px-10 sm:py-8 flex flex-col">
                 <div class="flex flex-col sm:flex-row items-center justify-between">
                     <h2 class="text-lg sm:text-xl text-gray-800 dark:text-gray-100 font-bold">Administrar Usuarios</h2>
-                    <!-- Nuevo botón para crear usuario -->
                     <button id="btn-open-usercreate"
                         class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
                         <span class="material-symbols-outlined mr-2">person_add</span>
@@ -49,9 +42,7 @@
         <div id="editUserModal" tabindex="-1"
             class="fixed top-0 left-0 right-0 z-50 items-center justify-center hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
             <div class="relative w-full max-w-2xl max-h-full">
-                <!-- Modal content -->
                 <form id="editUserForm" class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
-                    <!-- Modal header -->
                     <div
                         class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600 border-gray-200">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -68,7 +59,6 @@
                             <span class="sr-only">Close modal</span>
                         </button>
                     </div>
-                    <!-- Modal body -->
                     <div class="p-6 space-y-6">
                         <input type="hidden" id="edit-user-id" name="edit-user-id">
 
@@ -110,7 +100,6 @@
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </div>
                         </div>
-                        <!-- Modal footer -->
                         <div
                             class="flex items-center justify-end p-6 space-x-3 border-t border-gray-200 rounded-b dark:border-gray-600">
                             <button type="button"
@@ -207,8 +196,5 @@
             </div>
         </div>
     </div>
-    <!-- CSRF Token for JS -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Scripts -->
     @vite(['resources/js/user/userAdmin.js'])
 </x-app-layout>

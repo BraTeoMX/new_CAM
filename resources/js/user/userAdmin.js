@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- MANEJO DEL MODAL ---
     const botonAbrirModal = document.getElementById('btn-open-usercreate');
     const modalCrearUsuario = document.getElementById('modal-usercreate');
     const botonCerrarModal = document.getElementById('btn-close-usercreate');
@@ -22,11 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
         botonCancelarModal.addEventListener('click', cerrarModal);
     }
 
-    // --- Cargar Puestos en el Select ---
     const selectPuesto = document.getElementById('usercreate-puesto');
 
     async function cargarPuestos() {
-        // ... (código existente para cargar puestos, sin cambios)
         try {
             const response = await fetch('/UserAdmin/puestos');
             if (!response.ok) { throw new Error(`Error del servidor: ${response.status}`); }
