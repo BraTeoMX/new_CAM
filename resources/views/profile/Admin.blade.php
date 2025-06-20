@@ -200,5 +200,5 @@
     <!-- CSRF Token for JS -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Scripts -->
-    @vite(['resources/js/adminuser.js', 'resources/js/usercreate.js'])
+    @vite(['resources/js/adminuser.js'])
 </x-app-layout>

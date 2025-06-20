@@ -100,48 +100,11 @@
         const editPassword = document.getElementById('edit-password');
 
         if (!modal || !editForm || !editUserId || !editName || !editEmail || !editPuesto) {
-            console.error('Error: No se encontraron algunos elementos en el DOM.');
+            console.error('Error: No se encontraron algunos elementos del DOM para editar.');
             return;
         }
 
-        // Delegación de eventos para abrir el modal al hacer clic en "Editar"
-        document.addEventListener('click', event => {
-            // Solo abrir el modal de editar si el botón tiene la clase edit-btn y NO tiene el id btn-open-usercreate
-            if (
-                event.target.classList.contains('edit-btn') &&
-                event.target.id !== 'btn-open-usercreate'
-            ) {
-                const userId = event.target.getAttribute('data-id');
-                if (userId) {
-                    fetch(`/admin-control/users/${encodeURIComponent(userId)}`, {
-                        headers: {
-                            'X-CSRF-TOKEN': getCsrfToken(),
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('No se pudo obtener el usuario');
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!data) throw new Error('Datos de usuario vacíos');
-                        editUserId.value = data.id;
-                        editName.value = data.name;
-                        editEmail.value = data.email;
-                        loadPuestos('edit-puesto', data.puesto);
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                    })
-                    .catch(error => {
-                        console.error('Error obteniendo usuario:', error);
-                        alert('No se pudo cargar el usuario.');
-                    });
-                } else {
-                    console.error('Error: No se encontró el ID del usuario.');
-                }
-            }
-        });
+        // <-- CAMBIO: Ya no ponemos el listener de apertura aquí. Solo la lógica de cierre y envío.
 
         // Cerrar modal
         closeModalButtons.forEach(button => {
@@ -160,7 +123,6 @@
                 email: editEmail.value,
                 puesto: editPuesto.value
             };
-            // Solo enviar la contraseña si el usuario la escribió
             if (editPassword && editPassword.value.trim() !== '') {
                 formData.password = editPassword.value;
             }
@@ -183,7 +145,7 @@
                 Swal.fire('Actualizado', 'Usuario actualizado correctamente', 'success');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-                fetchUsers(); // Refresca la tabla sin recargar la página
+                fetchUsers();
             })
             .catch(error => {
                 console.error('Error actualizando usuario:', error);
@@ -192,11 +154,133 @@
         });
     };
 
-    // Eliminar usuario con confirmación SweetAlert2
-    const setupDeleteUser = () => {
+    // <-- CAMBIO: La función setupDeleteUser ya no es necesaria, porque su lógica se moverá.
+
+    // Lógica del Modal de Creación
+    const setupCreateModal = () => {
+        // <-- CAMBIO: Quitamos la constante btnOpen de aquí porque su listener se moverá.
+        const btnClose = document.getElementById('btn-close-usercreate');
+        const btnCancel = document.getElementById('btn-cancel-usercreate');
+        const modal = document.getElementById('modal-usercreate');
+        const form = document.getElementById('form-usercreate');
+        const selectPuesto = document.getElementById('usercreate-puesto');
+
+        if (!btnClose || !btnCancel || !modal || !form || !selectPuesto) {
+            console.error('Faltan elementos del DOM para el modal de creación de usuario.');
+            return;
+        }
+
+        // <-- CAMBIO: La función openModal ya no es necesaria aquí.
+        
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            form.reset();
+        };
+        
+        // <-- CAMBIO: Eliminamos el listener de btnOpen.
+        btnClose.addEventListener('click', closeModal);
+        btnCancel.addEventListener('click', closeModal);
+
+        // Enviar formulario de creación
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const formData = {
+                name: document.getElementById('usercreate-name').value,
+                email: document.getElementById('usercreate-email').value,
+                num_empleado: document.getElementById('usercreate-num_empleado').value,
+                password: document.getElementById('usercreate-password').value,
+                puesto: document.getElementById('usercreate-puesto').value
+            };
+
+            fetch('/admin-control/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(() => {
+                Swal.fire('Agregado', 'Usuario creado correctamente', 'success');
+                closeModal();
+                fetchUsers();
+            })
+            .catch(error => {
+                console.error('Error creando usuario:', error);
+                const errorMessage = error.message || 'No se pudo crear el usuario.';
+                Swal.fire('Error', errorMessage, 'error');
+            });
+        });
+    };
+
+    // Inicialización principal
+    document.addEventListener('DOMContentLoaded', () => {
+        // Define la ruta global de usuarios si no existe
+        if (!window.USERS_ROUTE) {
+            window.USERS_ROUTE = document.getElementById('users-table-body')?.dataset?.usersRoute || '/admin-control/users';
+        }
+        
+        fetchUsers();
+        setupSearch();
+        setupEditModal(); // Sigue configurando la lógica INTERNA del modal de edición
+        setupCreateModal(); // Sigue configurando la lógica INTERNA del modal de creación
+
+        // <-- CAMBIO: Aquí centralizamos TODOS los listeners de clic que abren modales o inician acciones.
         document.addEventListener('click', event => {
-            if (event.target.classList.contains('delete-btn')) {
-                const userId = event.target.getAttribute('data-id');
+            
+            // Acción: Abrir modal para CREAR usuario
+            if (event.target.closest('#btn-open-usercreate')) {
+                const modal = document.getElementById('modal-usercreate');
+                loadPuestos('usercreate-puesto');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            // Acción: Abrir modal para EDITAR usuario
+            const editButton = event.target.closest('.edit-btn');
+            if (editButton) {
+                const userId = editButton.getAttribute('data-id');
+                const modal = document.getElementById('editUserModal');
+
+                fetch(`/admin-control/users/${encodeURIComponent(userId)}`, {
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('No se pudo obtener el usuario');
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) throw new Error('Datos de usuario vacíos');
+                    document.getElementById('edit-user-id').value = data.id;
+                    document.getElementById('edit-name').value = data.name;
+                    document.getElementById('edit-email').value = data.email;
+                    loadPuestos('edit-puesto', data.puesto);
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                })
+                .catch(error => {
+                    console.error('Error obteniendo usuario:', error);
+                    alert('No se pudo cargar el usuario.');
+                });
+            }
+
+            // Acción: ELIMINAR usuario
+            const deleteButton = event.target.closest('.delete-btn');
+            if (deleteButton) {
+                const userId = deleteButton.getAttribute('data-id');
                 if (!userId) return;
                 Swal.fire({
                     title: '¿Estás seguro?',
@@ -233,16 +317,5 @@
                 });
             }
         });
-    };
-    // Inicialización principal
-    document.addEventListener('DOMContentLoaded', () => {
-        // Define la ruta global de usuarios si no existe
-        if (!window.USERS_ROUTE) {
-            window.USERS_ROUTE = document.getElementById('users-table-body')?.dataset?.usersRoute || '/admin-control/users';
-        }
-        fetchUsers();
-        setupSearch();
-        setupEditModal();
-        setupDeleteUser(); // Agrega la lógica de eliminación
     });
 })();
