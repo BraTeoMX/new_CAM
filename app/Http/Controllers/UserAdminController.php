@@ -82,9 +82,8 @@ class UserAdminController extends Controller
         }
     }
 
-    public function edit($id)
+    public function show(User $user)
     {
-        $user = User::where('id', $id)->firstOrFail();
         return response()->json($user);
     }
 

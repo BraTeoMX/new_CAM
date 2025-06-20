@@ -150,6 +150,79 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // 1. Declaraciones ÚNICAS para el modal de edición. No chocan con las de "Crear".
+    const modalEdicion = document.getElementById('editUserModal');
+    const hiddenUserIdInput = document.getElementById('edit-user-id'); // El campo oculto
+    const botonesCerrarModalEdicion = document.querySelectorAll('.close-edit-user-modal');
+
+    // Función separada para abrir el modal de edición.
+    const abrirModalEdicion = () => {
+        if (modalEdicion) {
+            modalEdicion.classList.remove('hidden');
+            modalEdicion.classList.add('flex');
+        }
+    };
+
+    // Función separada para cerrar el modal de edición.
+    const cerrarModalEdicion = () => {
+        if (modalEdicion) {
+            modalEdicion.classList.add('hidden');
+            modalEdicion.classList.remove('flex');
+            hiddenUserIdInput.value = ''; // Limpiamos el ID al cerrar
+            document.getElementById('edit-name').value = '';
+            document.getElementById('edit-email').value = '';
+        }
+    };
+
+    // --- LÓGICA AÑADIDA: Nueva función para llenar el formulario ---
+    async function llenarFormularioEdicion(userId) {
+        try {
+            // Hacemos la petición a la nueva ruta, pasando el ID del usuario.
+            const response = await fetch(`/UserAdmin/users/${userId}`);
+
+            if (!response.ok) {
+                throw new Error('No se pudo obtener la información del usuario.');
+            }
+            const user = await response.json();
+
+            // Llenamos los campos del formulario con los datos recibidos.
+            document.getElementById('edit-name').value = user.name;
+            document.getElementById('edit-email').value = user.email;
+            
+            // Los otros campos (puesto y contraseña) los dejamos para después.
+
+        } catch (error) {
+            console.error('Error al llenar el formulario de edición:', error);
+            alert('No se pudo cargar la información para editar.');
+            // Si falla, cerramos el modal para no mostrar un formulario vacío/roto.
+            cerrarModalEdicion();
+        }
+    }
+
+    // 2. Delegación de eventos para los botones "Editar" que se crean dinámicamente.
+    tablaBody.addEventListener('click', function (event) {
+        // Solo reaccionamos si se hizo clic en un botón con la clase 'btn-edit'
+        if (event.target && event.target.matches('.btn-edit')) {
+            const userId = event.target.dataset.userId;
+            
+            // 1. Asignamos el ID al campo oculto.
+            if (hiddenUserIdInput) {
+                hiddenUserIdInput.value = userId;
+            }
+
+            // 2. Abrimos el modal (vacío por una fracción de segundo).
+            abrirModalEdicion();
+
+            // 3. Inmediatamente después, llamamos a la función para que lo llene.
+            llenarFormularioEdicion(userId);
+        }
+    });
+
+    // 5. Asignamos el evento de cierre a los botones 'X' y 'Cancelar' del modal de edición.
+    botonesCerrarModalEdicion.forEach(boton => {
+        boton.addEventListener('click', cerrarModalEdicion);
+    });
+
     // --- Llamamos a la función para cargar los usuarios cuando la página esté lista. ---
     cargarUsuarios();
 
