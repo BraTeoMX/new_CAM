@@ -369,4 +369,45 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Llamamos a la función para cargar los usuarios cuando la página esté lista. ---
     cargarUsuarios();
 
+    // Guardamos los SVGs de los iconos en variables para fácil acceso
+    const svgIconEye = `
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+    `;
+    const svgIconEyeOff = `
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.97 9.97 0 01-1.563 3.029m-5.858-.908a3 3 0 00-4.243-4.243"></path></svg>
+    `;
+
+    /**
+     * Configura un botón para alternar la visibilidad de un campo de contraseña.
+     * @param {string} inputId - El ID del input de la contraseña.
+     * @param {string} toggleId - El ID del botón que contiene el icono.
+     */
+    function setupPasswordToggle(inputId, toggleId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleButton = document.getElementById(toggleId);
+
+        // Si alguno de los elementos no existe, no hacemos nada.
+        if (!passwordInput || !toggleButton) {
+            return;
+        }
+
+        toggleButton.addEventListener('click', () => {
+            // Comprueba el tipo actual del input
+            if (passwordInput.type === 'password') {
+                // Si es 'password', lo cambia a 'text' y muestra el icono de ojo abierto
+                passwordInput.type = 'text';
+                toggleButton.innerHTML = svgIconEye;
+            } else {
+                // Si es 'text', lo cambia de nuevo a 'password' y muestra el icono de ojo cerrado
+                passwordInput.type = 'password';
+                toggleButton.innerHTML = svgIconEyeOff;
+            }
+        });
+    }
+
+    // Aplicar al campo de contraseña del modal de CREACIÓN
+    setupPasswordToggle('usercreate-password', 'toggle-usercreate-password');
+
+    // Aplicar al campo de contraseña del modal de EDICIÓN
+    setupPasswordToggle('edit-password', 'toggle-edit-password');
 });

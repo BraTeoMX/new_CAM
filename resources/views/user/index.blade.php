@@ -100,12 +100,15 @@
                                 </select>
                             </div>
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="edit-password"
-                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="edit-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Nueva contraseña
                                 </label>
-                                <input type="password" id="edit-password" name="edit-password" placeholder="Nueva contraseña"
-                                    class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                <div class="relative">
+                                    <input type="password" id="edit-password" name="edit-password" placeholder="Dejar en blanco para no cambiar"
+                                        class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 pr-10"> <button type="button" id="toggle-edit-password" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.97 9.97 0 01-1.563 3.029m-5.858-.908a3 3 0 00-4.243-4.243"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div
@@ -171,12 +174,15 @@
                                     class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500">
                             </div>
                             <div class="col-span-6 sm:col-span-3">
-                                <label for="usercreate-password"
-                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                <label for="usercreate-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Contraseña
                                 </label>
-                                <input type="password" name="usercreate-password" id="usercreate-password" required
-                                    class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500">
+                                <div class="relative">
+                                    <input type="password" name="usercreate-password" id="usercreate-password" required
+                                        class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-green-600 focus:border-green-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500 pr-10"> <button type="button" id="toggle-usercreate-password" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.97 9.97 0 01-1.563 3.029m-5.858-.908a3 3 0 00-4.243-4.243"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-span-6 sm:col-span-3">
                                 <label for="usercreate-puesto"
