@@ -405,9 +405,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Aplicar al campo de contraseña del modal de CREACIÓN
     setupPasswordToggle('usercreate-password', 'toggle-usercreate-password');
-
-    // Aplicar al campo de contraseña del modal de EDICIÓN
     setupPasswordToggle('edit-password', 'toggle-edit-password');
+
+    // 1. Obtener la referencia al campo de búsqueda.
+    const searchInput = document.getElementById('table-search-users');
+
+    // Buena práctica: nos aseguramos de que el campo de búsqueda exista antes de añadirle un evento.
+    if (searchInput) {
+    
+        // 2. Añadir un 'event listener' que se dispare cada vez que el usuario teclea.
+        // El evento 'keyup' se activa justo después de que el valor del input ha cambiado.
+        searchInput.addEventListener('keyup', () => {
+    
+            // 3. Obtener el texto de búsqueda y convertirlo a minúsculas para una búsqueda sin distinción de mayúsculas/minúsculas.
+            const searchTerm = searchInput.value.toLowerCase();
+    
+            // 4. Obtener el cuerpo de la tabla y todas sus filas (<tr>).
+            const tableBody = document.getElementById('users-table-body');
+            const tableRows = tableBody.querySelectorAll('tr');
+    
+            // 5. Recorrer cada fila de la tabla para decidir si se muestra o se oculta.
+            tableRows.forEach(row => {
+    
+                // 6. Obtener todo el contenido de texto de la fila actual y convertirlo a minúsculas.
+                const rowText = row.textContent.toLowerCase();
+    
+                // 7. Comprobar si el texto de la fila incluye el término de búsqueda.
+                if (rowText.includes(searchTerm)) {
+                    // Si coincide, nos aseguramos de que la fila sea visible.
+                    row.style.display = ''; // Restablece el display al valor por defecto (ej. 'table-row').
+                } else {
+                    // Si no coincide, ocultamos la fila.
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
 });
