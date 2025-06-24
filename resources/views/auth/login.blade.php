@@ -10,8 +10,8 @@
         @csrf
         <div class="space-y-4">
             <div>
-                <x-label for="email" value="{{ __('Correo') }}" />
-                <x-input id="email" type="email" name="email" :value="old('email')" required autofocus />
+                <x-label for="email" value="{{ __('Correo o No. de Empleado') }}" />
+                <x-input id="email" type="text" name="email" :value="old('email')" required autofocus />
             </div>
             <div>
                 <x-label for="password" value="{{ __('Contraseña') }}" />
@@ -24,5 +24,5 @@
             </x-button>
         </div>
     </form>
-    <x-validation-errors class="mt-4" />
+    <x-validation-errors-session class="mt-4" />
 </x-authentication-layout>

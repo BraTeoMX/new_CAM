@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
@@ -33,8 +35,35 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
+        Fortify::authenticateUsing(function (Request $request) {
+            
+            // --- INICIA LA MODIFICACIÓN ---
+            // Obtenemos el valor del campo de login (que puede ser email o num_empleado)
+            $login = $request->input(Fortify::username()); // Fortify::username() usualmente devuelve 'email'
+
+            // Buscamos al usuario usando una consulta "OR"
+            // "donde 'email' sea igual al login O 'num_empleado' sea igual al login"
+            $user = User::where(function ($query) use ($login) {
+                $query->where('email', $login)
+                      ->orWhere('num_empleado', $login);
+            })->first();
+            // --- TERMINA LA MODIFICACIÓN ---
+
+
+            if (
+                $user &&
+                Hash::check($request->password, $user->password) &&
+                $user->status == 1
+            ) {
+                return $user;
+            }
+
+            return null;
+        });
+
+
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
 
             return Limit::perMinute(5)->by($throttleKey);
         });
