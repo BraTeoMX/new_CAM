@@ -164,6 +164,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Iteramos sobre cada usuario y creamos una fila en la tabla.
             usuarios.forEach(user => {
+                // Lógica para el botón de cambio de estatus
+                const statusActionText = user.status === 'Activo' ? 'Desactivar' : 'Activar';
+                const statusActionClass = user.status === 'Activo' 
+                    ? 'text-red-600 dark:text-red-500 hover:underline' 
+                    : 'text-green-600 dark:text-green-500 hover:underline';
+
                 const fila = `
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
@@ -182,9 +188,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${user.status}
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 flex items-center space-x-4">
                             <button type="button" class="font-medium text-blue-600 dark:text-blue-500 hover:underline btn-edit" data-user-id="${user.id}">Editar</button>
-                            </td>
+                            
+                            <button type="button" 
+                                    class="font-medium ${statusActionClass} btn-status-change" 
+                                    data-user-id="${user.id}" 
+                                    data-user-name="${user.name}" 
+                                    data-current-status="${user.status}">
+                                ${statusActionText}
+                            </button>
+                        </td>
                     </tr>
                 `;
                 // Añadimos la fila recién creada al cuerpo de la tabla.
@@ -278,7 +292,73 @@ document.addEventListener('DOMContentLoaded', function () {
 
             llenarFormularioEdicion(userId);
         }
+
+        if (event.target && event.target.matches('.btn-status-change')) {
+            const button = event.target;
+            const userId = button.dataset.userId;
+            const userName = button.dataset.userName;
+            const currentStatus = button.dataset.currentStatus;
+
+            // Determinar la acción y configurar el SweetAlert
+            const action = currentStatus === 'Activo' ? 'desactivar' : 'activar';
+            const newStatusText = currentStatus === 'Activo' ? 'Inactivo' : 'Activo';
+
+            Swal.fire({
+                title: `¿Estás seguro?`,
+                text: `Se va a ${action} al usuario "${userName}".`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: `Sí, ¡${action}!`,
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Si el usuario confirma, hacemos la petición al servidor
+                    changeUserStatus(userId, userName, newStatusText);
+                }
+            });
+        }
     });
+
+    async function changeUserStatus(userId, userName, newStatus) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        try {
+            const response = await fetch(`/UserAdmin/users/${userId}/status`, {
+                method: 'PATCH', // PATCH es ideal para actualizaciones parciales
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                // No es necesario enviar un body si el backend simplemente invierte el estado
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Error en el servidor.');
+            }
+
+            // Si todo salió bien, mostramos una alerta de éxito y recargamos la tabla
+            Swal.fire(
+                '¡Actualizado!',
+                `El usuario "${userName}" ahora está ${newStatus.toLowerCase()}.`,
+                'success'
+            );
+
+            cargarUsuarios(); // Recargamos la tabla para mostrar los cambios
+
+        } catch (error) {
+            console.error('Error al cambiar el estatus del usuario:', error);
+            Swal.fire(
+                'Error',
+                `No se pudo cambiar el estatus del usuario. ${error.message}`,
+                'error'
+            );
+        }
+    }
 
     // 5. Asignamos el evento de cierre a los botones 'X' y 'Cancelar' del modal de edición.
     botonesCerrarModalEdicion.forEach(boton => {

@@ -147,4 +147,26 @@ class UserAdminController extends Controller
         }
     }
 
+    public function updateStatus(User $user)
+    {
+        try {
+            // Invierte el valor del estatus
+            // Si es 1 (Activo), lo convierte a 0 (Inactivo) y viceversa.
+            $user->status = !$user->status;
+            $user->save();
+            
+            $newStatus = $user->status ? 'Activo' : 'Inactivo';
+            Log::info("Estatus del usuario {$user->name} (ID: {$user->id}) cambiado a {$newStatus}.");
+
+            return response()->json([
+                'message' => 'Estatus del usuario actualizado correctamente.',
+                'new_status' => $newStatus
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Error al cambiar estatus del usuario ID {$user->id}: " . $e->getMessage());
+            return response()->json(['message' => 'Ocurrió un error inesperado.'], 500);
+        }
+    }
+
 }

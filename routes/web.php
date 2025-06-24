@@ -54,6 +54,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/UserAdmin/listaUsuarios', [UserAdminController::class, 'getUsers'])->name('users.listaUsuarios');
         Route::get('/UserAdmin/users/{user}', [UserAdminController::class, 'show'])->name('users.show');
         Route::put('/UserAdmin/users/{user}', [UserAdminController::class, 'update'])->name('users.update');
+        Route::patch('/UserAdmin/users/{user}/status', [UserAdminController::class, 'updateStatus'])->name('users.updateStatus');
     });
 
 
