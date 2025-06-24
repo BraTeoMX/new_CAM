@@ -1,5 +1,8 @@
 <x-app-layout>
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+        <div class="sm:flex sm:justify-between sm:items-center mb-8">
+            <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Administrar Usuarios</h1>
+        </div>
         <div class="bg-white dark:bg-gray-800 rounded shadow-md overflow-hidden">
             <div class="p-6 sm:px-10 sm:py-8 flex flex-col">
                 <div class="flex flex-col sm:flex-row items-center justify-between">
