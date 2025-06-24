@@ -56,44 +56,40 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/UserAdmin/users/{user}', [UserAdminController::class, 'update'])->name('users.update');
         Route::patch('/UserAdmin/users/{user}/status', [UserAdminController::class, 'updateStatus'])->name('users.updateStatus');
     });
-
-
 });
 
 // Rutas para visitantes (no autenticados)
-Route::middleware(['guest'])->group(function () {
-
-});
- // Rutas para cualquier usuario autenticado
-    Route::get('/active-users', [UserController::class, 'getActiveUsers']);
-    Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
-    Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
-    Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
-    Route::post('/broadcast-status-ot', [AtencionOT::class, 'broadcastStatusOT']);
-    Route::get('/events', [EventController::class, 'index']);
-    Route::get('/responsibles', [EventController::class, 'getResponsibles']);
-    Route::get('/priorities', [EventController::class, 'getPriorities']);
-    Route::post('/events', [EventController::class, 'store']);
-    Route::put('/events/{id}', [EventController::class, 'update']);
-    Route::get('/OTsProgram', [OTsProgramController::class, 'OTsProgram'])->name('OTsProgram');
-    Route::get('/Documentar', [DocumentarController::class, 'Documentar'])->name('Documentar');
-    Route::get('/vinculaciones', [CatalogosController::class, 'getVinculaciones']);
-    Route::post('/vinculaciones', [CatalogosController::class, 'saveVinculaciones']);
-    Route::delete('/vinculaciones/{id}', [CatalogosController::class, 'deleteVinculacion'])->name('vinculacion.delete');
-    Route::post('/reasignar-ot', [AtencionOT::class, 'reasignarOT']);
-    Route::get('/form-ot-data', [FormOTMecaController::class, 'getData']);
+Route::middleware(['guest'])->group(function () {});
+// Rutas para cualquier usuario autenticado
+Route::get('/active-users', [UserController::class, 'getActiveUsers']);
+Route::get('/AtencionOT', [AtencionOT::class, 'AtencionOT'])->name('AtencionOT');
+Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
+Route::post('/update-status', [AtencionOT::class, 'updateStatus']);
+Route::post('/broadcast-status-ot', [AtencionOT::class, 'broadcastStatusOT']);
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/responsibles', [EventController::class, 'getResponsibles']);
+Route::get('/priorities', [EventController::class, 'getPriorities']);
+Route::post('/events', [EventController::class, 'store']);
+Route::put('/events/{id}', [EventController::class, 'update']);
+Route::get('/OTsProgram', [OTsProgramController::class, 'OTsProgram'])->name('OTsProgram');
+Route::get('/Documentar', [DocumentarController::class, 'Documentar'])->name('Documentar');
+Route::get('/vinculaciones', [CatalogosController::class, 'getVinculaciones']);
+Route::post('/vinculaciones', [CatalogosController::class, 'saveVinculaciones']);
+Route::delete('/vinculaciones/{id}', [CatalogosController::class, 'deleteVinculacion'])->name('vinculacion.delete');
+Route::post('/reasignar-ot', [AtencionOT::class, 'reasignarOT']);
+Route::get('/form-ot-data', [FormOTMecaController::class, 'getData']);
 
 
 // Rutas para usuarios sin autenticados
-    Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
-    Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
-    Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
-    Route::get('/obtener-operarios', [FormGuestController::class, 'ObtenerOperarios']);
-    Route::post('/ticketsOT', [FormGuestController::class, 'ticketsOT']);
-    Route::get('/asignaciones-ot', [AsignationOTController::class, 'getAsignaciones']);
-    Route::get('/catalogo-problemas', [AsignationOTController::class, 'catalogoProblemas']);
+Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
+Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
+Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
+Route::get('/obtener-operarios', [FormGuestController::class, 'ObtenerOperarios']);
+Route::post('/ticketsOT', [FormGuestController::class, 'ticketsOT']);
+Route::get('/asignaciones-ot', [AsignationOTController::class, 'getAsignaciones']);
+Route::get('/catalogo-problemas', [AsignationOTController::class, 'catalogoProblemas']);
 //Otras rutas
- Route::get('/FollowOT', [FollowAtentionController::class, 'FollowOT']);
+Route::get('/FollowOT', [FollowAtentionController::class, 'FollowOT']);
 Route::get('/api/clases-maquina/{maquina}', [FollowAtentionController::class, 'getClasesMaquina']);
 Route::post('/api/iniciar-atencion', [FollowAtentionController::class, 'iniciarAtencion'])->middleware('web');
 Route::get('/cardsAteOTs', [AtencionOT::class, 'cardsAteOTs']);
@@ -116,7 +112,7 @@ Route::post('/reasignar-sin-asignar', [\App\Http\Controllers\AtencionOT::class, 
 Route::post('/api/encuesta-satisfaccion', [FollowAtentionController::class, 'guardarEncuestaSatisfaccion']);
 
 
-Route::get('/InteractionIA',[InteractionIA::class, 'index']);
+Route::get('/InteractionIA', [InteractionIA::class, 'index']);
 Route::post('/chatbot/render-user-bubble', [InteractionIA::class, 'renderUserBubble'])->name('chatbot.renderUserBubble');
 Route::post('/chatbot/start', [InteractionIA::class, 'startConversation'])->name('chatbot.start');
 Route::post('/chatbot/create-ticket-flow', [InteractionIA::class, 'handleCreateTicket'])->name('chatbot.createTicketFlow');
