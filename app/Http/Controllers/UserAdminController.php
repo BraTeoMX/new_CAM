@@ -58,13 +58,23 @@ class UserAdminController extends Controller
     // Crear usuario
     public function store(Request $request)
     {
+        // Define los mensajes personalizados aquí
+        $messages = [
+            'name.unique' => 'Ya existe un usuario con este nombre. Por favor, elige otro.',
+            'email.unique' => 'El correo electrónico que ingresaste ya está registrado en el sistema.',
+            'num_empleado.unique' => 'Este número de empleado ya pertenece a otro usuario.',
+            'password.min' => 'La contraseña debe tener al menos :min caracteres.',
+            'required' => 'El campo :attribute es obligatorio.' // Mensaje genérico para campos requeridos
+        ];
+
+        // Pasa las reglas y los mensajes al validador
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:users,name',
             'email' => 'required|email|max:255|unique:users,email',
             'num_empleado' => 'required|string|max:255|unique:users,num_empleado',
             'password' => 'required|string|min:6',
             'puesto' => 'required|string|max:255',
-        ]);
+        ], $messages);
 
         try {
             $user = User::create([
@@ -75,7 +85,7 @@ class UserAdminController extends Controller
                 'puesto' => $validated['puesto'],
             ]);
 
-            return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user], 201); // 201 Created es más semántico
+            return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user], 201);
 
         } catch (\Exception $e) {
             Log::error('Error al crear usuario: ' . $e->getMessage());

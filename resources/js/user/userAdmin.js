@@ -85,22 +85,57 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const result = await response.json();
 
-                if (!response.ok) {
-                    if (response.status === 422) {
-                        console.error('Errores de validación:', result.errors);
-                        alert('Por favor, corrige los errores en el formulario: ' + Object.values(result.errors).join('\n'));
-                    } else {
-                        throw new Error(result.message || 'Ocurrió un error en el servidor.');
-                    }
-                } else {
-                    alert(result.message);
+                if (response.ok) { // La petición fue exitosa (código 2xx)
+                    
+                    // --- CAMBIO 1: ALERTA DE ÉXITO ---
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Usuario Creado!',
+                        text: result.message,
+                        timer: 2000, // La alerta se cierra sola después de 2 segundos
+                        showConfirmButton: false
+                    });
+
                     formCrearUsuario.reset();
                     cerrarModal();
+                    // Opcional: Recargar la tabla de usuarios o añadir el nuevo usuario dinámicamente
+                    // location.reload(); 
+
+                } else { // La petición falló
+
+                    if (response.status === 422) { // Error de validación específico de Laravel
+                        
+                        // --- CAMBIO 2: ALERTA DE VALIDACIÓN (WARNING) ---
+                        // Formateamos los errores para mostrarlos en una lista
+                        const errorMessages = Object.values(result.errors).flat().join('<br>');
+                        
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Datos Inválidos',
+                            html: `Por favor, corrige los siguientes errores:<br><br><div class="text-left">${errorMessages}</div>`
+                        });
+
+                    } else {
+                        
+                        // --- CAMBIO 3: ALERTA DE ERROR GENERAL (DANGER/ERROR) ---
+                        // Para errores 500 u otros problemas del servidor
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error del Servidor',
+                            text: result.message || 'Ocurrió un error inesperado al procesar la solicitud.'
+                        });
+                    }
                 }
 
             } catch (error) {
+                
+                // --- CAMBIO 4: ALERTA DE ERROR DE CONEXIÓN ---
                 console.error('Error al enviar el formulario:', error);
-                alert('No se pudo crear el usuario. Inténtalo de nuevo.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'No se pudo conectar con el servidor. Revisa tu conexión a internet.'
+                });
             }
         });
     }

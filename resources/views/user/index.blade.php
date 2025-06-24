@@ -6,7 +6,13 @@
         <div class="bg-white dark:bg-gray-800 rounded shadow-md overflow-hidden">
             <div class="p-6 sm:px-10 sm:py-8 flex flex-col">
                 <div class="flex flex-col sm:flex-row items-center justify-between">
-                    <h2 class="text-lg sm:text-xl text-gray-800 dark:text-gray-100 font-bold">Administrar Usuarios</h2>
+                    <div class="relative w-full max-w-md">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-2.5 text-gray-500 dark:text-gray-400">person_search</span>
+                        <input type="text" id="table-search-users"
+                            class="block w-full pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            placeholder="Buscar usuarios...">
+                    </div>
                     <button id="btn-open-usercreate"
                         class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
                         <span class="material-symbols-outlined mr-2">person_add</span>
@@ -15,15 +21,6 @@
                 </div>
             </div>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <div class="flex items-center justify-between flex-wrap py-4 bg-white dark:bg-gray-900 px-4">
-                    <div class="relative w-full max-w-md">
-                        <span
-                            class="material-symbols-outlined absolute left-3 top-2.5 text-gray-500 dark:text-gray-400">person_search</span>
-                        <input type="text" id="table-search-users"
-                            class="block w-full pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="Buscar usuarios...">
-                    </div>
-                </div>
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
