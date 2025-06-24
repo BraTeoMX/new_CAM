@@ -72,6 +72,15 @@
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
+                                <label for="edit-num-empleado"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Número de Empleado
+                                </label>
+                                <input type="text" name="edit-num-empleado" id="edit-num-empleado"
+                                    class="shadow-xs bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-3">
                                 <label for="edit-email"
                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Email

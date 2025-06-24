@@ -225,7 +225,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- LÓGICA AÑADIDA: Nueva función para llenar el formulario ---
     async function llenarFormularioEdicion(userId) {
         try {
-            // Hacemos la petición a la nueva ruta, pasando el ID del usuario.
             const response = await fetch(`/UserAdmin/users/${userId}`);
 
             if (!response.ok) {
@@ -233,34 +232,50 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const user = await response.json();
 
-            // Llenamos los campos del formulario con los datos recibidos.
+            // Cerramos el Swal de "cargando" una vez que tenemos los datos
+            Swal.close();
+
+            // Llenamos el formulario
             document.getElementById('edit-name').value = user.name;
             document.getElementById('edit-email').value = user.email;
             document.getElementById('edit-puesto').value = user.puesto;
+            // Limpiamos el campo de contraseña por seguridad
+            document.getElementById('edit-password').value = ''; 
 
         } catch (error) {
             console.error('Error al llenar el formulario de edición:', error);
-            alert('No se pudo cargar la información para editar.');
-            // Si falla, cerramos el modal para no mostrar un formulario vacío/roto.
-            cerrarModalEdicion();
+            // --- CAMBIO: ALERTA DE ERROR AL CARGAR DATOS ---
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al Cargar',
+                text: 'No se pudo cargar la información del usuario para editar.'
+            });
+            // La alerta de error reemplaza a la anterior, y no cerramos el modal 
+            // para que el usuario pueda intentar de nuevo si quiere.
         }
     }
 
     // 2. Delegación de eventos para los botones "Editar" que se crean dinámicamente.
     tablaBody.addEventListener('click', function (event) {
-        // Solo reaccionamos si se hizo clic en un botón con la clase 'btn-edit'
         if (event.target && event.target.matches('.btn-edit')) {
             const userId = event.target.dataset.userId;
             
-            // 1. Asignamos el ID al campo oculto.
             if (hiddenUserIdInput) {
                 hiddenUserIdInput.value = userId;
             }
 
-            // 2. Abrimos el modal (vacío por una fracción de segundo).
             abrirModalEdicion();
 
-            // 3. Inmediatamente después, llamamos a la función para que lo llene.
+            // --- CAMBIO: MOSTRAR ALERTA DE "CARGANDO..." ---
+            Swal.fire({
+                title: 'Cargando datos...',
+                text: 'Por favor, espera.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             llenarFormularioEdicion(userId);
         }
     });
@@ -274,62 +289,83 @@ document.addEventListener('DOMContentLoaded', function () {
     const formEdicion = document.getElementById('editUserForm');
 
     if (formEdicion) {
-        // 2. Escuchamos el evento 'submit'
         formEdicion.addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevenimos la recarga de la página
+            event.preventDefault();
 
-            // 3. Obtenemos los datos del formulario
             const formData = new FormData(formEdicion);
-            const userId = formData.get('edit-user-id'); // Obtenemos el ID del campo oculto
+            const userId = formData.get('edit-user-id');
 
-            // Si no tenemos un ID, no podemos continuar.
             if (!userId) {
-                alert('Error: No se ha identificado al usuario a editar.');
+                // --- CAMBIO: ALERTA DE ERROR POR FALTA DE ID ---
+                Swal.fire('Error', 'No se ha identificado al usuario a editar.', 'error');
                 return;
             }
             
-            // Convertimos a un objeto simple
             const data = Object.fromEntries(formData.entries());
 
-            // 4. Lógica clave: si la contraseña está vacía, la eliminamos del objeto
-            // para que el backend no la procese.
-            if (!data.password) {
-                delete data.password;
+            // Renombramos los campos para que coincidan con el backend
+            const body = {
+                name: data['edit-name'],
+                email: data['edit-email'],
+                puesto: data['edit-puesto'],
+                password: data['edit-password']
+            };
+
+            if (!body.password) {
+                delete body.password;
             }
 
-            // Obtenemos el token CSRF
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             try {
-                // 5. Hacemos la petición PUT a la ruta de actualización
                 const response = await fetch(`/UserAdmin/users/${userId}`, {
-                    method: 'PUT', // Usamos PUT como definimos en la ruta
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(body)
                 });
 
                 const result = await response.json();
 
-                if (!response.ok) {
-                    if (response.status === 422) { // Error de validación
-                        alert('Por favor, corrige los errores: ' + Object.values(result.errors).join('\n'));
-                    } else {
-                        throw new Error(result.message || 'Error en el servidor.');
-                    }
-                } else {
-                    // 6. Éxito: mostramos mensaje, cerramos modal y refrescamos la tabla
-                    alert(result.message);
+                if (response.ok) {
+                    // --- CAMBIO 1: ALERTA DE ÉXITO ---
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Usuario Actualizado!',
+                        text: result.message
+                    });
+                    
                     cerrarModalEdicion();
-                    cargarUsuarios(); // ¡Fundamental para ver los cambios reflejados en la tabla!
+                    cargarUsuarios(); // Fundamental para ver los cambios
+
+                } else {
+                    if (response.status === 422) { // Error de validación
+                        // --- CAMBIO 2: ALERTA DE VALIDACIÓN (WARNING) ---
+                        const errorMessages = Object.values(result.errors).flat().join('<br>');
+                        
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Datos Inválidos',
+                            html: `Por favor, corrige los siguientes errores:<br><br><div class="text-left">${errorMessages}</div>`
+                        });
+
+                    } else {
+                        // --- CAMBIO 3: ALERTA DE ERROR GENERAL (DANGER/ERROR) ---
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error del Servidor',
+                            text: result.message || 'Ocurrió un error inesperado al actualizar.'
+                        });
+                    }
                 }
 
             } catch (error) {
+                // --- CAMBIO 4: ALERTA DE ERROR DE CONEXIÓN ---
                 console.error('Error al actualizar el usuario:', error);
-                alert('No se pudo actualizar el usuario.');
+                Swal.fire('Oops...', 'No se pudo conectar con el servidor.', 'error');
             }
         });
     }

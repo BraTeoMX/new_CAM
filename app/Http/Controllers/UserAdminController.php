@@ -99,35 +99,44 @@ class UserAdminController extends Controller
     }
 
     // Actualizar usuario
-    public function update(Request $request, User $user) // <-- PASO 1: Firma corregida
+    public function update(Request $request, User $user)
     {
-        // Usamos $user->id para ignorar el email del propio usuario en la regla 'unique'
+        // Define mensajes personalizados para una mejor experiencia de usuario.
+        $messages = [
+            'name.unique' => 'El nombre ":input" ya está en uso por otro usuario.',
+            'email.unique' => 'El email ":input" ya está registrado por otro usuario.',
+            'password.min' => 'La nueva contraseña debe tener al menos :min caracteres.',
+            'required' => 'El campo :attribute es obligatorio.'
+        ];
+
+        // Valida los datos. La regla 'unique' ya ignora el registro del usuario actual.
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:users,name,' . $user->id,
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'puesto' => 'required|string|max:255',
-            'password' => 'nullable|string|min:6', // <-- PASO 2: 'nullable' es la clave
-        ]);
+            'password' => 'nullable|string|min:6', // 'nullable' permite que el campo esté vacío.
+        ], $messages);
 
         try {
-            // PASO 3: Eliminamos la búsqueda manual, Laravel ya nos dio el $user.
-            // $user = User::where('id', $id)->firstOrFail(); // <-- Ya no es necesaria
+            // Prepara los datos para la actualización.
+            $updateData = [
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'puesto' => $validatedData['puesto'],
+            ];
 
-            // Si se proporcionó una nueva contraseña, la encriptamos.
+            // Solo si se envió una nueva contraseña, la encriptamos y la añadimos.
             if (!empty($validatedData['password'])) {
-                $validatedData['password'] = Hash::make($validatedData['password']);
-            } else {
-                // Si la contraseña está vacía, la eliminamos del array para no sobreescribirla.
-                unset($validatedData['password']);
+                $updateData['password'] = Hash::make($validatedData['password']);
             }
 
-            // Actualizamos el usuario con los datos validados.
-            $user->update($validatedData);
+            // Actualiza el usuario con los datos preparados.
+            $user->update($updateData);
 
             return response()->json(['message' => 'Usuario actualizado correctamente']);
 
-        } catch (\Exception $e) { // <-- PASO 4: Implementación del try-catch
-            Log::error('Error al actualizar usuario: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar usuario ID ' . $user->id . ': ' . $e->getMessage());
             return response()->json(['message' => 'Ocurrió un error inesperado al actualizar el usuario.'], 500);
         }
     }
