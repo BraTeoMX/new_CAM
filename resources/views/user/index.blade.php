@@ -26,6 +26,7 @@
                         <tr>
                             <th class="px-6 py-3">ID</th>
                             <th class="px-6 py-3">Nombre</th>
+                            <th class="px-6 py-3">Numero de empleado</th>
                             <th class="px-6 py-3">Puesto</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3">Acciones</th>

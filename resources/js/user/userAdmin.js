@@ -180,6 +180,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="text-xs text-gray-500">${user.email}</div>
                         </td>
                         <td class="px-6 py-4">
+                            ${user.num_empleado}
+                        </td>
+                        <td class="px-6 py-4">
                             ${user.puesto}
                         </td>
                         <td class="px-6 py-4">
