@@ -238,8 +238,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Llenamos el formulario
             document.getElementById('edit-name').value = user.name;
             document.getElementById('edit-email').value = user.email;
+            document.getElementById('edit-num-empleado').value = user.num_empleado;
             document.getElementById('edit-puesto').value = user.puesto;
-            // Limpiamos el campo de contraseña por seguridad
             document.getElementById('edit-password').value = ''; 
 
         } catch (error) {
@@ -307,13 +307,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const body = {
                 name: data['edit-name'],
                 email: data['edit-email'],
+                num_empleado: data['edit-num-empleado'],
                 puesto: data['edit-puesto'],
                 password: data['edit-password']
             };
-
-            if (!body.password) {
-                delete body.password;
-            }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 

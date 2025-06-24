@@ -101,9 +101,11 @@ class UserAdminController extends Controller
     // Actualizar usuario
     public function update(Request $request, User $user)
     {
+        Log::info('Actualizando usuario : ' . $user->name);
         // Define mensajes personalizados para una mejor experiencia de usuario.
         $messages = [
             'name.unique' => 'El nombre ":input" ya está en uso por otro usuario.',
+            'num_empleado.unique' => 'El número de empleado ":input" ya ha sido asignado a otro usuario.',
             'email.unique' => 'El email ":input" ya está registrado por otro usuario.',
             'password.min' => 'La nueva contraseña debe tener al menos :min caracteres.',
             'required' => 'El campo :attribute es obligatorio.'
@@ -112,15 +114,18 @@ class UserAdminController extends Controller
         // Valida los datos. La regla 'unique' ya ignora el registro del usuario actual.
         $validatedData = $request->validate([
             'name' => 'required|string|max:255|unique:users,name,' . $user->id,
+            'num_empleado' => 'required|string|max:255|unique:users,num_empleado,' . $user->id,
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'puesto' => 'required|string|max:255',
             'password' => 'nullable|string|min:6', // 'nullable' permite que el campo esté vacío.
         ], $messages);
 
         try {
+            Log::info('Datos validados para actualización: ' . json_encode($validatedData));
             // Prepara los datos para la actualización.
             $updateData = [
                 'name' => $validatedData['name'],
+                'num_empleado' => $validatedData['num_empleado'],
                 'email' => $validatedData['email'],
                 'puesto' => $validatedData['puesto'],
             ];
@@ -128,6 +133,7 @@ class UserAdminController extends Controller
             // Solo si se envió una nueva contraseña, la encriptamos y la añadimos.
             if (!empty($validatedData['password'])) {
                 $updateData['password'] = Hash::make($validatedData['password']);
+                Log::info('Contraseña actualizada para el usuario ID ' . $user->id);
             }
 
             // Actualiza el usuario con los datos preparados.
@@ -141,12 +147,4 @@ class UserAdminController extends Controller
         }
     }
 
-    // Eliminar usuario
-    public function destroy($id)
-    {
-        $user = User::where('id', $id)->firstOrFail();
-        $user->delete();
-
-        return response()->json(['message' => 'Usuario eliminado correctamente']);
-    }
 }
