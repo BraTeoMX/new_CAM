@@ -397,64 +397,64 @@ class ChatManager {
      * Muestra el select2 de operarios según el módulo seleccionado
      */
     showOperarioSelect(modulo) {
-        // Limpiar contenedor
         const container = document.getElementById('operario-select-container');
         if (!container) return;
-        container.innerHTML = `<label class="block mb-2">Selecciona el operario:</label>
-            <select id="operario-select" style="width:100%"></select>`;
 
+        // Limpiar contenedor y preparar el select
+        container.innerHTML = `<label class="block mb-2">Selecciona el operario:</label>
+                            <select id="operario-select" style="width:100%"></select>`;
+
+        // Esperar un poco para asegurar que el DOM esté listo y Select2 pueda inicializarse
         setTimeout(() => {
             if (window.$ && $('#operario-select').length) {
-                $('#operario-select').select2({
-                    placeholder: 'Selecciona un operario',
-                    ajax: {
-                        url: '/obtener-operarios',
-                        type: 'GET',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            // Enviar el término de búsqueda y el módulo
+                // Realizar una única petición AJAX para obtener todos los operarios
+                $.ajax({
+                    url: '/obtener-operarios',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { modulo: modulo }, // Enviamos el módulo para que el backend priorice
+                    success: (data) => {
+                        // Mapear los datos al formato que Select2 espera
+                        const formattedData = $.map(data, function(item) {
                             return {
-                                modulo: modulo,
-                                search: params.term || ''
+                                id: item.NumOperario,
+                                text: `${item.Nombre} - ${item.NumOperario}`
                             };
-                        },
-                        processResults: function(data, params) {
-                            let results = $.map(data, function(item) {
-                                return {
-                                    id: item.NumOperario,
-                                    text: `${item.Nombre} - ${item.NumOperario}`
-                                };
-                            });
-                            // Filtrar en frontend si hay término de búsqueda y el backend no filtra
-                            if (params.term && params.term.length > 0) {
-                                const term = params.term.toLowerCase();
-                                results = results.filter(r => r.text.toLowerCase().includes(term));
-                            }
-                            return { results };
-                        }
+                        });
+
+                        // Inicializar Select2 con los datos cargados localmente
+                        $('#operario-select').select2({
+                            placeholder: 'Selecciona un operario',
+                            data: formattedData, // Aquí pasamos todos los datos de golpe
+                            minimumResultsForSearch: 0, // Muestra el buscador siempre
+                            // No necesitamos 'ajax' aquí porque los datos ya están en el frontend
+                        });
+
+                        // Abrir el dropdown automáticamente al hacer focus
+                        $('#operario-select').on('select2:open', function() {
+                            $('.select2-search__field').focus();
+                        });
+
+                        $('#operario-select').on('select2:select', (e) => {
+                            const operarioId = e.params.data.id;
+                            const operarioText = e.params.data.text;
+                            // Guardar operario seleccionado en el state si lo necesitas
+                            this.state.selectedOperario = { id: operarioId, text: operarioText };
+                            // --- Guardar globalmente nombre y número de operario ---
+                            const parts = operarioText.split(' - ');
+                            window.GLOBAL_OPERARIO = {
+                                nombre: parts[0] || '',
+                                numero: parts[1] || ''
+                            };
+                            // Continuar flujo normal
+                            this.showMachineSelect();
+                        });
                     },
-                    minimumResultsForSearch: 0 // muestra el buscador siempre
-                });
-
-                // Abrir el dropdown automáticamente al hacer focus
-                $('#operario-select').on('select2:open', function() {
-                    $('.select2-search__field').focus();
-                });
-
-                $('#operario-select').on('select2:select', (e) => {
-                    const operarioId = e.params.data.id;
-                    const operarioText = e.params.data.text;
-                    // Guardar operario seleccionado en el state si lo necesitas
-                    this.state.selectedOperario = { id: operarioId, text: operarioText };
-                    // --- Guardar globalmente nombre y número de operario ---
-                    const parts = operarioText.split(' - ');
-                    window.GLOBAL_OPERARIO = {
-                        nombre: parts[0] || '',
-                        numero: parts[1] || ''
-                    };
-                    // Continuar flujo normal
-                    this.showMachineSelect();
+                    error: (jqXHR, textStatus, errorThrown) => {
+                        console.error("Error al cargar operarios:", textStatus, errorThrown);
+                        // Opcional: mostrar un mensaje de error al usuario
+                        alert("No se pudieron cargar los operarios. Por favor, inténtalo de nuevo.");
+                    }
                 });
             }
         }, 100);

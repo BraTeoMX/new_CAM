@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Events\NewOrderNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\AsignationOTController;
+use Illuminate\Support\Facades\Cache;
 
 class FormGuestController extends Controller
 {
@@ -62,35 +63,64 @@ class FormGuestController extends Controller
         }
     }
 
-    public function ObtenerOperarios(request $request)
+    public function ObtenerOperarios(Request $request)
     {
         try {
-            // CAMBIO 1: La llave del caché ahora es dinámica e incluye el módulo.
-            $cacheKey = 'operarios_modulo_' . $request->modulo;
+            // Clave de caché para todos los operarios, no específica del módulo
+            $cacheKeyAllOperarios = 'all_operarios_list';
+            $moduloSolicitado = $request->modulo;
 
-            Log::info('Verificando el caché para la llave: ' . $cacheKey);
-            if (cache()->has($cacheKey)) {
-                Log::info('Cargando operarios desde el caché...');
-                $operarios = cache()->get($cacheKey);
+            Log::info('Verificando el caché para la llave: ' . $cacheKeyAllOperarios);
+
+            if (Cache::has($cacheKeyAllOperarios)) {
+                Log::info('Cargando todos los operarios desde el caché...');
+                $allOperarios = Cache::get($cacheKeyAllOperarios);
             } else {
-                Log::info('Cargando operarios desde la base de datos...');
-                $operarios = DB::connection('sqlsrv_dev')
+                Log::info('Cargando todos los operarios desde la base de datos...');
+                $allOperarios = DB::connection('sqlsrv_dev')
                     ->table('Operarios_Views')
-                    ->select('NumOperario' , 'Nombre')
-                    ->where('Modulo', $request->modulo)
+                    ->select('NumOperario', 'Nombre', 'Modulo') // Asegúrate de seleccionar 'Modulo'
                     ->distinct()
                     ->get();
 
-                Log::info('Operarios obtenidos: ', $operarios->toArray());
+                Log::info('Operarios obtenidos de la BD: ', $allOperarios->toArray());
 
-                // CAMBIO 2: El tiempo de expiración ahora es de 5 minutos.
-                cache()->put($cacheKey, $operarios, now()->addMinutes(5));
-                Log::info('Operarios almacenados en caché.');
+                // Almacenar todos los operarios en caché por 60 minutos (o el tiempo que consideres adecuado)
+                Cache::put($cacheKeyAllOperarios, $allOperarios, now()->addMinutes(10));
+                Log::info('Todos los operarios almacenados en caché.');
             }
 
-            return response()->json($operarios);
+            // Aplicar lógica de ordenamiento y filtrado en el controlador
+            $operariosDelModulo = collect();
+            $otrosOperarios = collect();
+
+            foreach ($allOperarios as $operario) {
+                if ($operario->Modulo === $moduloSolicitado) {
+                    $operariosDelModulo->push($operario);
+                } else {
+                    $otrosOperarios->push($operario);
+                }
+            }
+
+            // Ordenar alfabéticamente los operarios del módulo
+            $operariosDelModulo = $operariosDelModulo->sortBy('Nombre');
+
+            // Ordenar alfabéticamente el resto de los operarios
+            $otrosOperarios = $otrosOperarios->sortBy('Nombre');
+
+            // Combinar las colecciones, poniendo primero los del módulo
+            // Si $operariosDelModulo está vacío, $operariosFinal seguirá conteniendo todos los otros operarios
+            $operariosFinal = $operariosDelModulo->merge($otrosOperarios);
+
+            // Asegurarse de que no haya duplicados finales, aunque con distinct() y la lógica de merge es poco probable
+            // Puedes agregar un unique si hay riesgo de que el merge introduzca duplicados (e.g., si un operario puede estar en múltiples módulos y se quiere ver solo una vez)
+            // En este caso, ya que usamos distinct() al obtener, y luego los separamos por módulo, el merge no debería duplicar si NumOperario es único globalmente.
+            // Si NumOperario no es globalmente único (ej. mismo NumOperario en diferentes módulos), deberías considerar qué campo es el único.
+            // Por simplicidad, asumiremos que NumOperario es único para cada persona.
+
+            return response()->json($operariosFinal->values()); // .values() para reindexar el array JSON
         } catch (\Exception $e) {
-            Log::error($e->getMessage());
+            Log::error('Error en ObtenerOperarios: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los Operarios',
