@@ -16,32 +16,22 @@ class FormGuestController extends Controller
 {
     public function FormGuest()
     {
-        try {
-            // Obtener Segundas y Terceras Generales
-            return view('pages.FormGuest.FormGuest');
-        } catch (\Exception $e) {
-            // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
-
-            return response()->json([
-                'message' => 'Error al obtener los datos.',
-                'status' => 'error'
-            ], 500);
-        }
+        return view('pages.FormGuest.FormGuest');
     }
+
     public function ObtenerModulos()
     {
         try {
             $cacheKey = 'modulos';
 
-            Log::info('Verificando caché para módulos.'); // Log más directo
+            //Log::info('Verificando caché para módulos.'); // Log más directo
 
             // Usar la fachada Cache de forma consistente para mayor claridad
             if (Cache::has($cacheKey)) {
-                Log::info('Cargando módulos desde el caché...');
+                //Log::info('Cargando módulos desde el caché...');
                 $modulos = Cache::get($cacheKey);
             } else {
-                Log::info('Cargando módulos desde la base de datos...');
+                //Log::info('Cargando módulos desde la base de datos...');
                 $modulos = DB::connection('sqlsrv_dev')
                     ->table('Supervisores_views')
                     ->select('Modulo')
@@ -49,11 +39,11 @@ class FormGuestController extends Controller
                     ->orderBy('Modulo') // Opcional: Ordenar los resultados para una visualización consistente
                     ->get();
 
-                Log::info('Módulos obtenidos: ', $modulos->toArray());
+                //Log::info('Módulos obtenidos: ', $modulos->toArray());
 
                 // Guardar en caché por un día, ya que parece que estos datos no cambian con frecuencia
                 Cache::put($cacheKey, $modulos, now()->addDay());
-                Log::info('Módulos almacenados en caché.');
+                //Log::info('Módulos almacenados en caché.');
             }
 
             return response()->json($modulos);
@@ -74,24 +64,24 @@ class FormGuestController extends Controller
             $cacheKeyAllOperarios = 'all_operarios_list';
             $moduloSolicitado = $request->modulo;
 
-            Log::info('Verificando el caché para la llave: ' . $cacheKeyAllOperarios);
+            //Log::info('Verificando el caché para la llave: ' . $cacheKeyAllOperarios);
 
             if (Cache::has($cacheKeyAllOperarios)) {
-                Log::info('Cargando todos los operarios desde el caché...');
+                //Log::info('Cargando todos los operarios desde el caché...');
                 $allOperarios = Cache::get($cacheKeyAllOperarios);
             } else {
-                Log::info('Cargando todos los operarios desde la base de datos...');
+                //Log::info('Cargando todos los operarios desde la base de datos...');
                 $allOperarios = DB::connection('sqlsrv_dev')
                     ->table('Operarios_Views')
                     ->select('NumOperario', 'Nombre', 'Modulo') // Asegúrate de seleccionar 'Modulo'
                     ->distinct()
                     ->get();
 
-                Log::info('Operarios obtenidos de la BD: ', $allOperarios->toArray());
+                //Log::info('Operarios obtenidos de la BD: ', $allOperarios->toArray());
 
                 // Almacenar todos los operarios en caché por 60 minutos (o el tiempo que consideres adecuado)
                 Cache::put($cacheKeyAllOperarios, $allOperarios, now()->addMinutes(10));
-                Log::info('Todos los operarios almacenados en caché.');
+                //Log::info('Todos los operarios almacenados en caché.');
             }
 
             // Aplicar lógica de ordenamiento y filtrado en el controlador
@@ -136,7 +126,7 @@ class FormGuestController extends Controller
     public function ticketsOT(Request $request)
     {
         try {
-            Log::info('Iniciando creación de ticket:', $request->all());
+            //Log::info('Iniciando creación de ticket:', $request->all());
 
             // Validación actualizada
             $validatedData = $request->validate([
@@ -159,7 +149,7 @@ class FormGuestController extends Controller
                 ->exists();
 
             if (!$moduloExists) {
-                Log::warning('Módulo no encontrado:', ['modulo' => $sanitizedData['modulo']]);
+                //Log::warning('Módulo no encontrado:', ['modulo' => $sanitizedData['modulo']]);
                 return response()->json([
                     'success' => false,
                     'message' => 'El módulo especificado no existe'
@@ -186,12 +176,12 @@ class FormGuestController extends Controller
                 'updated_at' => now()
             ];
 
-            Log::info('Preparando para crear ticket:', $ticketData);
+            //Log::info('Preparando para crear ticket:', $ticketData);
 
             // Crear el ticket dentro de una transacción
             $ticket = DB::transaction(function () use ($ticketData) {
                 $newTicket = TicketOT::create($ticketData);
-                Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
+                //Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
                 return $newTicket;
             });
 

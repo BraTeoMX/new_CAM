@@ -11,15 +11,7 @@ class CatalogosController extends Controller
 {
     public function Catalogos()
     {
-        try {
-            return view('profile.AdminCatal');
-        } catch (\Exception $e) {
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Error al obtener los datos.',
-                'status' => 'error'
-            ], 500);
-        }
+        return view('profile.AdminCatal');
     }
 
     public function getMecanicos()
