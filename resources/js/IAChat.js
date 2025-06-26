@@ -743,7 +743,7 @@ class ChatManager {
             timerDiv.querySelector('#final-question-timer').textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
         }
 
-        // --- Botones ---
+        // --- Botones --- 
         questionSpan.innerHTML = `
             <p>¿Pudiste resolver el problema, con los pasos de ayuda?</p>
             <div class="flex flex flex-col sm:flex-row w-full gap-4 mt-3">
@@ -970,7 +970,7 @@ class ChatManager {
                 text: 'Hubo un error al procesar la solicitud'
             });
         }
-    }
+    } 
 
     // Mostrar pregunta final con ambos botones y flujos correctos
     async showFinalResetQuestion(chatMessages) {

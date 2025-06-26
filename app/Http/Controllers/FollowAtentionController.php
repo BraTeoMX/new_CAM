@@ -20,18 +20,7 @@ class FollowAtentionController extends Controller
 
     public function FollowOT()
     {
-        try {
-            // Obtener Segundas y Terceras Generales
-            return view('pages.FormGuest.FollowUpAtention');
-        } catch (\Exception $e) {
-            // Manejar la excepción, por ejemplo, loguear el error
-            Log::error('Error al obtener Segundas: ' . $e->getMessage());
-
-            return response()->json([
-                'message' => 'Error al obtener los datos.',
-                'status' => 'error'
-            ], 500);
-        }
+        return view('pages.FormGuest.FollowUpAtention');
     }
 
     public function getClasesMaquina($maquina)
