@@ -271,7 +271,7 @@ class AsignationOTController extends Controller
     {
         $problemas = CatalogoProblema::where('estatus', 1)
             ->orderBy('nombre', 'asc')
-            ->get(['id', 'nombre', 'descripcion']);
+            ->get(['id', 'nombre', 'descripcion', 'pasos']);
         return response()->json($problemas);
     }
 }

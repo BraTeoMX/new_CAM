@@ -542,7 +542,8 @@ class ChatManager {
                             const results = $.map(data, function(item) {
                                 return {
                                     id: item.id,
-                                    text: item.nombre // El texto que se mostrará en las opciones
+                                    text: item.nombre, // El texto que se mostrará en las opciones
+                                    pasos: item.pasos 
                                 };
                             });
                             return { results };
@@ -554,21 +555,38 @@ class ChatManager {
 
                 // Manejar la selección del usuario
                 $('#problema-select').on('select2:select', async (e) => {
-                    const selectedProblem = e.params.data; // {id: "123", text: "Nombre del problema"}
+                    const selectedProblem = e.params.data; // Ahora contiene {id, text, pasos}
 
-                    // Guardar tanto el ID como el TEXTO del problema
+                    // --- Guardar la información del problema seleccionado (esto es común para ambos flujos) ---
                     this.state.selectedProblemId = selectedProblem.id;
                     this.state.userProblem = selectedProblem.text;
-                    
-                    // Guardar en las variables globales también
                     window.GLOBAL_CHAT_PROBLEM_ID = selectedProblem.id;
                     window.GLOBAL_CHAT_PROBLEM = selectedProblem.text;
-
-                    // Continuar con el flujo normal
+                    
+                    // Mostramos el resumen en ambos casos para que el usuario vea su selección.
                     await this.showSummary(chatMessages);
-                    setTimeout(() => {
-                        this.showSteps(this.state.selectedMachineIndex);
-                    }, 1000);
+
+                    // --- ¡NUEVO! Aquí está la lógica condicional ---
+                    if (selectedProblem.pasos == '0') {
+                        // ---- FLUJO SIN PASOS DE AYUDA ----
+                        console.log('Problema sin pasos de ayuda. Generando ticket directamente.');
+
+                        // Añadimos un pequeño delay para que el usuario pueda leer el resumen
+                        setTimeout(() => {
+                            // Llamamos a handleResponse con 'false', simulando que el usuario presionó "NO"
+                            // Esto generará un ticket con estado 'SIN_ASIGNAR'.
+                            this.handleResponse(false); 
+                        }, 1500); // 1.5 segundos de espera
+
+                    } else {
+                        // ---- FLUJO NORMAL (CON PASOS DE AYUDA) ----
+                        console.log('Problema con pasos de ayuda. Mostrando guía.');
+                        
+                        // Continuamos con la secuencia original de mostrar los pasos.
+                        setTimeout(() => {
+                            this.showSteps(this.state.selectedMachineIndex);
+                        }, 1000); // 1 segundo de espera
+                    }
                 });
             }
         }, 100);
