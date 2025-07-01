@@ -60,7 +60,6 @@ class UserController extends Controller
      */
     public function userPhoto($id)
     {
-        // 1. Punto de Entrada
         Log::info("--- INICIO de petición de foto para ID: {$id} ---");
 
         if (!Auth::check()) {
@@ -68,70 +67,75 @@ class UserController extends Controller
             return response()->json(['message' => 'No autorizado'], 401);
         }
 
-        $cacheKey = 'user-photo-webp-v3-' . $id;
-        $cacheDuration = 3600;
+        // Ruta donde guardarás las imágenes en tu proyecto Laravel
+        $storagePath = public_path('fotos-usuarios');
+        if (!file_exists($storagePath)) {
+            mkdir($storagePath, 0755, true);
+        }
 
-        // 2. Lógica de Caché
-        //Log::info("Para ID: {$id}, buscando en caché con la clave: '{$cacheKey}'");
-        $imageData = Cache::remember($cacheKey, $cacheDuration, function () use ($id) {
+        $filenameWebp = $id . '.webp';
+        $fullPath = $storagePath . '/' . $filenameWebp;
 
-            // Este bloque solo se ejecuta si la imagen NO está en el caché.
-            //Log::info("Para ID: {$id}, no se encontró en caché. Iniciando obtención externa.");
-
-            $filename = $id . '.jpg';
-            $externalUrl = "http://128.150.102.45:8000/Intimark/" . $filename;
-            //Log::info("Para ID: {$id}, URL externa a consultar: {$externalUrl}");
-
-            try {
-                $response = Http::timeout(5)->get($externalUrl);
-                //Log::info("Para ID: {$id}, respuesta del servidor externo recibida con status: " . $response->status());
-
-                if ($response->successful() && str_starts_with($response->header('Content-Type'), 'image/')) {
-                   // Log::info("Para ID: {$id}, la respuesta fue exitosa y es una imagen. Iniciando conversión a WebP.");
-
-                    // --- Lógica de Intervention Image v3 ---
-                    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-                    //Log::info("Para ID: {$id}, ImageManager creado.");
-
-                    $image = $manager->read($response->body());
-                    //Log::info("Para ID: {$id}, imagen leída en memoria.");
-
-                    $encodedImage = $image->encode(new \Intervention\Image\Encoders\WebpEncoder(quality: 75));
-                    //Log::info("Para ID: {$id}, imagen codificada a WebP exitosamente.");
-
-                    // Se retorna la imagen para ser guardada en caché.
-                    return (string) $encodedImage;
-                } else {
-                    //Log::warning("Para ID: {$id}, la respuesta del servidor externo NO fue exitosa o no es una imagen. Status: {$response->status()}, Content-Type: {$response->header('Content-Type')}");
-                    return null; // No cachear un resultado fallido
-                }
-
-            } catch (\Exception $e) {
-                //Log::error("Para ID: {$id}, EXCEPCIÓN CATASTRÓFICA durante la obtención/conversión: " . $e->getMessage());
-                return null; // No cachear un resultado fallido
-            }
-        });
-
-        // 3. Lógica de Respuesta
-        if ($imageData) {
-            //Log::info("Para ID: {$id}, se encontraron datos de imagen (desde caché o recién creados). Enviando respuesta WEBP.");
-            //Log::info("--- FIN de petición para ID: {$id} ---");
-            return \Illuminate\Support\Facades\Response::make($imageData, 200, [
+        // Si el archivo ya existe, simplemente lo retornamos
+        if (file_exists($fullPath)) {
+            Log::info("Imagen para ID: {$id} ya existe localmente. Sirviendo desde almacenamiento.");
+            return response()->file($fullPath, [
                 'Content-Type' => 'image/webp',
-                'Content-Disposition' => 'inline; filename="' . $id . '.webp"',
-                'Cache-Control' => 'public, max-age=' . $cacheDuration,
+                'Content-Disposition' => 'inline; filename="' . $filenameWebp . '"',
             ]);
         }
-        // 4. Lógica de Fallback (si todo lo anterior falló)
-        //Log::warning("Para ID: {$id}, no se pudieron obtener los datos de la imagen. Sirviendo AVATAR POR DEFECTO.");
 
+        // Verificar si ya se intentó esta descarga hoy
+        $cacheKeyCheck = 'user-photo-daily-check-' . $id;
+        if (Cache::has($cacheKeyCheck)) {
+            Log::info("Ya se intentó obtener imagen del ID: {$id} hoy. No se volverá a intentar.");
+            return $this->serveDefaultAvatar($id);
+        }
+
+        // Registrar que ya se intentó hoy (1 día de vida)
+        Cache::put($cacheKeyCheck, true, now()->addDay());
+
+        // Si no existe, intentamos descargarla desde servidor externo
+        $externalUrl = "http://128.150.102.45:8000/Intimark/" . $id . '.jpg';
+
+        try {
+            $response = Http::timeout(5)->get($externalUrl);
+
+            if ($response->successful() && str_starts_with($response->header('Content-Type'), 'image/')) {
+                // Convertir a WebP y guardar
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                $image = $manager->read($response->body());
+                $encodedImage = $image->encode(new \Intervention\Image\Encoders\WebpEncoder(quality: 75));
+
+                file_put_contents($fullPath, (string)$encodedImage);
+
+                Log::info("Imagen para ID: {$id} descargada, convertida y guardada localmente.");
+
+                return response()->file($fullPath, [
+                    'Content-Type' => 'image/webp',
+                    'Content-Disposition' => 'inline; filename="' . $filenameWebp . '"',
+                ]);
+            } else {
+                Log::warning("Respuesta inválida para ID: {$id}. Status: {$response->status()}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Error al obtener o convertir imagen para ID: {$id}. " . $e->getMessage());
+        }
+
+        // Si falla todo, mostrar avatar por defecto
+        return $this->serveDefaultAvatar($id);
+    }
+
+    private function serveDefaultAvatar($id)
+    {
         $defaultPath = public_path('default-avatar.webp');
         if (!file_exists($defaultPath)) {
             $defaultPath = public_path('default-avatar.jpg');
         }
-        //Log::info("Para ID: {$id}, ruta del avatar por defecto: {$defaultPath}");
-        //Log::info("--- FIN de petición para ID: {$id} (con fallback) ---");
-        return \Illuminate\Support\Facades\Response::file($defaultPath, [
+
+        Log::info("Sirviendo avatar por defecto para ID: {$id}");
+
+        return response()->file($defaultPath, [
             'Content-Disposition' => 'inline; filename="default-avatar.' . pathinfo($defaultPath, PATHINFO_EXTENSION) . '"',
             'Cache-Control' => 'public, max-age=3600',
         ]);
