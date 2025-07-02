@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded', function () {
                          data-cvetra="${mecanico.cvetra || ''}"
                          data-index="${mecanicosData.indexOf(mecanico)}">
                         <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
-                             src="${getMecanicoImageUrl(mecanico.nombre)}"
-                             alt="${mecanico.cvetra}"/>
+                            src="${getMecanicoImageUrl(mecanico.nombre)}"
+                            onerror="this.onerror=null; this.src='/fotos-usuarios/default-avatar.webp';"
+                            alt="${mecanico.cvetra}"/>
                         <div>
                             <h3 class="font-medium">${mecanico.nombre}</h3>
                             <p class="text-sm text-gray-500">${mecanico.cvetra}</p>
@@ -187,12 +188,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateMecanicoCell(row, mecanico) {
         const mecanicoCell = row.querySelector('[name="mecanico"]');
         const img = mecanicoCell.querySelector('img');
+
+        img.onerror = function () {
+            this.onerror = null; // evitar bucle si falla también el default
+            this.src = '/fotos-usuarios/default-avatar.webp';
+        };
+
         img.src = getMecanicoImageUrl(mecanico.nombre);
         img.alt = mecanico.cvetra;
+
         mecanicoCell.querySelector('.mecanico-nombre').textContent = mecanico.nombre;
         row.setAttribute('data-cvetra', mecanico.cvetra);
     }
-
     function updateSupervisorCell(row, supervisor) {
         const cell = row.querySelector('[name="supervisor-modulo"]');
         cell.innerHTML = `Mod: ${supervisor.Modulo}<br>Sup: ${supervisor.Nombre}`;
@@ -374,8 +381,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <div class="flex items-center gap-2">
                                         <div class="flex-shrink-0">
                                             <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
-                                                 src="${getMecanicoImageUrl(mec.nombre)}"
-                                                 alt="${mec.nombre}"/>
+                                                src="${getMecanicoImageUrl(mec.nombre)}"
+                                                onerror="this.onerror=null; this.src='/fotos-usuarios/default-avatar.webp';"
+                                                alt="${mec.nombre}"/>
                                         </div>
                                         <span class="mecanico-nombre">${mec.nombre}</span>
                                     </div>
