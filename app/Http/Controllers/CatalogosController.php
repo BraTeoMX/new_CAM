@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\Vinculacion;
 
 class CatalogosController extends Controller
 {
@@ -63,7 +64,7 @@ class CatalogosController extends Controller
             // Sincronizar supervisores antes de retornar las vinculaciones
             $this->syncSupervisoresWithCatalog();
 
-            $vinculaciones = \App\Models\Vinculacion::select(
+            $vinculaciones = Vinculacion::select(
                 'id',
                 'Supervisor',
                 'Num_Mecanico',
@@ -135,7 +136,7 @@ class CatalogosController extends Controller
                 if (!empty($vinculacion['id'])) {
                     // Actualizar vinculación existente usando su ID específico
                     Log::info('Actualizando vinculación existente:', ['id' => $vinculacion['id']]);
-                    \App\Models\Vinculacion::where('id', $vinculacion['id'])
+                    Vinculacion::where('id', $vinculacion['id'])
                         ->update([
                             'Supervisor' => $vinculacion['Supervisor'],
                             'Num_Mecanico' => $vinculacion['Num_Mecanico'],
@@ -151,7 +152,7 @@ class CatalogosController extends Controller
                 } else if (!empty($vinculacion['Supervisor']) && !empty($vinculacion['Mecanico'])) {
                     // Crear nueva vinculación
                     Log::info('Creando nueva vinculación');
-                    \App\Models\Vinculacion::create([
+                    Vinculacion::create([
                         'Supervisor' => $vinculacion['Supervisor'],
                         'Num_Mecanico' => $vinculacion['Num_Mecanico'],
                         'Mecanico' => $vinculacion['Mecanico'],
@@ -194,7 +195,7 @@ class CatalogosController extends Controller
         try {
             Log::info('Iniciando eliminación de vinculación:', ['id' => $id]);
 
-            $vinculacion = \App\Models\Vinculacion::find($id);
+            $vinculacion = Vinculacion::find($id);
 
             if (!$vinculacion) {
                 return response()->json([

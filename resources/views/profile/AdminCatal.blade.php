@@ -57,7 +57,7 @@
                             <th id="col-break-v" name="break-v"
                                 class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Break Viernes</th>
-                            <th class="px-4 py-2"></th>
+                            <th class="px-4 py-2">Accion</th>
                         </tr>
                     </thead>
                     <tbody id="vinculacion-tbody">
