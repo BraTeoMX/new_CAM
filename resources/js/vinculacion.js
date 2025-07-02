@@ -202,14 +202,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const times = [];
         for (let hour = 8; hour <= 17; hour++) {
             ['00', '10', '15', '20', '25', '30', '35', '40', '45', '50'].forEach(minute => {
-                if (hour < 18) { // Simplificado para incluir hasta las 17:50
+                if (hour < 18) {
                     times.push(`${String(hour).padStart(2, '0')}:${minute}`);
                 }
             });
         }
         
-        return `<div class="flex items-center gap-1">
-            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-1/2" 
+        return `<div class="flex flex-col sm:flex-row items-center gap-1">
+            <select class="bg-transparent border-gray-300 dark:border-gray-700 rounded w-full sm:w-[58%]" 
                     onchange="updateEndTime(this)">
                 <option value="">Inicio</option>
                 ${times.map(time => 
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ).join('')}
             </select>
             <input type="text" value="${endValue}" readonly 
-                   class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 rounded w-1/2 text-center">
+                class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 rounded w-full sm:w-[42%] text-center">
         </div>`;
     }
 

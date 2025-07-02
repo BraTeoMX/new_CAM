@@ -39,7 +39,7 @@
             <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Mecánico - Módulo/Supervisor
             </h2>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700" id="tabla-vinculacion">
+                <table class="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700" id="tabla-vinculacion">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th id="col-supervisor-modulo" name="supervisor-modulo"
@@ -49,14 +49,17 @@
                                 class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Mecánico</th>
                             <th id="col-comida" name="comida"
-                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Hora Comida</th>
+                                class="px-4 py-2 text-left text-xs font-medium ... uppercase min-w-[200px]">
+                                Hora Comida
+                            </th>
                             <th id="col-break-lj" name="break-lj"
-                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Break Lun-Jue</th>
+                                class="px-4 py-2 text-left text-xs font-medium ... uppercase min-w-[200px]">
+                                Break Lun-Jue
+                            </th>
                             <th id="col-break-v" name="break-v"
-                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Break Viernes</th>
+                                class="px-4 py-2 text-left text-xs font-medium ... uppercase min-w-[200px]">
+                                Break Viernes
+                            </th>
                             <th class="px-4 py-2">Accion</th>
                         </tr>
                     </thead>
