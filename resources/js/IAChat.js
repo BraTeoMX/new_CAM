@@ -962,6 +962,11 @@ class ChatManager {
                         'Se ha generado tu ticket, en breve te atenderá el mecánico.',
                         chatMessages
                     );
+
+                    // Esperar 2 segundos y luego recargar la página
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
                 } else if (statusToSend === 'CANCELADO') {
                     await this.appendChatMessage(
                         triggeredByTimeout ?
