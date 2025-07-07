@@ -325,7 +325,7 @@ class ChatManager {
         loadingDiv.className = 'text-left mb-4';
         const responseSpan = document.createElement('span');
         responseSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
-        responseSpan.innerHTML = `Por favor selecciona el modulo que se atendera:<br>
+        responseSpan.innerHTML = `Por favor selecciona area o modulo que se atendera:<br>
             <select id="modul" style="width:100%"></select>
             <div id="operario-select-container" class="mt-4"></div>`;
         loadingDiv.appendChild(responseSpan);
