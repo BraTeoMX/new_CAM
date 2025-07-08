@@ -23,7 +23,7 @@
     <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
     <!-- Styles -->
     @livewireStyles
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/css/sweetalert.css', 'resources/css/select2tailwind.css','resources/css/app.css', 'resources/js/app.js', 'resources/js/Sortable.js', 'resources/js/Pussher.js'])
     <script src="https://unpkg.com/alpinejs" defer></script>

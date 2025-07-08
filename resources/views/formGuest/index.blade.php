@@ -25,7 +25,5 @@
             </form>
         </div>
     </div>
-    {{-- Agregar SweetAlert2 --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/js/IAChat.js'])
 </x-guest-layout>
