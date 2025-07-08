@@ -764,7 +764,7 @@ class ChatManager {
         // --- Botones --- 
         questionSpan.innerHTML = `
             <p>¿Pudiste resolver el problema, con los pasos de ayuda?</p>
-            <div class="flex flex flex-col sm:flex-row w-full gap-4 mt-3">
+            <div class="flex flex-col sm:flex-row w-full gap-4 mt-3">
                 <button class=" w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(true)">
                     SI
                 </button>
