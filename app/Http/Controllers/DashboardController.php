@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\DataFeed;
-use App\Models\TicketOT;
+use App\Models\TicketOTs;
 use App\Models\AsignationOT;
 use App\Models\FollowAtention;
 use Carbon\Carbon;

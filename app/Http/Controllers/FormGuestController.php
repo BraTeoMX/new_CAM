@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\TicketOT;
+use App\Models\TicketOTs;
 use App\Models\CatalogoArea;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -151,18 +151,18 @@ class FormGuestController extends Controller
             }, $validatedData);
 
             // Verificar existencia del módulo
-            $moduloExists = DB::connection('sqlsrv_dev')
-                ->table('Supervisores_views')
-                ->where('Modulo', $sanitizedData['modulo'])
-                ->exists();
+            //$moduloExists = DB::connection('sqlsrv_dev')
+            //    ->table('Supervisores_views')
+            //    ->where('Modulo', $sanitizedData['modulo'])
+            //    ->exists();
 
-            if (!$moduloExists) {
+            //if (!$moduloExists) {
                 //Log::warning('Módulo no encontrado:', ['modulo' => $sanitizedData['modulo']]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'El módulo especificado no existe'
-                ], 422);
-            }
+            //    return response()->json([
+            //        'success' => false,
+            //        'message' => 'El módulo especificado no existe'
+            //    ], 422);
+            //}
 
             $tiempo_estimado = $request->tiempo_estimado_ia;
             $tiempo_real = $request->tiempo_real_ia;
@@ -188,7 +188,7 @@ class FormGuestController extends Controller
 
             // Crear el ticket dentro de una transacción
             $ticket = DB::transaction(function () use ($ticketData) {
-                $newTicket = TicketOT::create($ticketData);
+                $newTicket = TicketOTs::create($ticketData);
                 //Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
                 return $newTicket;
             });
