@@ -11,7 +11,7 @@
             <div id="chat-messages"
                 class="mb-4 h-[600px] overflow-y-auto border-b-2 border-gray-200 dark:border-gray-700">
             </div>
-            <form id="chat-form" data-gemini-key="{{ config('services.google.gemini_api_key') }}">
+            <form id="chat-form">
                 <input type="text" id="message"
                     class="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
                     placeholder="Escribe tu mensaje...">

@@ -34,7 +34,7 @@ class ChatManager {
     constructor() {
         // Estado centralizado
         this.state = {
-            ai: null,
+            //ai: null,
             //modelName: 'gemini-2.5-pro-exp-03-25',
             userProblem: '',
             userModule: '',
@@ -85,10 +85,10 @@ class ChatManager {
                 throw new Error('Chat form not found');
             }
 
-            const apiKey = this.elements.form.getAttribute('data-gemini-key');
-            if (!apiKey) {
-                throw new Error('Gemini API key not found');
-            }
+            //const apiKey = this.elements.form.getAttribute('data-gemini-key');
+            //if (!apiKey) {
+            //    throw new Error('Gemini API key not found');
+            //}
 
             //this.state.ai = new GoogleGenAI({ apiKey });
             this.setupEventListeners();
