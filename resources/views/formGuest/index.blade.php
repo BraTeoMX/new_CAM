@@ -25,5 +25,5 @@
             </form>
         </div>
     </div>
-    @vite(['resources/js/IAChat.js'])
+    @vite(['resources/js/chat.js'])
 </x-guest-layout>

@@ -30,6 +30,7 @@ export default defineConfig({
                 'resources/js/IAChat/ChatIA.js',
                 'resources/js/IAChat/select2Modulo.js',
                 'resources/js/user/userAdmin.js',
+                'resources/js/chat.js',
             ],
             refresh: true,
         }),
