@@ -17,6 +17,9 @@ use App\Http\Controllers\FollowAtentionController;
 use App\Http\Controllers\FormOTMecaController;
 use App\Http\Controllers\InteractionIA;
 use App\Http\Controllers\UserAdminController;
+
+use App\Http\Controllers\FormGuestV2Controller;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -120,3 +123,6 @@ Route::post('/chatbot/track-ticket-flow', [InteractionIA::class, 'handleTrackTic
 
 // Ruta para obtener módulos (ahora apunta a getModules)
 Route::get('/obtener-modulo', [InteractionIA::class, 'getModules'])->name('chatbot.getModules');
+
+// actualizacion para un segunda version FormGuest
+Route::get('/FormGuestV2', [FormGuestV2Controller::class, 'index'])->name('formGuest.index');
