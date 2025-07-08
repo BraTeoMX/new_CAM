@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TicketOT;
+use App\Models\CatalogoArea;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Events\NewOrderNotification;
@@ -22,33 +23,40 @@ class FormGuestController extends Controller
     public function ObtenerModulos()
     {
         try {
-            $cacheKey = 'modulos';
+            $cacheKey = 'modulos_combinados'; // Cambiamos la clave del caché para evitar conflictos
 
-            //Log::info('Verificando caché para módulos.'); // Log más directo
-
-            // Usar la fachada Cache de forma consistente para mayor claridad
             if (Cache::has($cacheKey)) {
-                //Log::info('Cargando módulos desde el caché...');
                 $modulos = Cache::get($cacheKey);
             } else {
-                //Log::info('Cargando módulos desde la base de datos...');
-                $modulos = DB::connection('sqlsrv_dev')
-                    ->table('Supervisores_views')
-                    ->select('Modulo')
-                    ->distinct()
-                    ->orderBy('Modulo') // Opcional: Ordenar los resultados para una visualización consistente
-                    ->get();
+                // 1. Obtener los módulos de CatalogoArea
+                $modulosCatalogo = CatalogoArea::select('nombre as Modulo')
+                                                ->orderBy('Modulo')
+                                                ->get();
 
-                //Log::info('Módulos obtenidos: ', $modulos->toArray());
+                // 2. Obtener los módulos de Supervisores_views
+                $modulosSupervisores = DB::connection('sqlsrv_dev')
+                                        ->table('Supervisores_views')
+                                        ->select('Modulo')
+                                        ->distinct()
+                                        ->orderBy('Modulo')
+                                        ->get();
 
-                // Guardar en caché por un día, ya que parece que estos datos no cambian con frecuencia
+                // 3. Combinar ambos conjuntos de datos
+                // Primero añadimos los de CatalogoArea
+                $modulos = collect($modulosCatalogo)->concat($modulosSupervisores);
+
+                // Opcional: Eliminar duplicados si un 'Modulo' de CatalogoArea
+                // es igual a uno de Supervisores_views y quieres un conjunto único.
+                // Esto también mantendrá el orden de CatalogoArea primero.
+                $modulos = $modulos->unique('Modulo')->values(); // .values() para reindexar el array
+
+                // Guardar en caché por un día
                 Cache::put($cacheKey, $modulos, now()->addDay());
-                //Log::info('Módulos almacenados en caché.');
             }
 
             return response()->json($modulos);
         } catch (\Exception $e) {
-            Log::error('Error al obtener módulos: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]); // Log de error más específico
+            Log::error('Error al obtener módulos: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los módulos',
