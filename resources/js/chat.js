@@ -423,13 +423,38 @@ class ChatManager {
     }
 
     async showMachineSelectForCatalogModule(moduleName) {
-        // Ejemplo: Puedes reutilizar parte de la lógica de showMachineSelect si aplica
-        await this.appendChatMessage(`Excelente, has seleccionado el módulo "${moduleName}". Ahora, por favor, elige el tipo de máquina.`, this.elements.chatMessages);
-        // ... aquí iría la lógica para mostrar el select de máquinas, similar a askUserProblem o showMachineSelect
-        // O cualquier otra lógica específica para estos módulos
-        // Por ejemplo:
-        // this.showMachineSelect(this.elements.chatMessages);
-        // O si solo se aplica a CatalogoArea, podrías tener una lógica para ir directamente a pedir el problema o una sección diferente.
+        // 1. Mostrar un mensaje al usuario confirmando la selección. (Se mantiene)
+        await this.appendChatMessage(
+            `Excelente, has seleccionado el área "${moduleName}". Como este es un tema de área general, se levantará una orden de trabajo directamente.`,
+            this.elements.chatMessages
+        );
+
+        // 2. Establecer la descripción del problema de forma predefinida. (Esencial)
+        this.state.userProblem = "Envío directo a mecatrónico para área general.";
+        // Opcional pero recomendado: actualizar también la variable global por si acaso.
+        window.GLOBAL_CHAT_PROBLEM = this.state.userProblem;
+
+        // 3. ¡PASO CRÍTICO! Asignar una máquina/índice por defecto.
+        // La función handleResponse() requiere un `selectedMachineIndex` para construir el ticket.
+        // Como en este flujo no hay selección de máquina, debemos usar un valor predeterminado.
+        // Asumiremos que el índice `0` corresponde a una opción genérica como "No Aplica" o "Área General".
+        // **Asegúrate de que `MACHINES[0]` exista y sea un valor válido para tu backend.**
+        this.state.selectedMachineIndex = "N/A"; // O el índice que corresponda a "N/A"
+        window.GLOBAL_CHAT_MACHINE_INDEX = this.state.selectedMachineIndex;
+
+        // Opcional: Si el backend requiere un ID de problema, también debes asignarlo.
+        // Si no es estrictamente necesario, puedes dejarlo como null o un valor por defecto.
+        this.state.selectedProblemId = "N/A"; // O un ID genérico como 9999
+        window.GLOBAL_CHAT_PROBLEM_ID = this.state.selectedProblemId;
+
+        // Pequeña pausa para que el usuario pueda leer el mensaje.
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 4. LLAMAR DIRECTAMENTE A handleResponse con 'false'.
+        // Esto simula que el usuario respondió "NO" a la pregunta "¿Pudiste resolverlo?".
+        // Al pasar `false`, `statusToSend` se establecerá en '2', que es lo que necesitas
+        // para que se ejecute la lógica de creación de ticket exitoso.
+        await this.handleResponse(false);
     }
 
     /**
@@ -613,7 +638,7 @@ class ChatManager {
                         // Añadimos un pequeño delay para que el usuario pueda leer el resumen
                         setTimeout(() => {
                             // Llamamos a handleResponse con 'false', simulando que el usuario presionó "NO"
-                            // Esto generará un ticket con estado 'SIN_ASIGNAR'.
+                            // Esto generará un ticket con estado '2'.
                             this.handleResponse(false); 
                         }, 1500); // 1.5 segundos de espera
 
@@ -810,7 +835,7 @@ class ChatManager {
                 <button class=" w-full sm:w-auto bg-orange-400 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(false)">
                     NO
                 </button>
-                <button class=" w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse('CANCELADO')">
+                <button class=" w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse('3')">
                     Cancelar ticket
                 </button>
             </div>
@@ -835,8 +860,8 @@ class ChatManager {
                 // Sumar 60 segundos al tiempo real de IA
                 if (!this.state.actualStepTimes) this.state.actualStepTimes = {};
                 this.state.actualStepTimes['final_wait'] = 60;
-                // Enviar automáticamente como CANCELADO
-                this.handleResponse('CANCELADO', true); // true = triggeredByTimeout
+                // Enviar automáticamente como 3
+                this.handleResponse('3', true); // true = triggeredByTimeout
             }
         }, 1000);
 
@@ -895,11 +920,11 @@ class ChatManager {
             // Determinar status a enviar
             let statusToSend;
             if (wasSuccessful === true) {
-                statusToSend = 'AUTONOMO';
+                statusToSend = '1';
             } else if (wasSuccessful === false) {
-                statusToSend = 'SIN_ASIGNAR';
-            } else if (wasSuccessful === 'CANCELADO') {
-                statusToSend = 'CANCELADO';
+                statusToSend = '2';
+            } else if (wasSuccessful === '3') {
+                statusToSend = '3';
             }
 
             // --- Separar nombre y número de operario para enviar en el formData ---
@@ -968,18 +993,18 @@ class ChatManager {
                 let swalIcon = 'success';
                 let swalTitle = '';
                 let swalText = '';
-                if (statusToSend === 'AUTONOMO') {
+                if (statusToSend === '1') {
                     swalIcon = 'success';
                     swalTitle = 'Excelente trabajo';
                     swalText = 'Gracias por haberlo resuelto de forma autónoma.';
-                } else if (statusToSend === 'SIN_ASIGNAR') {
+                } else if (statusToSend === '2') {
                     swalIcon = 'success';
                     swalTitle = 'Ticket registrado';
                     swalText = `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}`;
-                } else if (statusToSend === 'CANCELADO') {
+                } else if (statusToSend === '3') {
                     swalIcon = 'warning';
-                    swalTitle = 'El ticket fue cancelado';
-                    swalText = triggeredByTimeout ? 'Por inactividad se ha cancelado tu ticket' : '';
+                    swalTitle = 'El ticket fue 3';
+                    swalText = triggeredByTimeout ? 'Por inactividad se ha 3 tu ticket' : '';
                 }
 
                 await Swal.fire({
@@ -990,12 +1015,12 @@ class ChatManager {
                 });
 
                 // Mensajes en el chat según status
-                if (statusToSend === 'AUTONOMO') {
+                if (statusToSend === '1') {
                     await this.appendChatMessage(
                         'Me alegra 😃 que se haya podido solucionar el problema.<br>Recuerda que estoy para ayudarte 🤖',
                         chatMessages
                     );
-                } else if (statusToSend === 'SIN_ASIGNAR') {
+                } else if (statusToSend === '2') {
                     await this.appendChatMessage(`<strong>Folio generado:</strong> ${data.folio}`, chatMessages);
                     await this.appendChatMessage(
                         'Se ha generado tu ticket, en breve te atenderá el mecánico.',
@@ -1006,7 +1031,7 @@ class ChatManager {
                     setTimeout(() => {
                         location.reload();
                     }, 2000);
-                } else if (statusToSend === 'CANCELADO') {
+                } else if (statusToSend === '3') {
                     await this.appendChatMessage(
                         triggeredByTimeout ?
                         'Por inactividad se ha cancelado tu ticket.<br>Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte' :

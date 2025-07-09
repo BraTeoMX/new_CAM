@@ -52,6 +52,7 @@ class FormGuestV2Controller extends Controller
 
                 // 3. Combinar ambos conjuntos de datos
                 $modulos = collect($modulosCatalogo)->concat($modulosSupervisores);
+                Log::info('Módulos combinados obtenidos de la base de datos', ['modulos' => $modulos->toArray()]);
 
                 // 4. Eliminar duplicados basándose en el campo 'modulo' y reindexar
                 $modulos = $modulos->unique('modulo')->values(); 
