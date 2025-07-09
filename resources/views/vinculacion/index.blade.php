@@ -2,35 +2,34 @@
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
         <!-- Título -->
         <div class="sm:flex sm:justify-between sm:items-center mb-8">
-            <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Catalogos</h1>
+            <h3 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Vinculacion Modulo - Mecanico</h3>
         </div>
 
-        <!-- Grid de paneles -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Panel Módulos/Supervisor -->
-            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-                <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Módulos/Supervisor</h2>
-                <div id="supervisores-list" class="overflow-y-auto max-h-96">
-                    <!-- La lista de supervisores se cargará aquí -->
-                    <div class="animate-pulse">
-                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Selector de módulo/supervisor -->
+            <div>
+                <label for="select-supervisor" class="block font-medium mb-1">Módulo/Supervisor</label>
+                <select id="select-supervisor" class="w-full border rounded p-2">
+                    <option value="">Selecciona un módulo</option>
+                </select>
             </div>
-            <!-- Panel Mecánicos -->
-            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-                <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Mecánicos</h2>
-                <div id="mecanicos-list" class="overflow-y-auto max-h-96">
-                    <!-- La lista de mecánicos se cargará aquí -->
-                    <div class="animate-pulse">
-                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                </div>
+
+            <!-- Selector de mecánico filtrado -->
+            <div>
+                <label for="select-mecanico" class="block font-medium mb-1">Mecánico</label>
+                <select id="select-mecanico" class="w-full border rounded p-2" disabled>
+                    <option value="">Selecciona un mecánico</option>
+                </select>
             </div>
+        </div>
+
+        <!-- Botón para añadir -->
+        <div class="mt-4">
+            <button id="btn-anadir-vinculacion"
+                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                disabled>
+                Añadir a lista
+            </button>
         </div>
 
         <!-- Nuevo Panel de Vinculación -->
