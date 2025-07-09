@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\CatalogoArea;
 use App\Models\TicketOt;
-use App\Models\CatalogoProblema;
+use App\Models\Vinculacion;
 
 class VinculacionV2Controller extends Controller
 {
@@ -54,6 +54,38 @@ class VinculacionV2Controller extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al obtener los datos de supervisores.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function guardarVinculacion(Request $request)
+    {
+        try {
+            // Validación de los datos recibidos
+            $validatedData = $request->validate([
+                'numero_empleado_supervisor' => 'required|string',
+                'nombre_supervisor' => 'required|string',
+                'planta' => 'required|integer',
+                'modulo' => 'required|string',
+                'nombre_mecanico' => 'required|string',
+                'numero_empleado_mecanico' => 'required|string',
+            ]);
+
+            // Crear el nuevo registro usando el modelo Vinculacion
+            // Asegúrate que los nombres de las columnas coincidan con tu modelo/migración
+            Vinculacion::create($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vinculación creada exitosamente.'
+            ], 201);
+
+        } catch (\Exception $e) {
+            Log::error('Error al guardar la vinculación: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al guardar la vinculación.',
                 'error' => $e->getMessage()
             ], 500);
         }

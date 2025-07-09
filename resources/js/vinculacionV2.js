@@ -1,88 +1,138 @@
-const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+$(document).ready(function() {
 
-let supervisores = [];
-let mecanicos = [];
-
-document.addEventListener('DOMContentLoaded', async () => {
-
-    $('#select-supervisor').select2({
-        placeholder: 'Selecciona un módulo',
-        width: '100%',
-        allowClear: true
-    });
-
-    $('#select-mecanico').select2({
-        placeholder: 'Selecciona un mecánico',
-        width: '100%',
-        allowClear: true
-    });
-
-    const selectSupervisor = document.getElementById('select-supervisor');
-    const selectMecanico = document.getElementById('select-mecanico');
-    const btnAnadir = document.getElementById('btn-anadir-vinculacion');
-    const tablaBody = document.getElementById('tabla-vinculacion-body');
-
-    // Obtener datos
-    supervisores = await fetch('/vinculacion/obtenerSupervisores').then(res => res.json());
-    mecanicos = await fetch('/vinculacion/obtenerMecanicos').then(res => res.json());
-
-    // Llenar select de supervisores
-    supervisores.forEach(s => {
-        $('#select-supervisor').append(
-            $('<option>', {
-                value: JSON.stringify(s),
-                text: `${s.modulo} - ${s.nombre}`
-            })
-        );
-    });
-    $('#select-supervisor').trigger('change');
-
-    // Evento al cambiar el supervisor
-    $('#select-mecanico').empty().append('<option value="">Selecciona un mecánico</option>');
-        $('#select-mecanico').prop('disabled', true);
-        btnAnadir.disabled = true;
-
-        if (!selected) return;
-
-        const supervisor = JSON.parse(selected);
-        const planta = supervisor.planta;
-
-        const filtrados = mecanicos.filter(m => m.planta === planta);
-
-        filtrados.forEach(m => {
-            $('#select-mecanico').append(
-                $('<option>', {
-                    value: JSON.stringify(m),
-                    text: `${m.numero_empleado} - ${m.nombre}`
-                })
-            );
+        // Token CSRF para las peticiones POST en Laravel
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
         });
-        $('#select-mecanico').prop('disabled', false).trigger('change');
 
-    // Habilitar botón solo si hay selección válida
-    selectMecanico.addEventListener('change', () => {
-        btnAnadir.disabled = !selectMecanico.value;
+        // 1. Inicializar Select2 para Supervisores/Módulos
+        const $selectSupervisor = $('#select-supervisor').select2({
+            placeholder: 'Seleccione un supervisor/módulo',
+            allowClear: true,
+            ajax: {
+                url: '/vinculacion/obtenerSupervisores',
+                dataType: 'json',
+                delay: 250, // Espera 250ms después de escribir antes de buscar
+                processResults: function(data) {
+                    // Transforma los datos recibidos al formato que Select2 necesita
+                    return {
+                        results: $.map(data, function(item) {
+                            return {
+                                // El texto que se muestra en la opción
+                                text: `${item.modulo} - ${item.nombre}`,
+                                // El ID que se guarda como valor. Guardamos todos los datos como un string JSON
+                                id: JSON.stringify({
+                                    numero_empleado: item.numero_empleado,
+                                    planta: item.planta,
+                                    nombre: item.nombre,
+                                    modulo: item.modulo
+                                })
+                            };
+                        })
+                    };
+                },
+                cache: true
+            }
+        });
+
+        // 2. Inicializar Select2 para Mecánicos (inicialmente deshabilitado)
+        const $selectMecanico = $('#select-mecanico').select2({
+            placeholder: 'Seleccione un mecánico',
+            allowClear: true,
+            ajax: {
+                url: '/vinculacion/obtenerMecanicos',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    // Antes de hacer la petición de mecánicos, obtenemos la planta del supervisor
+                    const supervisorData = JSON.parse($selectSupervisor.val());
+                    return {
+                        planta: supervisorData.planta, // Enviamos la planta como parámetro
+                        q: params.term // término de búsqueda
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: $.map(data, function(item) {
+                            return {
+                                text: `${item.nombre} - ${item.numero_empleado}`,
+                                id: JSON.stringify({
+                                    nombre: item.nombre,
+                                    numero_empleado: item.numero_empleado
+                                })
+                            };
+                        })
+                    };
+                },
+                cache: true
+            }
+        });
+
+        // 3. Lógica de dependencia y habilitación de botones
+        $selectSupervisor.on('change', function() {
+            const supervisorSeleccionado = $(this).val();
+
+            // Limpiar y deshabilitar mecánico si no hay supervisor
+            if (!supervisorSeleccionado) {
+                $selectMecanico.val(null).trigger('change');
+                $selectMecanico.prop('disabled', true);
+                return;
+            }
+
+            // Habilitar el select de mecánico y limpiarlo para una nueva selección
+            $selectMecanico.prop('disabled', false);
+            $selectMecanico.val(null).trigger('change');
+        });
+        
+        // Habilitar el botón "Añadir" solo cuando ambos selects tengan un valor
+        $('#select-supervisor, #select-mecanico').on('change', function() {
+             const supervisorOk = $('#select-supervisor').val();
+             const mecanicoOk = $('#select-mecanico').val();
+             
+             if (supervisorOk && mecanicoOk) {
+                 $('#btn-anadir-vinculacion').prop('disabled', false);
+             } else {
+                 $('#btn-anadir-vinculacion').prop('disabled', true);
+             }
+        });
+
+
+        // 4. Lógica para el clic en el botón "Añadir a lista"
+        $('#btn-anadir-vinculacion').on('click', function() {
+            // Obtenemos los datos parseando los strings JSON de los valores de los selects
+            const supervisorData = JSON.parse($selectSupervisor.val());
+            const mecanicoData = JSON.parse($selectMecanico.val());
+
+            // Creamos el objeto con los datos a enviar, mapeando a las columnas de la BD
+            const datosParaEnviar = {
+                numero_empleado_supervisor: supervisorData.numero_empleado,
+                nombre_supervisor: supervisorData.nombre,
+                planta: supervisorData.planta,
+                modulo: supervisorData.modulo,
+                nombre_mecanico: mecanicoData.nombre,
+                numero_empleado_mecanico: mecanicoData.numero_empleado
+            };
+
+            // Petición AJAX para guardar los datos
+            $.ajax({
+                url: '/vinculacion/guardar',
+                type: 'POST',
+                data: datosParaEnviar,
+                success: function(response) {
+                    alert(response.message); // O usa una notificación más elegante
+                    
+                    // Limpiar formulario para una nueva vinculación
+                    $selectSupervisor.val(null).trigger('change');
+                    $selectMecanico.val(null).trigger('change').prop('disabled', true);
+                    $('#btn-anadir-vinculacion').prop('disabled', true);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON;
+                    alert('Error: ' + error.message);
+                    console.error('Detalles del error:', error.error);
+                }
+            });
+        });
     });
-
-    // Añadir a tabla
-    btnAnadir.addEventListener('click', () => {
-        const supervisor = JSON.parse(selectSupervisor.value);
-        const mecanico = JSON.parse(selectMecanico.value);
-
-        const row = `
-            <tr>
-                <td class="px-4 py-2">${supervisor.modulo}</td>
-                <td class="px-4 py-2">${supervisor.nombre}</td>
-                <td class="px-4 py-2">${mecanico.nombre}</td>
-                <td class="px-4 py-2">${mecanico.planta}</td>
-            </tr>
-        `;
-        tablaBody.insertAdjacentHTML('beforeend', row);
-
-        // Reset seleccionables
-        selectMecanico.innerHTML = '<option value="">Selecciona un mecánico</option>';
-        selectMecanico.disabled = true;
-        selectSupervisor.value = '';
-        btnAnadir.disabled = true;
-    });
-});

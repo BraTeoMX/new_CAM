@@ -5,25 +5,17 @@
             <h3 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Vinculacion Modulo - Mecanico</h3>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Selector de módulo/supervisor -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
-                <label for="select-supervisor" class="block font-medium mb-1">Módulo/Supervisor</label>
-                <select id="select-supervisor" class="w-full border rounded p-2">
-                    <option value="">Selecciona un módulo</option>
-                </select>
+                <label for="select-supervisor" class="block font-medium mb-1">Supervisor/Módulo</label>
+                <select id="select-supervisor" class="w-full"></select>
             </div>
-
-            <!-- Selector de mecánico filtrado -->
             <div>
                 <label for="select-mecanico" class="block font-medium mb-1">Mecánico</label>
-                <select id="select-mecanico" class="w-full border rounded p-2" disabled>
-                    <option value="">Selecciona un mecánico</option>
-                </select>
+                <select id="select-mecanico" class="w-full" disabled></select>
             </div>
         </div>
 
-        <!-- Botón para añadir -->
         <div class="mt-4">
             <button id="btn-anadir-vinculacion"
                 class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"

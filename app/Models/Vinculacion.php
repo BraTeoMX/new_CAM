@@ -42,4 +42,13 @@ class Vinculacion extends Model
 {
     protected $table = 'vinculaciones';
 
+    protected $fillable = [
+        'numero_empleado_supervisor',
+        'nombre_supervisor',
+        'planta',
+        'modulo',
+        'nombre_mecanico',
+        'numero_empleado_mecanico',
+    ];
+
 }
