@@ -337,7 +337,7 @@ class ChatManager {
                 $('#modul').select2({
                     placeholder: 'Selecciona un módulo',
                     ajax: {
-                        url: '/obtener-modulos',
+                        url: '/FormGuestV2/obtenerAreasModulos',
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,

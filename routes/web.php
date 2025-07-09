@@ -126,3 +126,4 @@ Route::get('/obtener-modulo', [InteractionIA::class, 'getModules'])->name('chatb
 
 // actualizacion para un segunda version FormGuest
 Route::get('/FormGuestV2', [FormGuestV2Controller::class, 'index'])->name('formGuest.index');
+Route::get('/FormGuestV2/obtenerAreasModulos', [FormGuestV2Controller::class, 'obtenerAreasModulos']);
