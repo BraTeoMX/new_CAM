@@ -31,6 +31,7 @@ export default defineConfig({
                 'resources/js/IAChat/select2Modulo.js',
                 'resources/js/user/userAdmin.js',
                 'resources/js/chat.js',
+                'resources/js/vinculacionV2.js',
             ],
             refresh: true,
         }),
