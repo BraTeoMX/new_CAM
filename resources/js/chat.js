@@ -986,7 +986,14 @@ class ChatManager {
                 modalSpinner.parentNode.removeChild(modalSpinner);
             }
 
-            const data = await response.json();
+            // Nuevo: loguear el cuerpo de la respuesta aunque no sea success
+            let data;
+            try {
+                data = await response.clone().json();
+            } catch (e) {
+                data = await response.clone().text();
+            }
+            console.log('Respuesta del backend:', data);
 
             if (data.success) {
                 // Determinar icono, título y texto según status
@@ -1042,6 +1049,16 @@ class ChatManager {
 
                 setTimeout(() => this.showFinalResetQuestion(chatMessages), 1000);
             } else {
+                // Nuevo: mostrar errores de validación si existen
+                if (data.errors) {
+                    console.error('Errores de validación:', data.errors);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de validación',
+                        text: 'Por favor, verifica todos los campos requeridos.',
+                        footer: `<pre style="text-align:left">${JSON.stringify(data.errors, null, 2)}</pre>`
+                    });
+                }
                 throw new Error(data.message || 'Error al procesar la solicitud');
             }
         } catch (error) {
