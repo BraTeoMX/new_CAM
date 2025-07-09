@@ -22,4 +22,24 @@ class VinculacionV2Controller extends Controller
         return view('vinculacion.index');
     }
 
+    public function obtenerMecanicos()
+    {
+        try {
+            $mecanicos = DB::connection('sqlsrv_dev')
+                ->table('catalogo_mecanicos')
+                ->select('nombre', 'numero_empleado')
+                ->orderBy('nombre')
+                ->get();
+
+            Log::info('Mecánicos obtenidos:', $mecanicos->toArray());
+            return response()->json($mecanicos);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener mecánicos: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al obtener los datos de mecánicos.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

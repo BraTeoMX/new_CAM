@@ -51,8 +51,8 @@ function renderActiveUsers(data) {
 
     // Ordenar usuarios (Gerente > Jefe > Resto)
     data.sort((a, b) => {
-        const puestoA = (a.despue || '').toLowerCase();
-        const puestoB = (b.despue || '').toLowerCase();
+        const puestoA = (a.puesto || '').toLowerCase();
+        const puestoB = (b.puesto || '').toLowerCase();
         if (puestoA.includes("gerente") && !puestoB.includes("gerente")) return -1;
         if (!puestoA.includes("gerente") && puestoB.includes("gerente")) return 1;
         if (puestoA.includes("jefe") && !puestoB.includes("jefe")) return -1;
@@ -61,8 +61,8 @@ function renderActiveUsers(data) {
     });
 
     data.forEach(function(user) {
-        const imagePath = getUserPhotoUrl(user.IdPoblacion);
-        const tooltipId = `tooltip-${user.IdPoblacion}`;
+        const imagePath = getUserPhotoUrl(user.numero_empleado);
+        const tooltipId = `tooltip-${user.numero_empleado}`;
         let listItem = "";
 
         // Desktop sidebar
@@ -72,17 +72,16 @@ function renderActiveUsers(data) {
                     <div class="shrink-0 relative">
                         <img class="w-10 h-10 rounded-full cursor-pointer"
                             src="${imagePath}"
-                            alt="${escapeHtml(user.IdPoblacion)} image"
-                            id="user-img-${escapeHtml(user.IdPoblacion)}"
+                            alt="${escapeHtml(user.numero_empleado)} image"
+                            id="user-img-${escapeHtml(user.numero_empleado)}"
                             onerror="this.onerror=null; this.src='/default-avatar.jpg';">
                         <span class="top-0 left-7 absolute w-3.5 h-3.5 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full"></span>
                         <!-- Tooltip -->
                         <div id="${tooltipId}" role="tooltip"
                             class="absolute z-10 hidden md:block px-4 py-3 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg max-w-xs break-words opacity-0 transition-opacity duration-200 dark:bg-gray-700">
-                            <p><strong>Número empleado:</strong> ${escapeHtml(user.IdPoblacion)}</p>
+                            <p><strong>Número empleado:</strong> ${escapeHtml(user.numero_empleado)}</p>
                             <p><strong>Nombre:</strong> ${escapeHtml(user.nombre)}</p>
-                            <p><strong>Puesto:</strong> ${escapeHtml(user.despue)}</p>
-                            <p><strong>Ubicación:</strong> ${escapeHtml(user.ubication)}</p>
+                            <p><strong>Puesto:</strong> ${escapeHtml(user.puesto)}</p>
                         </div>
                     </div>
                     <div class="flex-5 min-w-0">
@@ -90,10 +89,10 @@ function renderActiveUsers(data) {
                             ${escapeHtml(user.nombre)}
                         </p>
                         <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                            ${escapeHtml(user.despue)}
+                            ${escapeHtml(user.puesto)}
                         </p>
                         <p class="text-sm text-gray-500 truncate dark:text-gray-400">
-                            ${escapeHtml(user.IdPoblacion)}
+                            ${escapeHtml(user.numero_empleado)}
                         </p>
                     </div>
                 </div>
@@ -106,7 +105,7 @@ function renderActiveUsers(data) {
                 <li>
                     <img class="w-10 h-10 rounded-full border-2 border-green-400"
                         src="${imagePath}"
-                        alt="${escapeHtml(user.IdPoblacion)} image"
+                        alt="${escapeHtml(user.numero_empleado)} image"
                         onerror="this.onerror=null; this.src='/default-avatar.jpg';">
                 </li>
             `);
@@ -114,7 +113,7 @@ function renderActiveUsers(data) {
 
         // Tooltip hover (Desktop)
         if (!isMobile) {
-            const imgElement = document.getElementById(`user-img-${user.IdPoblacion}`);
+            const imgElement = document.getElementById(`user-img-${user.numero_empleado}`);
             const tooltipElement = document.getElementById(tooltipId);
 
             if (imgElement && tooltipElement) {

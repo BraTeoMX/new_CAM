@@ -31,10 +31,9 @@ class UserController extends Controller
             } else {
                 // Si no están en caché, consultar los datos y almacenarlos
                 $usuariosActivos = DB::connection('sqlsrv_dev')
-                    ->table('Emple_Movimientos')
-                    ->whereRaw("CAST(FechaRegistro AS DATE) = CAST(GETDATE() AS DATE)")
-                    ->whereBetween('HoraRegistro', ['07:30:00', '08:50:00'])
-                    ->orderBy('HoraRegistro', 'ASC')
+                    ->table('catalogo_mecanicos')
+                    ->select('nombre', 'numero_empleado', 'puesto')
+                    ->orderBy('nombre')
                     ->get();
                 // Almacenar los datos en caché
                 Cache::put($cacheKey, $usuariosActivos, $cacheDuration);

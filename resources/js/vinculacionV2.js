@@ -10,19 +10,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const supervisoresList = document.getElementById('supervisores-list');
     const vinculacionTbody = document.getElementById('vinculacion-tbody');
 
-    // Función auxiliar para obtener cvetra por nombre
+    // Función auxiliar para obtener numero_empleado por nombre
     function getCvetraByNombre(nombre) {
-        return mecanicoMap.get(nombre)?.cvetra || '';
+        return mecanicoMap.get(nombre)?.numero_empleado || '';
     }
 
     function getMecanicoImageUrl(nombre) {
-        const cvetra = getCvetraByNombre(nombre);
-        return cvetra ? `/fotos-usuarios/${cvetra}.webp` : '/fotos-usuarios/default-avatar.webp';
+        const numero_empleado = getCvetraByNombre(nombre);
+        return numero_empleado ? `/fotos-usuarios/${numero_empleado}.webp` : '/fotos-usuarios/default-avatar.webp';
     }
 
     // Carga de mecánicos y creación del mapa
     function loadMecanicos() {
-        fetch('/mecanicos')
+        fetch('/vinculacion/obtenerMecanicos')
             .then(response => response.json())
             .then(data => {
                 mecanicosData = data;
@@ -33,15 +33,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 mecanicosList.innerHTML = mecanicosData.map(mecanico => `
                     <div class="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md cursor-move draggable-mecanico"
                          data-nombre="${mecanico.nombre || ''}"
-                         data-cvetra="${mecanico.cvetra || ''}"
+                         data-numero_empleado="${mecanico.numero_empleado || ''}"
                          data-index="${mecanicosData.indexOf(mecanico)}">
                         <img class="w-10 h-10 rounded-full ring-2 ring-gray-300"
                              src="${getMecanicoImageUrl(mecanico.nombre)}"
                              onerror="this.onerror=null; this.src='/fotos-usuarios/default-avatar.webp';"
-                             alt="${mecanico.cvetra}"/>
+                             alt="${mecanico.numero_empleado}"/>
                         <div>
                             <h3 class="font-medium">${mecanico.nombre}</h3>
-                            <p class="text-sm text-gray-500">${mecanico.cvetra}</p>
+                            <p class="text-sm text-gray-500">${mecanico.numero_empleado}</p>
                         </div>
                     </div>
                 `).join('');
@@ -152,9 +152,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const img = mecanicoCell.querySelector('img');
         img.onerror = function () { this.src = '/fotos-usuarios/default-avatar.webp'; };
         img.src = getMecanicoImageUrl(mecanico.nombre);
-        img.alt = mecanico.cvetra;
+        img.alt = mecanico.numero_empleado;
         mecanicoCell.querySelector('.mecanico-nombre').textContent = mecanico.nombre;
-        row.setAttribute('data-cvetra', mecanico.cvetra);
+        row.setAttribute('data-numero_empleado', mecanico.numero_empleado);
     }
 
     function updateSupervisorCell(row, supervisor) {
@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const grouped = data.reduce((acc, curr) => {
                     const key = `${curr.Supervisor}-${curr.Modulo}-${curr.Hora_Comida_Inicio}-${curr.Hora_Comida_Fin}-${curr.Break_Lun_Jue_Inicio}-${curr.Break_Lun_Jue_Fin}-${curr.Break_Viernes_Inicio}-${curr.Break_Viernes_Fin}`;
                     if (!acc[key]) {
-                        acc[key] = { ...curr, mecanicos: [{ id: curr.id, nombre: curr.Mecanico, cvetra: curr.Mecanico }] };
+                        acc[key] = { ...curr, mecanicos: [{ id: curr.id, nombre: curr.Mecanico, numero_empleado: curr.Mecanico }] };
                     } else {
-                        acc[key].mecanicos.push({ id: curr.id, nombre: curr.Mecanico, cvetra: curr.Mecanico });
+                        acc[key].mecanicos.push({ id: curr.id, nombre: curr.Mecanico, numero_empleado: curr.Mecanico });
                     }
                     return acc;
                 }, {});
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const cvetras = Array.from(mecanicosElements).map(mecElement => {
                 const nombre = mecElement.textContent.trim();
-                return mecanicoMap.get(nombre)?.cvetra || '';
+                return mecanicoMap.get(nombre)?.numero_empleado || '';
             });
 
             return Array.from(mecanicosElements).map((mecElement, index) => ({
