@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const grouped = data.reduce((acc, curr) => {
                     const key = `${curr.Supervisor}-${curr.Modulo}-${curr.Hora_Comida_Inicio}-${curr.Hora_Comida_Fin}-${curr.Break_Lun_Jue_Inicio}-${curr.Break_Lun_Jue_Fin}-${curr.Break_Viernes_Inicio}-${curr.Break_Viernes_Fin}`;
                     if (!acc[key]) {
-                        acc[key] = { ...curr, mecanicos: [{ id: curr.id, nombre: curr.Mecanico, numero_empleado: curr.Mecanico }] };
+                        acc[key] = { ...curr, mecanicos: [{ id: curr.id, nombre: curr.Mecanico, Num_Mecanico: curr.Mecanico }] };
                     } else {
-                        acc[key].mecanicos.push({ id: curr.id, nombre: curr.Mecanico, numero_empleado: curr.Mecanico });
+                        acc[key].mecanicos.push({ id: curr.id, nombre: curr.Mecanico, Num_Mecanico: curr.Mecanico });
                     }
                     return acc;
                 }, {});

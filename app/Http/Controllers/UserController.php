@@ -32,7 +32,7 @@ class UserController extends Controller
                 // Si no están en caché, consultar los datos y almacenarlos
                 $usuariosActivos = DB::connection('sqlsrv_dev')
                     ->table('catalogo_mecanicos')
-                    ->select('nombre', 'numero_empleado', 'puesto')
+                    ->select('nombre', 'numero_empleado', 'puesto', 'planta')
                     ->orderBy('nombre')
                     ->get();
                 // Almacenar los datos en caché
