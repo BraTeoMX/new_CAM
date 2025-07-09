@@ -43,10 +43,10 @@ class NewOrderNotification implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
-            'folio' => $this->ticket->Folio,
-            'modulo'=> $this->ticket->Modulo,
-            'status' => $this->ticket->Status,
-            'descripcion' => $this->ticket->Descrip_prob,
+            'folio' => $this->ticket->folio,
+            'modulo'=> $this->ticket->modulo,
+            'status' => $this->ticket->estado,
+            'descripcion' => $this->ticket->descripcion_problema,
             'created_at' => $this->ticket->created_at->toDateTimeString(),
         ];
     }

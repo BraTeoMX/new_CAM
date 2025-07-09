@@ -439,12 +439,12 @@ class ChatManager {
         // Como en este flujo no hay selección de máquina, debemos usar un valor predeterminado.
         // Asumiremos que el índice `0` corresponde a una opción genérica como "No Aplica" o "Área General".
         // **Asegúrate de que `MACHINES[0]` exista y sea un valor válido para tu backend.**
-        this.state.selectedMachineIndex = "N/A"; // O el índice que corresponda a "N/A"
+        this.state.selectedMachineIndex = "N/A"; 
         window.GLOBAL_CHAT_MACHINE_INDEX = this.state.selectedMachineIndex;
 
         // Opcional: Si el backend requiere un ID de problema, también debes asignarlo.
         // Si no es estrictamente necesario, puedes dejarlo como null o un valor por defecto.
-        this.state.selectedProblemId = "N/A"; // O un ID genérico como 9999
+        this.state.selectedProblemId = null; // Usar null para indicar que no hay ID.
         window.GLOBAL_CHAT_PROBLEM_ID = this.state.selectedProblemId;
 
         // Pequeña pausa para que el usuario pueda leer el mensaje.
@@ -971,7 +971,7 @@ class ChatManager {
             `;
             document.body.appendChild(modalSpinner);
 
-            const response = await fetch('/ticketsOT', {
+            const response = await fetch('/FormGuestV2/ticketsOT', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1049,17 +1049,32 @@ class ChatManager {
 
                 setTimeout(() => this.showFinalResetQuestion(chatMessages), 1000);
             } else {
-                // Nuevo: mostrar errores de validación si existen
+                // Si data.success es false o no existe
+                let errorTitle = 'Error al procesar';
+                let errorMessage = data.message || 'Hubo un error desconocido al registrar el ticket.';
+                let errorFooter = '';
+
+                // Si el backend devuelve errores de validación específicos
                 if (data.errors) {
-                    console.error('Errores de validación:', data.errors);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de validación',
-                        text: 'Por favor, verifica todos los campos requeridos.',
-                        footer: `<pre style="text-align:left">${JSON.stringify(data.errors, null, 2)}</pre>`
-                    });
+                    errorTitle = 'Error de Validación';
+                    errorMessage = 'Por favor, revisa los datos enviados.';
+                    
+                    // Formatear los errores para mostrarlos en el footer del Swal
+                    const errorList = Object.values(data.errors).flat().join('<br>');
+                    errorFooter = `<div style="text-align:left; font-family:monospace; font-size:12px;">${errorList}</div>`;
                 }
-                throw new Error(data.message || 'Error al procesar la solicitud');
+
+                console.error('Error desde el backend:', data);
+                Swal.fire({
+                    icon: 'error',
+                    title: errorTitle,
+                    html: errorMessage, // Usamos 'html' para poder renderizar los <br> si es necesario
+                    footer: errorFooter,
+                    confirmButtonText: 'Entendido'
+                });
+                
+                // No es necesario lanzar un error aquí si ya lo estás manejando con Swal
+                // throw new Error(errorMessage); 
             }
         } catch (error) {
             // --- Remover modal spinner si hay error ---
