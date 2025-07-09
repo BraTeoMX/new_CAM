@@ -19,6 +19,7 @@ use App\Http\Controllers\InteractionIA;
 use App\Http\Controllers\UserAdminController;
 
 use App\Http\Controllers\FormGuestV2Controller;
+use App\Http\Controllers\VinculacionV2Controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/UserAdmin/users/{user}', [UserAdminController::class, 'show'])->name('users.show');
         Route::put('/UserAdmin/users/{user}', [UserAdminController::class, 'update'])->name('users.update');
         Route::patch('/UserAdmin/users/{user}/status', [UserAdminController::class, 'updateStatus'])->name('users.updateStatus');
+
+        // Vinculacion V2
+        Route::get('/vinculacion', [VinculacionV2Controller::class, 'index'])->name('vinculacion.index');
     });
 });
 
@@ -130,3 +134,4 @@ Route::get('/FormGuestV2/obtenerAreasModulos', [FormGuestV2Controller::class, 'o
 Route::get('/FormGuestV2/obtener-operarios', [FormGuestV2Controller::class, 'obtenerOperarios']);
 Route::get('/FormGuestV2/catalogo-problemas', [FormGuestV2Controller::class, 'catalogoProblemas']);
 Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarRegistro']);
+
