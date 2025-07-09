@@ -905,6 +905,17 @@ class ChatManager {
                 return;
             }
 
+            // Determinar el valor de la máquina
+            let machineToSend;
+            if (selectedMachineIndex === "N/A") {
+                machineToSend = "N/A"; // Si es "N/A", usamos el string directamente.
+            } else {
+                // Si es un número (flujo normal), lo buscamos en el arreglo.
+                machineToSend = MACHINES[selectedMachineIndex];
+            }
+
+            const problemIdToSend = this.state.selectedProblemId || window.GLOBAL_CHAT_PROBLEM_ID;
+
             // Calcular el tiempo real total pasado en los pasos (en minutos:segundos)
             let totalActualTimeSeconds = 0;
             for (const stepKey in this.state.actualStepTimes) {
@@ -945,9 +956,10 @@ class ChatManager {
                 modulo: modulo,
                 problema: problema,
                 descripcion: problema,
+                problema_id: problemIdToSend,
                 problema_id: this.state.selectedProblemId || window.GLOBAL_CHAT_PROBLEM_ID, // <-- LÍNEA AÑADIDA
                 status: statusToSend,
-                maquina: MACHINES[selectedMachineIndex],
+                maquina: machineToSend,
                 tiempo_estimado_ia: tiempo_estimado_ia,
                 tiempo_real_ia: tiempo_real_ia,
                 Operario: operarioNumero,
