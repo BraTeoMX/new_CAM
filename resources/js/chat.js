@@ -349,8 +349,10 @@ class ChatManager {
                         processResults: function(data, params) {
                             let results = $.map(data, function(item) {
                                 return {
-                                    id: item.Modulo,
-                                    text: item.Modulo
+                                    id: item.modulo,      // Usar 'modulo' como ID
+                                    text: item.modulo,    // Usar 'modulo' como texto a mostrar
+                                    type: item.tipo,      // **NUEVO: Pasar el tipo del módulo**
+                                    planta: item.planta || null // **NUEVO: Pasar la planta si existe**
                                 };
                             });
                             // Filtrar en frontend si hay término de búsqueda y el backend no filtra
@@ -361,7 +363,6 @@ class ChatManager {
                             return { results };
                         }
                     },
-                    // Eliminar minimumInputLength para mostrar opciones al abrir
                     minimumResultsForSearch: 0 // muestra el buscador siempre
                 });
 
@@ -370,27 +371,65 @@ class ChatManager {
                     $('.select2-search__field').focus();
                 });
 
-                // Evitar mensajes duplicados al cambiar de módulo
-                $('#modul').on('select2:select', (e) => {
-                    const newModule = e.params.data.text || '';
+                // Manejar la selección del módulo
+                $('#modul').on('select2:select', async (e) => {
+                    const selectedData = e.params.data; // Acceder a todos los datos del elemento seleccionado
+                    const newModule = selectedData.text; // El nombre del módulo
+                    const moduleType = selectedData.type; // El tipo de módulo (catalogo o supervisor)
+                    const modulePlanta = selectedData.planta; // La planta (si aplica para supervisor)
+
                     // Si ya hay un módulo seleccionado y el usuario cambia, solo actualiza el valor
                     if (this.state.userModule && this.state.userModule !== newModule) {
                         this.state.userModule = newModule;
                         window.GLOBAL_CHAT_MODULE = newModule;
-                        // Mostrar el select de operarios actualizado
-                        this.showOperarioSelect(newModule);
+                        // **Decidir el siguiente paso basado en el tipo de módulo**
+                        if (moduleType === 'supervisor') {
+                            // Si es un módulo de supervisor, proceder con la selección de operarios
+                            // Aquí podrías necesitar pasar 'modulePlanta' si showOperarioSelect lo usa
+                            this.showOperarioSelect(newModule); 
+                        } else if (moduleType === 'catalogo') {
+                            // Si es un módulo de catálogo, ir a la nueva instrucción (ej. seleccionar máquina)
+                            // Llama a la función que debería seguir para módulos de catálogo
+                            this.showMachineSelectForCatalogModule(newModule); // <--- CAMBIAR ESTO A LA FUNCIÓN CORRECTA
+                        } else {
+                            // Manejar un tipo desconocido o lanzar un error
+                            this.showError('Tipo de módulo desconocido. Contacte a soporte.');
+                        }
                         return;
                     }
-                    // Si es la primera vez, sí mostrar el flujo normal
+
+                    // Si es la primera vez que se selecciona el módulo
                     this.state.userModule = newModule;
                     window.GLOBAL_CHAT_MODULE = newModule;
-                    window.iaChatStep = 3;
-                    // Mostrar el select de operarios antes de continuar
-                    this.showOperarioSelect(newModule);
+                    window.iaChatStep = 3; // Mantener el paso actual si es relevante para tu lógica
+
+                    // **Decidir el siguiente paso basado en el tipo de módulo**
+                    if (moduleType === 'supervisor') {
+                        // Si es un módulo de supervisor, proceder con la selección de operarios
+                        // Aquí podrías necesitar pasar 'modulePlanta' si showOperarioSelect lo usa
+                        this.showOperarioSelect(newModule);
+                    } else if (moduleType === 'catalogo') {
+                        // Si es un módulo de catálogo, ir a la nueva instrucción (ej. seleccionar máquina)
+                        // Llama a la función que debería seguir para módulos de catálogo
+                        this.showMachineSelectForCatalogModule(newModule); // <--- CAMBIAR ESTO A LA FUNCIÓN CORRECTA
+                    } else {
+                        // Manejar un tipo desconocido o lanzar un error
+                        this.showError('Tipo de módulo desconocido. Contacte a soporte.');
+                    }
                 });
             }
         }, 100);
         window.iaChatStep = 99; // Esperar selección de módulo
+    }
+
+    async showMachineSelectForCatalogModule(moduleName) {
+        // Ejemplo: Puedes reutilizar parte de la lógica de showMachineSelect si aplica
+        await this.appendChatMessage(`Excelente, has seleccionado el módulo "${moduleName}". Ahora, por favor, elige el tipo de máquina.`, this.elements.chatMessages);
+        // ... aquí iría la lógica para mostrar el select de máquinas, similar a askUserProblem o showMachineSelect
+        // O cualquier otra lógica específica para estos módulos
+        // Por ejemplo:
+        // this.showMachineSelect(this.elements.chatMessages);
+        // O si solo se aplica a CatalogoArea, podrías tener una lógica para ir directamente a pedir el problema o una sección diferente.
     }
 
     /**

@@ -27,43 +27,34 @@ class FormGuestV2Controller extends Controller
                 $modulos = Cache::get($cacheKey);
             } else {
                 // 1. Obtener los módulos de CatalogoArea
-                // Añadimos una columna 'tipo' para identificar su origen
                 $modulosCatalogo = CatalogoArea::select('nombre as modulo')
-                                               ->where('estatus', 1)
-                                               ->orderBy('modulo')
-                                               ->get()
-                                               ->map(function ($item) {
-                                                   $item['tipo'] = 'catalogo'; // Añadimos el tipo 'catalogo'
-                                                   return $item;
-                                               });
+                                            ->where('estatus', 1)
+                                            ->orderBy('modulo')
+                                            ->get()
+                                            ->map(function ($item) {
+                                                // CORRECCIÓN: Usar sintaxis de objeto para añadir la propiedad 'tipo'
+                                                $item->tipo = 'catalogo';
+                                                return $item;
+                                            });
 
                 // 2. Obtener los módulos de modulo_supervisor_views
-                // Añadimos una columna 'tipo' para identificar su origen
                 $modulosSupervisores = DB::connection('sqlsrv_dev')
-                                         ->table('modulo_supervisor_views')
-                                         ->select('modulo', 'planta')
-                                         ->distinct()
-                                         ->orderBy('modulo')
-                                         ->get()
-                                         ->map(function ($item) {
-                                             $item['tipo'] = 'supervisor'; // Añadimos el tipo 'supervisor'
-                                             return $item;
-                                         });
+                                        ->table('modulo_supervisor_views')
+                                        ->select('modulo', 'planta')
+                                        ->distinct()
+                                        ->orderBy('modulo')
+                                        ->get()
+                                        ->map(function ($item) {
+                                            // ESTA ES LA CORRECCIÓN CLAVE: Usar sintaxis de objeto para stdClass
+                                            $item->tipo = 'supervisor';
+                                            return $item;
+                                        });
 
                 // 3. Combinar ambos conjuntos de datos
-                // Usamos concat para unir las colecciones
                 $modulos = collect($modulosCatalogo)->concat($modulosSupervisores);
 
                 // 4. Eliminar duplicados basándose en el campo 'modulo' y reindexar
-                // Primero mantenemos los de 'catalogo' si hay duplicados,
-                // luego los de 'supervisor' si no hay un 'catalogo' con el mismo nombre.
                 $modulos = $modulos->unique('modulo')->values(); 
-                Log::info('Módulos combinados obtenidos correctamente', [
-                    'modulos_count' => $modulos->count(),
-                    'modulos' => $modulos->toArray(),
-                ]);
-                // Opcional: Reordenar si quieres un orden específico después de combinar
-                // $modulos = $modulos->sortBy('modulo');
 
                 // Guardar en caché por un día
                 Cache::put($cacheKey, $modulos, now()->addDay());
