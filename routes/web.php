@@ -63,6 +63,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         // Vinculacion V2
         Route::get('/vinculacion', [VinculacionV2Controller::class, 'index'])->name('vinculacion.index');
         Route::get('/vinculacion/obtenerMecanicos', [VinculacionV2Controller::class, 'obtenerMecanicos']);
+        Route::get('/vinculacion/obtenerSupervisores', [VinculacionV2Controller::class, 'obtenerSupervisores']);
     });
 });
 

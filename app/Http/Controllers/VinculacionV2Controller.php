@@ -27,7 +27,7 @@ class VinculacionV2Controller extends Controller
         try {
             $mecanicos = DB::connection('sqlsrv_dev')
                 ->table('catalogo_mecanicos')
-                ->select('nombre', 'numero_empleado')
+                ->select('nombre', 'numero_empleado', 'planta')
                 ->orderBy('nombre')
                 ->get();
 
@@ -37,6 +37,23 @@ class VinculacionV2Controller extends Controller
             Log::error('Error al obtener mecánicos: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error al obtener los datos de mecánicos.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function obtenerSupervisores()
+    {
+        try {
+            $supervisores = DB::connection('sqlsrv_dev')
+                ->table('catalogo_supervisores')
+                ->select('modulo', 'nombre', 'numero_empleado', 'planta')
+                ->orderBy('modulo')
+                ->get();
+            return response()->json($supervisores);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al obtener los datos de supervisores.',
                 'error' => $e->getMessage()
             ], 500);
         }

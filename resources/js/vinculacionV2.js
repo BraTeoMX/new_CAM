@@ -51,18 +51,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Carga de supervisores
     function loadSupervisores() {
-        fetch('/supervisores')
+        fetch('/vinculacion/obtenerSupervisores')
             .then(response => response.json())
             .then(data => {
                 supervisoresData = data;
                 supervisoresList.innerHTML = supervisoresData.map(supervisor => `
                     <div class="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md cursor-move draggable-supervisor"
-                         data-supervisor="${supervisor.Nombre || ''}"
-                         data-modulo="${supervisor.Modulo || ''}"
+                         data-supervisor="${supervisor.nombre || ''}"
+                         data-modulo="${supervisor.modulo || ''}"
                          data-index="${supervisoresData.indexOf(supervisor)}">
                         <div>
-                            <h3 class="font-medium">Módulo: ${supervisor.Modulo}</h3>
-                            <p class="text-sm text-gray-500">Supervisor: ${supervisor.Nombre}</p>
+                            <h3 class="font-medium">Módulo: ${supervisor.modulo}</h3>
+                            <p class="text-sm text-gray-500">Supervisor: ${supervisor.nombre}</p>
                         </div>
                     </div>
                 `).join('');
