@@ -180,7 +180,7 @@ class ChatManager {
                 $('#modulo-seguimiento').select2({
                     placeholder: 'Selecciona un módulo',
                     ajax: {
-                        url: '/obtener-modulos',
+                        url: '/FormGuestV2/obtenerAreasModulos',
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
@@ -189,7 +189,7 @@ class ChatManager {
                         },
                         processResults: function(data, params) {
                             let results = $.map(data, function(item) {
-                                return { id: item.Modulo, text: item.Modulo };
+                                return { id: item.modulo, text: item.modulo };
                             });
                             if (params.term && params.term.length > 0) {
                                 const term = params.term.toLowerCase();
@@ -211,7 +211,7 @@ class ChatManager {
                     });
                     // Redirigir con el módulo como query param
                     setTimeout(() => {
-                        window.location.href = `http://128.150.102.40:8020/FollowOT?modulo=${encodeURIComponent(modulo)}`;
+                        window.location.href = `/FollowOT?modulo=${encodeURIComponent(modulo)}`;
                     }, 1200);
                 });
             }
@@ -472,7 +472,7 @@ class ChatManager {
                 $('#operario-select').select2({
                     placeholder: 'Selecciona un operario',
                     ajax: {
-                        url: '/obtener-operarios',
+                        url: '/FormGuestV2/obtener-operarios',
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
@@ -597,7 +597,7 @@ class ChatManager {
                 $('#problema-select').select2({
                     placeholder: 'Busca o selecciona un problema',
                     ajax: {
-                        url: '/catalogo-problemas', // TU RUTA DEL BACKEND
+                        url: '/FormGuestV2/catalogo-problemas', // TU RUTA DEL BACKEND
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
@@ -1184,7 +1184,7 @@ class ChatManager {
         // Llenar el select con los módulos
         const select = messageDiv.querySelector('#modulo-seguimiento');
         try {
-            const res = await axios.get('/obtener-modulos');
+            const res = await axios.get('FormGuestV2/obtenerAreasModulos');
             res.data.forEach(mod => {
                 let value = mod.Modulo || mod.moduleid || mod.MODULEID || mod.value || mod;
                 let text = mod.Modulo || mod.moduleid || mod.MODULEID || mod.value || mod;
@@ -1213,7 +1213,7 @@ class ChatManager {
                         Swal.showLoading();
                     }
                 });
-                window.location.href = `http://128.150.102.40:8020/FollowOT?modulo=${encodeURIComponent(select.value)}`;
+                window.location.href = `FollowOT?modulo=${encodeURIComponent(select.value)}`;
             }
         };
     }

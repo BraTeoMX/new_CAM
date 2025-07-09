@@ -12,7 +12,7 @@ use App\Models\CatalogoArea;
 use App\Models\TicketOt;
 use App\Models\CatalogoProblema;
 
-class FormGuestV2Controller extends Controller
+class VinculacionV2Controller extends Controller
 {
     /**
      * Display a listing of the resource.

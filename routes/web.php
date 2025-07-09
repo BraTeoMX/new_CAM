@@ -127,4 +127,6 @@ Route::get('/obtener-modulo', [InteractionIA::class, 'getModules'])->name('chatb
 // actualizacion para un segunda version FormGuest
 Route::get('/FormGuestV2', [FormGuestV2Controller::class, 'index'])->name('formGuest.index');
 Route::get('/FormGuestV2/obtenerAreasModulos', [FormGuestV2Controller::class, 'obtenerAreasModulos']);
+Route::get('/FormGuestV2/obtener-operarios', [FormGuestV2Controller::class, 'obtenerOperarios']);
+Route::get('/FormGuestV2/catalogo-problemas', [FormGuestV2Controller::class, 'catalogoProblemas']);
 Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarRegistro']);
