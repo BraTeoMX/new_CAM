@@ -370,7 +370,17 @@ class ChatManager {
                     const selectedData = e.params.data; // Acceder a todos los datos del elemento seleccionado
                     const newModule = selectedData.text; // El nombre del módulo
                     const moduleType = selectedData.type; // El tipo de módulo (catalogo o supervisor)
-                    const modulePlanta = selectedData.planta; // La planta (si aplica para supervisor)
+                    
+                    this.state.userModule = newModule;
+                    this.state.moduleType = moduleType;
+                    this.state.modulePlanta = selectedData.planta;
+                    this.state.nombreSupervisor = selectedData.nombre_supervisor;
+                    this.state.numeroSupervisor = selectedData.numero_empleado_supervisor;
+
+                    window.GLOBAL_CHAT_MODULE = newModule;
+                    window.GLOBAL_CHAT_PLANTA = selectedData.planta;
+                    window.GLOBAL_SUPERVISOR_NOMBRE = selectedData.nombre_supervisor;
+                    window.GLOBAL_SUPERVISOR_NUMERO = selectedData.numero_empleado_supervisor;
 
                     // Si ya hay un módulo seleccionado y el usuario cambia, solo actualiza el valor
                     if (this.state.userModule && this.state.userModule !== newModule) {
@@ -858,6 +868,9 @@ class ChatManager {
             // Usar los valores globales si los del state están vacíos
             const modulo = this.state.userModule || window.GLOBAL_CHAT_MODULE;
             const problema = this.state.userProblem || window.GLOBAL_CHAT_PROBLEM;
+            const planta = this.state.modulePlanta || window.GLOBAL_CHAT_PLANTA;
+            const nombre_supervisor = this.state.nombreSupervisor || window.GLOBAL_SUPERVISOR_NOMBRE;
+            const numero_empleado_supervisor = this.state.numeroSupervisor || window.GLOBAL_SUPERVISOR_NUMERO;
             const selectedMachineIndex =
                 (typeof this.state.selectedMachineIndex === 'number' && !isNaN(this.state.selectedMachineIndex)) ?
                 this.state.selectedMachineIndex :
@@ -931,11 +944,11 @@ class ChatManager {
 
             const formData = {
                 modulo: modulo,
-                planta: planta || "1",
-                nombre_supervisor: nombre_supervisor,
-                numero_empleado_supervisor: numero_empleado_supervisor,
-                nombre_operario: nombre_operario,
-                numero_empleado_operario: numero_empleado_operario,
+                planta: planta || "1", // Proporciona un valor por defecto si es necesario
+                nombre_supervisor: nombre_supervisor || 'N/A',
+                numero_empleado_supervisor: numero_empleado_supervisor || 'N/A',
+                nombre_operario: operarioNombre,
+                numero_empleado_operario: operarioNumero,
                 problema: problema,
                 descripcion: problema,
                 problema_id: problemIdToSend,

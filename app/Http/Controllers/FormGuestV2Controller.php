@@ -58,7 +58,6 @@ class FormGuestV2Controller extends Controller
 
                 // 3. Combinar ambos conjuntos de datos
                 $modulos = collect($modulosCatalogo)->concat($modulosSupervisores);
-                Log::info('Módulos combinados obtenidos de la base de datos', ['modulos' => $modulos->toArray()]);
 
                 // 4. Eliminar duplicados basándose en el campo 'modulo' y reindexar
                 $modulos = $modulos->unique('modulo')->values(); 
@@ -155,7 +154,7 @@ class FormGuestV2Controller extends Controller
     public function guardarRegistro(Request $request)
     {
         try {
-            //Log::info('Iniciando creación de ticket:', $request->all());
+            Log::info('Iniciando creación de ticket:', $request->all());
 
             // Validación actualizada
             Log::info('Validando datos del formulario:', $request->all());
@@ -183,6 +182,9 @@ class FormGuestV2Controller extends Controller
             // Preparar datos para el registro
             $ticketData = [
                 'modulo' => $sanitizedData['modulo'],
+                'planta' => $planta = $request->planta ?? '1', // Asignar planta por defecto si no se proporciona
+                'nombre_supervisor' => $request->nombre_supervisor ?? 'N/A', // Asignar nombre de supervisor por defecto si no se proporciona
+                'numero_empleado_supervisor' => $request->numero_empleado_supervisor ?? 'N/A', // Asignar número de empleado de supervisor por defecto si no se proporciona
                 'numero_empleado_operario' => $Operario,
                 'nombre_operario' => $NombreOperario,
                 'tipo_problema' => $sanitizedData['problema'],

@@ -65,7 +65,7 @@ class AsignationOTController extends Controller
         if ($mecanicos->isEmpty()) {
             Log::info("No hay mecánicos presentes en planta para el módulo: $modulo");
             // Buscar supervisor por el módulo (primer supervisor encontrado)
-            $supervisor = Vinculacion::where('Modulo', $modulo)->value('Supervisor');
+            $supervisor = Vinculacion::where('modulo', $modulo)->value('nombre_supervisor');
             // Guardar la asignación con mecánico y cve_mecanico null y status SIN_ASIGNAR, pero con supervisor si existe
             $asignacion = AsignationOT::create([
                 'Folio'     => $request->input('folio'),
