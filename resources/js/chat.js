@@ -1017,8 +1017,8 @@ class ChatManager {
                     swalText = `La Orden de Trabajo fue creada exitosamente con el folio: ${data.folio}`;
                 } else if (statusToSend === '3') {
                     swalIcon = 'warning';
-                    swalTitle = 'El ticket fue 3';
-                    swalText = triggeredByTimeout ? 'Por inactividad se ha 3 tu ticket' : '';
+                    swalTitle = 'El ticket fue cancelado';
+                    swalText = triggeredByTimeout ? 'Por inactividad se ha cancelado tu ticket' : '';
                 }
 
                 await Swal.fire({
