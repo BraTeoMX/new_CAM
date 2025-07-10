@@ -185,29 +185,31 @@ $(document).ready(function() {
                                 ${vinculacion.planta}
                             </td>
                             <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <select class="select-inicio border border-gray-300 rounded px-2 py-1">
-                                    <option selected>${vinculacion.hora_comida_inicio || ''}</option>
-                                    <!-- Puedes agregar más opciones si quieres predefinir horarios -->
-                                </select>
-                                <input type="text" class="input-fin border border-gray-300 rounded px-2 py-1 ml-2" 
-                                    value="${vinculacion.hora_comida_fin || ''}" readonly />
+                                <div class="flex gap-2 w-full">
+                                    <select class="w-[60%] border border-gray-300 rounded px-2 py-1">
+                                        <option selected>${vinculacion.hora_comida_inicio || ''}</option>
+                                    </select>
+                                    <input type="text" class="w-[40%] border border-gray-300 rounded px-2 py-1" 
+                                        value="${vinculacion.hora_comida_fin || ''}" readonly />
+                                </div>
                             </td>
                             <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <select class="select-inicio border border-gray-300 rounded px-2 py-1">
-                                    <option selected>${vinculacion.break_lunes_jueves_inicio || ''}</option>
-                                </select>
-                                <input type="text" class="input-fin border border-gray-300 rounded px-2 py-1 ml-2" 
-                                    value="${vinculacion.break_lunes_jueves_fin || ''}" readonly />
+                                <div class="flex gap-2 w-full">
+                                    <select class="w-[60%] border border-gray-300 rounded px-2 py-1">
+                                        <option selected>${vinculacion.break_lunes_jueves_inicio || ''}</option>
+                                    </select>
+                                    <input type="text" class="w-[40%] border border-gray-300 rounded px-2 py-1" 
+                                        value="${vinculacion.break_lunes_jueves_fin || ''}" readonly />
+                                </div>
                             </td>
                             <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <select class="select-inicio border border-gray-300 rounded px-2 py-1">
-                                    <option selected>${vinculacion.break_viernes_inicio || ''}</option>
-                                </select>
-                                <input type="text" class="input-fin border border-gray-300 rounded px-2 py-1 ml-2" 
-                                    value="${vinculacion.break_viernes_fin || ''}" readonly />
-                            </td>
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded shadow text-sm btn-eliminar">Eliminar</button>
+                                <div class="flex gap-2 w-full">
+                                    <select class="w-[60%] border border-gray-300 rounded px-2 py-1">
+                                        <option selected>${vinculacion.break_viernes_inicio || ''}</option>
+                                    </select>
+                                    <input type="text" class="w-[40%] border border-gray-300 rounded px-2 py-1" 
+                                        value="${vinculacion.break_viernes_fin || ''}" readonly />
+                                </div>
                             </td>
                         </tr>
                     `;
