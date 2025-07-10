@@ -46,6 +46,11 @@ class TicketOt extends Model
     protected $fillable = [
         'folio',
         'modulo',
+        'planta',
+        'nombre_supervisor',
+        'numero_empleado_supervisor',
+        'nombre_operario',
+        'numero_empleado_operario',
         'tipo_problema',
         'descripcion_problema',
         'maquina',

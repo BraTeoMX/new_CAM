@@ -31,20 +31,22 @@ class FormGuestV2Controller extends Controller
                 $modulos = Cache::get($cacheKey);
             } else {
                 // 1. Obtener los módulos de CatalogoArea
-                $modulosCatalogo = CatalogoArea::select('nombre as modulo')
+                $modulosCatalogo = CatalogoArea::select('nombre as modulo', 'planta')
                                             ->where('estatus', 1)
                                             ->orderBy('modulo')
                                             ->get()
                                             ->map(function ($item) {
-                                                // CORRECCIÓN: Usar sintaxis de objeto para añadir la propiedad 'tipo'
+                                                $item->planta = (string) $item->planta;
                                                 $item->tipo = 'catalogo';
+                                                $item->nombre_supervisor = 'N/A';
+                                                $item->numero_empleado_supervisor = 'N/A';
                                                 return $item;
                                             });
 
                 // 2. Obtener los módulos de modulo_supervisor_views
                 $modulosSupervisores = DB::connection('sqlsrv_dev')
                                         ->table('modulo_supervisor_views')
-                                        ->select('modulo', 'planta')
+                                        ->select('modulo', 'planta', 'nombre as nombre_supervisor', 'numero_empleado as numero_empleado_supervisor')
                                         ->distinct()
                                         ->orderBy('modulo')
                                         ->get()
@@ -156,6 +158,7 @@ class FormGuestV2Controller extends Controller
             //Log::info('Iniciando creación de ticket:', $request->all());
 
             // Validación actualizada
+            Log::info('Validando datos del formulario:', $request->all());
             $validatedData = $request->validate([
                 'modulo' => ['required', 'string', 'max:255'],
                 'problema' => ['required', 'string', 'max:255'],
@@ -180,6 +183,8 @@ class FormGuestV2Controller extends Controller
             // Preparar datos para el registro
             $ticketData = [
                 'modulo' => $sanitizedData['modulo'],
+                'numero_empleado_operario' => $Operario,
+                'nombre_operario' => $NombreOperario,
                 'tipo_problema' => $sanitizedData['problema'],
                 'descripcion_problema' => $sanitizedData['problema'],
                 'maquina' => $sanitizedData['maquina'],
@@ -206,11 +211,10 @@ class FormGuestV2Controller extends Controller
                 // Llamar a la asignación de OT
                 $asignacionController = new AsignationOTController();
                 $asignacionRequest = new Request([
-                    'folio' => $ticket->Folio,
-                    'modulo' => $ticket->Modulo,
-                    'operario' => $Operario,
-                    'nombreoperario' => $NombreOperario,
-                    'maquina' => $ticket->Maquina,
+                    'folio' => $ticket->folio,
+                    'modulo' => $ticket->modulo,
+                    'operario' => $ticket->nombre_operario,
+                    'maquina' => $ticket->maquina,
                     'timeAutonomo' => $tiempo_estimado,
                     'timerealAutonomo' => $tiempo_real,
                     'status' => $ticket->Status,
@@ -225,8 +229,8 @@ class FormGuestV2Controller extends Controller
                     'folio' => $folio,
                     'message' => 'Ticket creado con éxito',
                     'data' => [
-                        'modulo' => $ticket->Modulo,
-                        'estado' => $ticket->Status,
+                        'modulo' => $ticket->modulo,
+                        'estado' => $ticket->estado,
                         'created_at' => $ticket->created_at,
                         'asignacion' => $asignacionData
                     ]
