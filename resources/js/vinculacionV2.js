@@ -159,6 +159,48 @@ $(document).ready(function() {
         });
     });
 
+
+    /**
+     * Genera etiquetas <option> para un select de tiempo.
+     * @param {string} startTime - Hora de inicio en formato "HH:mm".
+     * @param {string} endTime - Hora de fin en formato "HH:mm".
+     * @param {number} intervalMinutes - Intervalo entre opciones en minutos.
+     * @param {string} selectedValue - El valor que debe aparecer seleccionado.
+     * @returns {string} - El HTML de las opciones.
+     */
+    function generarOpcionesDeTiempo(startTime, endTime, intervalMinutes, selectedValue) {
+        let options = '';
+        let start = new Date(`1970-01-01T${startTime}:00`);
+        const end = new Date(`1970-01-01T${endTime}:00`);
+
+        while (start <= end) {
+            const hours = String(start.getHours()).padStart(2, '0');
+            const minutes = String(start.getMinutes()).padStart(2, '0');
+            const timeValue = `${hours}:${minutes}`;
+            // Marcar como 'selected' si coincide con el valor de la BD
+            const selected = timeValue === selectedValue ? 'selected' : '';
+            options += `<option value="${timeValue}" ${selected}>${timeValue}</option>`;
+            start.setMinutes(start.getMinutes() + intervalMinutes);
+        }
+        return options;
+    }
+
+    /**
+     * Calcula la hora de fin sumando una duración a la hora de inicio.
+     * @param {string} startTime - Hora de inicio en formato "HH:mm".
+     * @param {number} durationMinutes - Minutos a sumar.
+     * @returns {string} - Hora de fin en formato "HH:mm".
+     */
+    function calcularHoraFin(startTime, durationMinutes) {
+        if (!startTime) return ''; // Si no hay hora de inicio, devuelve vacío
+        const time = new Date(`1970-01-01T${startTime}:00`);
+        time.setMinutes(time.getMinutes() + durationMinutes);
+        const hours = String(time.getHours()).padStart(2, '0');
+        const minutes = String(time.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
+
+
     function cargarTablaVinculaciones() {
         $.ajax({
             url: '/vinculacion/mostrarRegistros',
@@ -166,64 +208,85 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 const tbody = $('#vinculacion-tbody');
-                tbody.empty(); // 1. Limpiar la tabla antes de llenarla
+                tbody.empty(); // Limpiar tabla
 
-                // 2. Iterar sobre cada vinculación recibida
                 response.forEach(function(vinculacion) {
-                    // 3. Crear el HTML para cada fila
-                    // NOTA: Asegúrate que los nombres (ej. vinculacion.nombre_mecanico)
-                    // coincidan con las columnas de tu tabla 'vinculaciones' en la base de datos.
+                    // 1. Generar las opciones para cada select con el valor correcto seleccionado
+                    const opcionesComida = generarOpcionesDeTiempo("08:00", "22:00", 30, vinculacion.hora_comida_inicio);
+                    const opcionesBreakLJ = generarOpcionesDeTiempo("08:00", "19:00", 15, vinculacion.break_lunes_jueves_inicio);
+                    const opcionesBreakV = generarOpcionesDeTiempo("08:00", "19:00", 15, vinculacion.break_viernes_inicio);
+
+                    // 2. Calcular las horas de fin iniciales a partir de los datos de la BD
+                    const horaComidaFin = calcularHoraFin(vinculacion.hora_comida_inicio, 30);
+                    const breakLJFin = calcularHoraFin(vinculacion.break_lunes_jueves_inicio, 15);
+                    const breakVFin = calcularHoraFin(vinculacion.break_viernes_inicio, 15);
+
+                    // 3. Construir la fila con los datos y las opciones generadas
                     const fila = `
-                        <tr data-id="${vinculacion.id}">
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                ${vinculacion.modulo} - ${vinculacion.nombre_supervisor}
-                            </td>
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                ${vinculacion.nombre_mecanico}
-                            </td>
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                                ${vinculacion.planta}
-                            </td>
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                        <tr data-id="${vinculacion.id}" class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+                            <td class="px-4 py-2 border-b ...">${vinculacion.modulo} - ${vinculacion.nombre_supervisor}</td>
+                            <td class="px-4 py-2 border-b ...">${vinculacion.nombre_mecanico}</td>
+                            <td class="px-4 py-2 border-b ...">${vinculacion.planta}</td>
+                            
+                            <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select class="w-[60%] border border-gray-300 rounded px-2 py-1">
-                                        <option selected>${vinculacion.hora_comida_inicio || ''}</option>
+                                    <select class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="30">
+                                        <option value="">Seleccionar</option>
+                                        ${opcionesComida}
                                     </select>
-                                    <input type="text" class="w-[40%] border border-gray-300 rounded px-2 py-1" 
-                                        value="${vinculacion.hora_comida_fin || ''}" readonly />
+                                    <input type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${horaComidaFin || ''}" readonly />
                                 </div>
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+
+                            <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select class="w-[60%] border border-gray-300 rounded px-2 py-1">
-                                        <option selected>${vinculacion.break_lunes_jueves_inicio || ''}</option>
+                                    <select class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="15">
+                                         <option value="">Seleccionar</option>
+                                        ${opcionesBreakLJ}
                                     </select>
-                                    <input type="text" class="w-[40%] border border-gray-300 rounded px-2 py-1" 
-                                        value="${vinculacion.break_lunes_jueves_fin || ''}" readonly />
+                                    <input type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakLJFin || ''}" readonly />
                                 </div>
                             </td>
-                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+
+                            <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select class="w-[60%] border border-gray-300 rounded px-2 py-1">
-                                        <option selected>${vinculacion.break_viernes_inicio || ''}</option>
+                                    <select class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="15">
+                                         <option value="">Seleccionar</option>
+                                        ${opcionesBreakV}
                                     </select>
-                                    <input type="text" class="w-[40%] border border-gray-300 rounded px-2 py-1" 
-                                        value="${vinculacion.break_viernes_fin || ''}" readonly />
+                                    <input type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakVFin || ''}" readonly />
                                 </div>
                             </td>
+                            <td></td>
                         </tr>
                     `;
-                    // 4. Añadir la fila a la tabla
                     tbody.append(fila);
                 });
             },
             error: function(xhr) {
                 console.error("Error al obtener los registros:", xhr.responseText);
-                // Opcional: Mostrar un mensaje de error en la tabla
-                $('#vinculacion-tbody').html('<tr><td colspan="6" class="text-center text-red-500 py-4">Error al cargar los datos.</td></tr>');
+                $('#vinculacion-tbody').html('<tr><td colspan="7" class="text-center text-red-500 py-4">Error al cargar los datos.</td></tr>');
             }
         });
     }
+
+    // --- MANEJADOR DE EVENTOS PARA ACTUALIZACIÓN AUTOMÁTICA ---
+    
+    // Se usa delegación de eventos: un solo listener en el tbody para todos los selects.
+    $('#vinculacion-tbody').on('change', '.vinculacion-select', function() {
+        const select = $(this);
+        const selectedTime = select.val();
+        const duration = parseInt(select.data('duration'), 10);
+        
+        // Encuentra el input de 'fin' que está justo al lado
+        const finInput = select.siblings('input[type="text"]');
+        
+        // Calcula la nueva hora de fin y actualiza el input
+        const endTime = calcularHoraFin(selectedTime, duration);
+        finInput.val(endTime);
+    });
     cargarTablaVinculaciones();
+
+
 
 });
