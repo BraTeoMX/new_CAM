@@ -48,14 +48,27 @@ class VinculacionV2Controller extends Controller
     public function obtenerSupervisores()
     {
         try {
-            $supervisores = Cache::remember('supervisores_cache', now()->addHours(2), function () {
-                return DB::connection('sqlsrv_dev')
+            $supervisores = Cache::remember('vinculo_ supervisores_cache', now()->addHours(2), function () {
+                // 1. Obtener áreas desde MySQL (modelo local)
+                $areas = CatalogoArea::selectRaw("nombre as modulo, nombre, 'N/A' as numero_empleado, planta")
+                    ->where('estatus', 1)
+                    ->orderBy('modulo')
+                    ->get()
+                    ->map(function ($area) {
+                        $area->planta = (string) $area->planta;
+                        return $area;
+                    });
+                // 2. Obtener supervisores desde SQL Server
+                $supervisores = DB::connection('sqlsrv_dev')
                     ->table('catalogo_supervisores')
                     ->select('modulo', 'nombre', 'numero_empleado', 'planta')
                     ->orderBy('modulo')
                     ->get();
-            });
 
+                // 3. Unir ambas colecciones (áreas primero)
+                return $areas->concat($supervisores);
+            });
+            Log::info('Supervisores obtenidos:', $supervisores->toArray());
             return response()->json($supervisores);
         } catch (\Exception $e) {
             return response()->json([
@@ -138,7 +151,6 @@ class VinculacionV2Controller extends Controller
             'vinculaciones.*.break_lunes_jueves_fin' => 'nullable|date_format:H:i',
             'vinculaciones.*.break_viernes_fin' => 'nullable|date_format:H:i',
         ]);
-        Log::info('Validando datos para actualización masiva de vinculaciones', $request->all());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422); // Error de validación
