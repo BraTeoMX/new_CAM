@@ -230,7 +230,7 @@ $(document).ready(function() {
                             
                             <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select name="hora_comida_inicio class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="30">
+                                    <select name="hora_comida_inicio" class=" bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="30">
                                         <option value="">Seleccionar</option>
                                         ${opcionesComida}
                                     </select>

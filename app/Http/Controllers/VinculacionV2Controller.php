@@ -133,8 +133,12 @@ class VinculacionV2Controller extends Controller
             'vinculaciones.*.id' => 'required|integer|exists:vinculaciones,id', // El ID debe existir en la tabla
             'vinculaciones.*.hora_comida_inicio' => 'nullable|date_format:H:i',
             'vinculaciones.*.break_lunes_jueves_inicio' => 'nullable|date_format:H:i',
-            'vinculaciones.*.break_viernes_inicio' => 'nullable|date_format:H:i',
+            'vinculaciones.*.break_viernes_fin' => 'nullable|date_format:H:i',
+            'vinculaciones.*.hora_comida_fin' => 'nullable|date_format:H:i',
+            'vinculaciones.*.break_lunes_jueves_fin' => 'nullable|date_format:H:i',
+            'vinculaciones.*.break_viernes_fin' => 'nullable|date_format:H:i',
         ]);
+        Log::info('Validando datos para actualización masiva de vinculaciones', $request->all());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422); // Error de validación
