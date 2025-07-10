@@ -96,4 +96,30 @@ class VinculacionV2Controller extends Controller
         }
     }
 
+    public function mostrarRegistros()
+    {
+        try {
+            // Obtiene registros ordenados del mayor al menor por ID
+            $vinculaciones = Vinculacion::orderByDesc('modulo')->get();
+
+            // Mapea la columna 'planta' con sus equivalentes de texto
+            $vinculaciones = $vinculaciones->map(function ($item) {
+                $item->planta = match ($item->planta) {
+                    1 => 'Ixtlahuaca',
+                    2 => 'San Bartolo',
+                    default => 'Sin Planta',
+                };
+                return $item;
+            });
+
+            return response()->json($vinculaciones);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener los registros de vinculaciones: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al obtener los registros de vinculaciones.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

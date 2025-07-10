@@ -7,7 +7,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
-                <label for="select-supervisor" class="block font-medium mb-1">Supervisor/Módulo</label>
+                <label for="select-supervisor" class="block font-medium mb-1">Módulo/Supervisor</label>
                 <select id="select-supervisor" class="w-full"></select>
             </div>
             <div>
@@ -26,18 +26,21 @@
 
         <!-- Nuevo Panel de Vinculación -->
         <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mt-8">
-            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Mecánico - Módulo/Supervisor
+            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Módulo/Supervisor - Mecánico 
             </h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700" id="tabla-vinculacion">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th id="col-supervisor-modulo" name="supervisor-modulo"
+                            <th id="col-modulo-supervisor" name="modulo-supervisor"
                                 class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Supervisor/Módulo</th>
+                                Módulo/Supervisor</th>
                             <th id="col-mecanico" name="mecanico"
                                 class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Mecánico</th>
+                            <th id="col-planta" name="planta"
+                                class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Planta</th>
                             <th id="col-comida" name="comida"
                                 class="px-4 py-2 text-left text-xs font-medium ... uppercase min-w-[200px]">
                                 Hora Comida
@@ -54,23 +57,13 @@
                         </tr>
                     </thead>
                     <tbody id="vinculacion-tbody">
-                        <tr class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-                            <td name="supervisor-modulo" class="px-4 py-2"></td>
-                            <td name="mecanico" class="px-4 py-2"></td>
-                            <td name="comida" class="px-4 py-2" contenteditable="true"></td>
-                            <td name="break-lj" class="px-4 py-2" contenteditable="true"></td>
-                            <td name="break-v" class="px-4 py-2" contenteditable="true"></td>
-                            <td class="px-4 py-2">
-                                <!-- Botón eliminar -->
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
             <div class="mt-4 flex gap-2">
                 <button id="guardar-vinculacion"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Guardar
-                    Vinculaciones</button>
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Guardar Vinculaciones
+                </button>
             </div>
         </div>
     </div>

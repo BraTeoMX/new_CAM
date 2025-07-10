@@ -139,6 +139,7 @@ $(document).ready(function() {
 
                 // Limpiar formulario para una nueva vinculación
                 $selectSupervisor.val(null).trigger('change');
+                cargarTablaVinculaciones();
             },
             error: function(xhr) {
                 // ❌ Notificación de error
@@ -157,4 +158,57 @@ $(document).ready(function() {
             }
         });
     });
+
+    function cargarTablaVinculaciones() {
+        $.ajax({
+            url: '/vinculacion/mostrarRegistros',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                const tbody = $('#vinculacion-tbody');
+                tbody.empty(); // 1. Limpiar la tabla antes de llenarla
+
+                // 2. Iterar sobre cada vinculación recibida
+                response.forEach(function(vinculacion) {
+                    // 3. Crear el HTML para cada fila
+                    // NOTA: Asegúrate que los nombres (ej. vinculacion.nombre_mecanico)
+                    // coincidan con las columnas de tu tabla 'vinculaciones' en la base de datos.
+                    const fila = `
+                        <tr data-id="${vinculacion.id}">
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                ${vinculacion.modulo} - ${vinculacion.nombre_supervisor}
+                            </td>
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                ${vinculacion.nombre_mecanico}
+                            </td>
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                ${vinculacion.planta}
+                            </td>
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                ${vinculacion.hora_comida || 'No asignada'}
+                            </td>
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                ${vinculacion.break_lj || 'No asignado'}
+                            </td>
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                                ${vinculacion.break_v || 'No asignado'}
+                            </td>
+                            <td class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-center">
+                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded shadow text-sm btn-eliminar">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                    // 4. Añadir la fila a la tabla
+                    tbody.append(fila);
+                });
+            },
+            error: function(xhr) {
+                console.error("Error al obtener los registros:", xhr.responseText);
+                // Opcional: Mostrar un mensaje de error en la tabla
+                $('#vinculacion-tbody').html('<tr><td colspan="6" class="text-center text-red-500 py-4">Error al cargar los datos.</td></tr>');
+            }
+        });
+    }
+    cargarTablaVinculaciones();
+
 });
