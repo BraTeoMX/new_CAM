@@ -69,5 +69,8 @@ class TicketOt extends Model
         'estado' => 'integer', // Asegura que 'estado' se maneje como entero
     ];
 
-    // Si necesitas definir relaciones o métodos personalizados, irían aquí.
+    public function asignaciones()
+    {
+        return $this->hasMany(AsignacionOt::class, 'ticket_ot_id');
+    }
 }

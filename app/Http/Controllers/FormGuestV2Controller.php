@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\CatalogoArea;
 use App\Models\TicketOt;
 use App\Models\CatalogoProblema;
+use App\Models\Vinculacion;
 
 class FormGuestV2Controller extends Controller
 {
@@ -182,7 +183,7 @@ class FormGuestV2Controller extends Controller
             // Preparar datos para el registro
             $ticketData = [
                 'modulo' => $sanitizedData['modulo'],
-                'planta' => $planta = $request->planta ?? '1', // Asignar planta por defecto si no se proporciona
+                'planta' => $request->planta ?? '1', // Asignar planta por defecto si no se proporciona
                 'nombre_supervisor' => $request->nombre_supervisor ?? 'N/A', // Asignar nombre de supervisor por defecto si no se proporciona
                 'numero_empleado_supervisor' => $request->numero_empleado_supervisor ?? 'N/A', // Asignar número de empleado de supervisor por defecto si no se proporciona
                 'numero_empleado_operario' => $Operario,
