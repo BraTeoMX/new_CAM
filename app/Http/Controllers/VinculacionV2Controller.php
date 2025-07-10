@@ -160,6 +160,9 @@ class VinculacionV2Controller extends Controller
                         'hora_comida_inicio' => $data['hora_comida_inicio'] ?: null,
                         'break_lunes_jueves_inicio' => $data['break_lunes_jueves_inicio'] ?: null,
                         'break_viernes_inicio' => $data['break_viernes_inicio'] ?: null,
+                        'hora_comida_fin' => $data['hora_comida_fin'] ?: null,
+                        'break_lunes_jueves_fin' => $data['break_lunes_jueves_fin'] ?: null,
+                        'break_viernes_fin' => $data['break_viernes_fin'] ?: null,
                     ]);
                 }
             }

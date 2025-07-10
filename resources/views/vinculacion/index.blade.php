@@ -2,12 +2,12 @@
     <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
         <!-- Título -->
         <div class="sm:flex sm:justify-between sm:items-center mb-8">
-            <h3 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Vinculacion Modulo - Mecanico</h3>
+            <h3 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Vinculacion Area/Modulo - Mecanico</h3>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
-                <label for="select-supervisor" class="block font-medium mb-1">Módulo/Supervisor</label>
+                <label for="select-supervisor" class="block font-medium mb-1">Area/Modulo - Supervisor</label>
                 <select id="select-supervisor" class="w-full"></select>
             </div>
             <div>
@@ -26,7 +26,7 @@
 
         <!-- Nuevo Panel de Vinculación -->
         <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mt-8">
-            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Módulo/Supervisor - Mecánico 
+            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Vinculación Area/Modulo - Supervisor - Mecánico 
             </h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full table-fixed divide-y divide-gray-200 dark:divide-gray-700" id="tabla-vinculacion">
@@ -34,7 +34,7 @@
                         <tr>
                             <th id="col-modulo-supervisor" name="modulo-supervisor"
                                 class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Módulo/Supervisor</th>
+                                Area/Modulo - Supervisor</th>
                             <th id="col-mecanico" name="mecanico"
                                 class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Mecánico</th>

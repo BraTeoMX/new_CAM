@@ -178,7 +178,13 @@ $(document).ready(function() {
             const minutes = String(start.getMinutes()).padStart(2, '0');
             const timeValue = `${hours}:${minutes}`;
             // Marcar como 'selected' si coincide con el valor de la BD
-            const selected = timeValue === selectedValue ? 'selected' : '';
+            const normalizar = (hora) => {
+                if (!hora) return '';
+                const [h, m] = hora.split(':');
+                return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+            };
+
+            const selected = timeValue === normalizar(selectedValue) ? 'selected' : '';
             options += `<option value="${timeValue}" ${selected}>${timeValue}</option>`;
             start.setMinutes(start.getMinutes() + intervalMinutes);
         }
@@ -192,8 +198,19 @@ $(document).ready(function() {
      * @returns {string} - Hora de fin en formato "HH:mm".
      */
     function calcularHoraFin(startTime, durationMinutes) {
-        if (!startTime) return ''; // Si no hay hora de inicio, devuelve vacío
+        if (!startTime || typeof startTime !== 'string') return ''; // Si no hay hora válida, devuelve vacío
+
+        // Si viene con segundos (formato HH:mm:ss), lo recortamos a HH:mm
+        const partes = startTime.split(':');
+        if (partes.length >= 2) {
+            startTime = `${partes[0].padStart(2, '0')}:${partes[1].padStart(2, '0')}`;
+        } else {
+            return ''; // Formato inválido
+        }
+
         const time = new Date(`1970-01-01T${startTime}:00`);
+        if (isNaN(time.getTime())) return ''; // Fecha inválida
+
         time.setMinutes(time.getMinutes() + durationMinutes);
         const hours = String(time.getHours()).padStart(2, '0');
         const minutes = String(time.getMinutes()).padStart(2, '0');
@@ -295,16 +312,22 @@ $(document).ready(function() {
             const id = fila.data('id'); // Obtener el ID de la vinculación
 
             // 2. Obtener los valores de los selects de esa fila usando su atributo 'name'
-            const horaComida = fila.find('select[name="hora_comida_inicio"]').val();
-            const breakLJ = fila.find('select[name="break_lunes_jueves_inicio"]').val();
-            const breakV = fila.find('select[name="break_viernes_inicio"]').val();
+            const horaComidaInicio = fila.find('select[name="hora_comida_inicio"]').val();
+            const breakLJInicio = fila.find('select[name="break_lunes_jueves_inicio"]').val();
+            const breakVInicio = fila.find('select[name="break_viernes_inicio"]').val();
+            const horaComidaFin = fila.find('input[name="hora_comida_fin"]').val();
+            const breakLJFin = fila.find('input[name="break_lunes_jueves_fin"]').val();
+            const breakVFin = fila.find('input[name="break_viernes_fin"]').val();
 
             // 3. Crear un objeto con los datos de la fila
             vinculacionesAActualizar.push({
                 id: id,
-                hora_comida_inicio: horaComida,
-                break_lunes_jueves_inicio: breakLJ,
-                break_viernes_inicio: breakV
+                hora_comida_inicio: horaComidaInicio,
+                hora_comida_fin: horaComidaFin,
+                break_lunes_jueves_inicio: breakLJInicio,
+                break_lunes_jueves_fin: breakLJFin,
+                break_viernes_inicio: breakVInicio,
+                break_viernes_fin: breakVFin
             });
         });
 
