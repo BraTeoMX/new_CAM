@@ -234,7 +234,7 @@ $(document).ready(function() {
                                         <option value="">Seleccionar</option>
                                         ${opcionesComida}
                                     </select>
-                                    <input type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${horaComidaFin || ''}" readonly />
+                                    <input name="hora_comida_fin" type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${horaComidaFin || ''}" readonly />
                                 </div>
                             </td>
 
@@ -244,7 +244,7 @@ $(document).ready(function() {
                                          <option value="">Seleccionar</option>
                                         ${opcionesBreakLJ}
                                     </select>
-                                    <input type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakLJFin || ''}" readonly />
+                                    <input name="break_lunes_jueves_fin" type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakLJFin || ''}" readonly />
                                 </div>
                             </td>
 
@@ -254,7 +254,7 @@ $(document).ready(function() {
                                          <option value="">Seleccionar</option>
                                         ${opcionesBreakV}
                                     </select>
-                                    <input type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakVFin || ''}" readonly />
+                                    <input name="break_viernes_fin" type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakVFin || ''}" readonly />
                                 </div>
                             </td>
                             <td></td>
