@@ -1,7 +1,4 @@
-// Importar la biblioteca de Google AI
-//import { GoogleGenAI } from '@google/genai';
 
-// Variables globales para garantizar persistencia de datos seleccionados
 window.GLOBAL_CHAT_MODULE = null;
 window.GLOBAL_CHAT_MACHINE_INDEX = null;
 window.GLOBAL_CHAT_PROBLEM = null;
@@ -85,12 +82,6 @@ class ChatManager {
                 throw new Error('Chat form not found');
             }
 
-            //const apiKey = this.elements.form.getAttribute('data-gemini-key');
-            //if (!apiKey) {
-            //    throw new Error('Gemini API key not found');
-            //}
-
-            //this.state.ai = new GoogleGenAI({ apiKey });
             this.setupEventListeners();
             this.startConversation(this.elements.chatMessages);
         } catch (error) {
@@ -352,7 +343,10 @@ class ChatManager {
                                     id: item.modulo,      // Usar 'modulo' como ID
                                     text: item.modulo,    // Usar 'modulo' como texto a mostrar
                                     type: item.tipo,      // **NUEVO: Pasar el tipo del módulo**
-                                    planta: item.planta || null // **NUEVO: Pasar la planta si existe**
+                                    planta: item.planta || null, // **NUEVO: Pasar la planta si existe**
+                                    nombre_supervisor: item.nombre_supervisor || 'N/A', // **NUEVO: Pasar el nombre del supervisor**
+                                    numero_empleado_supervisor: item.numero_empleado_supervisor || 'N/A' // **NUEVO: Pasar el número de empleado del supervisor**
+
                                 };
                             });
                             // Filtrar en frontend si hay término de búsqueda y el backend no filtra
@@ -429,31 +423,14 @@ class ChatManager {
             this.elements.chatMessages
         );
 
-        // 2. Establecer la descripción del problema de forma predefinida. (Esencial)
         this.state.userProblem = "Envío directo a mecatrónico para área general.";
-        // Opcional pero recomendado: actualizar también la variable global por si acaso.
         window.GLOBAL_CHAT_PROBLEM = this.state.userProblem;
-
-        // 3. ¡PASO CRÍTICO! Asignar una máquina/índice por defecto.
-        // La función handleResponse() requiere un `selectedMachineIndex` para construir el ticket.
-        // Como en este flujo no hay selección de máquina, debemos usar un valor predeterminado.
-        // Asumiremos que el índice `0` corresponde a una opción genérica como "No Aplica" o "Área General".
-        // **Asegúrate de que `MACHINES[0]` exista y sea un valor válido para tu backend.**
         this.state.selectedMachineIndex = "N/A"; 
         window.GLOBAL_CHAT_MACHINE_INDEX = this.state.selectedMachineIndex;
-
-        // Opcional: Si el backend requiere un ID de problema, también debes asignarlo.
-        // Si no es estrictamente necesario, puedes dejarlo como null o un valor por defecto.
-        this.state.selectedProblemId = null; // Usar null para indicar que no hay ID.
         window.GLOBAL_CHAT_PROBLEM_ID = this.state.selectedProblemId;
 
         // Pequeña pausa para que el usuario pueda leer el mensaje.
         await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 4. LLAMAR DIRECTAMENTE A handleResponse con 'false'.
-        // Esto simula que el usuario respondió "NO" a la pregunta "¿Pudiste resolverlo?".
-        // Al pasar `false`, `statusToSend` se establecerá en '2', que es lo que necesitas
-        // para que se ejecute la lógica de creación de ticket exitoso.
         await this.handleResponse(false);
     }
 
@@ -954,10 +931,15 @@ class ChatManager {
 
             const formData = {
                 modulo: modulo,
+                planta: planta || "1",
+                nombre_supervisor: nombre_supervisor,
+                numero_empleado_supervisor: numero_empleado_supervisor,
+                nombre_operario: nombre_operario,
+                numero_empleado_operario: numero_empleado_operario,
                 problema: problema,
                 descripcion: problema,
                 problema_id: problemIdToSend,
-                problema_id: this.state.selectedProblemId || window.GLOBAL_CHAT_PROBLEM_ID, // <-- LÍNEA AÑADIDA
+                problema_id: this.state.selectedProblemId || window.GLOBAL_CHAT_PROBLEM_ID,
                 status: statusToSend,
                 maquina: machineToSend,
                 tiempo_estimado_ia: tiempo_estimado_ia,
