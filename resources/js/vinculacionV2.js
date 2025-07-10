@@ -351,26 +351,60 @@ $(document).ready(function() {
 
         // 4. Enviar los datos al servidor mediante AJAX
         $.ajax({
-            url: '/vinculacion/actualizarMasivo', // La nueva ruta que crearemos
+            url: '/vinculacion/actualizarMasivo',
             type: 'POST',
-            // Laravel requiere un token CSRF para peticiones POST
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') 
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            contentType: 'application/json', // Informamos que enviamos JSON
-            data: JSON.stringify({ vinculaciones: vinculacionesAActualizar }), // Convertimos el array a un string JSON
-            
+            contentType: 'application/json',
+            data: JSON.stringify({ vinculaciones: vinculacionesAActualizar }),
+
             success: function(response) {
-                // Puedes usar una alerta más amigable como SweetAlert2
-                alert(response.message); 
-                // Opcional: Recargar la tabla para confirmar visualmente los cambios guardados
-                // cargarTablaVinculaciones(); 
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Actualización completada!',
+                    text: response.message || 'Se actualizaron los registros correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    timerProgressBar: true
+                });
+
+                // Opcional: recargar la tabla
+                cargarTablaVinculaciones();
             },
+
             error: function(xhr) {
-                console.error("Error al guardar:", xhr.responseText);
-                alert('Ocurrió un error al guardar las vinculaciones.');
+                const error = xhr.responseJSON;
+
+                if (xhr.status === 422 && error?.errors) {
+                    let listaErrores = '<ul class="text-left">';
+                    for (let campo in error.errors) {
+                        error.errors[campo].forEach(msg => {
+                            listaErrores += `<li>🔸 ${msg}</li>`;
+                        });
+                    }
+                    listaErrores += '</ul>';
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Errores de validación',
+                        html: listaErrores,
+                        confirmButtonText: 'Corregir'
+                    });
+
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en la actualización',
+                        text: error?.message || 'Ocurrió un error inesperado.',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+
+                console.error("Error al guardar:", error || xhr);
             }
         });
+
     });
     cargarTablaVinculaciones();
 
