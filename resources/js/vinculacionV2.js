@@ -1,138 +1,160 @@
 $(document).ready(function() {
+    
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    // Variables para almacenar todos los datos cargados inicialmente
+    let todosLosSupervisores = [];
+    let todosLosMecanicos = [];
 
-        // Token CSRF para las peticiones POST en Laravel
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
+    // 1. Inicializar los Select2 (inicialmente vacíos y deshabilitados)
+    const $selectSupervisor = $('#select-supervisor').select2({
+        placeholder: 'Seleccione un supervisor/módulo',
+        allowClear: true
+    });
+
+    const $selectMecanico = $('#select-mecanico').select2({
+        placeholder: 'Seleccione un mecánico',
+        allowClear: true
+    }).prop('disabled', true); // El de mecánicos empieza deshabilitado
+
+    // Función para poblar el select de supervisores
+    function poblarSupervisores(data) {
+        // Transformar los datos para Select2
+        const supervisoresParaSelect = $.map(data, function(item) {
+            return {
+                // El texto que se muestra en la opción
+                text: `${item.modulo} - ${item.nombre}`,
+                // El ID que se guarda como valor. Guardamos el objeto completo como un string JSON
+                id: JSON.stringify(item)
+            };
         });
 
-        // 1. Inicializar Select2 para Supervisores/Módulos
-        const $selectSupervisor = $('#select-supervisor').select2({
+        // Cargar los datos en el select
+        $selectSupervisor.select2({
             placeholder: 'Seleccione un supervisor/módulo',
             allowClear: true,
-            ajax: {
-                url: '/vinculacion/obtenerSupervisores',
-                dataType: 'json',
-                delay: 250, // Espera 250ms después de escribir antes de buscar
-                processResults: function(data) {
-                    // Transforma los datos recibidos al formato que Select2 necesita
-                    return {
-                        results: $.map(data, function(item) {
-                            return {
-                                // El texto que se muestra en la opción
-                                text: `${item.modulo} - ${item.nombre}`,
-                                // El ID que se guarda como valor. Guardamos todos los datos como un string JSON
-                                id: JSON.stringify({
-                                    numero_empleado: item.numero_empleado,
-                                    planta: item.planta,
-                                    nombre: item.nombre,
-                                    modulo: item.modulo
-                                })
-                            };
-                        })
-                    };
-                },
-                cache: true
-            }
-        });
-
-        // 2. Inicializar Select2 para Mecánicos (inicialmente deshabilitado)
-        const $selectMecanico = $('#select-mecanico').select2({
-            placeholder: 'Seleccione un mecánico',
-            allowClear: true,
-            ajax: {
-                url: '/vinculacion/obtenerMecanicos',
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    // Antes de hacer la petición de mecánicos, obtenemos la planta del supervisor
-                    const supervisorData = JSON.parse($selectSupervisor.val());
-                    return {
-                        planta: supervisorData.planta, // Enviamos la planta como parámetro
-                        q: params.term // término de búsqueda
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: $.map(data, function(item) {
-                            return {
-                                text: `${item.nombre} - ${item.numero_empleado}`,
-                                id: JSON.stringify({
-                                    nombre: item.nombre,
-                                    numero_empleado: item.numero_empleado
-                                })
-                            };
-                        })
-                    };
-                },
-                cache: true
-            }
-        });
-
-        // 3. Lógica de dependencia y habilitación de botones
-        $selectSupervisor.on('change', function() {
-            const supervisorSeleccionado = $(this).val();
-
-            // Limpiar y deshabilitar mecánico si no hay supervisor
-            if (!supervisorSeleccionado) {
-                $selectMecanico.val(null).trigger('change');
-                $selectMecanico.prop('disabled', true);
-                return;
-            }
-
-            // Habilitar el select de mecánico y limpiarlo para una nueva selección
-            $selectMecanico.prop('disabled', false);
-            $selectMecanico.val(null).trigger('change');
+            data: supervisoresParaSelect // Usar los datos locales
         });
         
-        // Habilitar el botón "Añadir" solo cuando ambos selects tengan un valor
-        $('#select-supervisor, #select-mecanico').on('change', function() {
-             const supervisorOk = $('#select-supervisor').val();
-             const mecanicoOk = $('#select-mecanico').val();
-             
-             if (supervisorOk && mecanicoOk) {
-                 $('#btn-anadir-vinculacion').prop('disabled', false);
-             } else {
-                 $('#btn-anadir-vinculacion').prop('disabled', true);
-             }
+        // Limpiar cualquier selección previa al cargar
+        $selectSupervisor.val(null).trigger('change');
+    }
+
+    // 2. Cargar todos los datos desde el servidor al iniciar la página
+    // Usamos $.when para ejecutar ambas peticiones en paralelo
+    $.when(
+        $.ajax({ url: '/vinculacion/obtenerSupervisores', dataType: 'json' }),
+        $.ajax({ url: '/vinculacion/obtenerMecanicos', dataType: 'json' })
+    ).done(function(supervisoresResponse, mecanicosResponse) {
+        // $.when devuelve un arreglo [data, statusText, jqXHR] para cada petición
+        todosLosSupervisores = supervisoresResponse[0];
+        todosLosMecanicos = mecanicosResponse[0];
+
+        // Una vez que tenemos los datos, poblamos el primer select
+        poblarSupervisores(todosLosSupervisores);
+
+    }).fail(function() {
+        console.error("Error: No se pudieron cargar los datos iniciales de supervisores o mecánicos.");
+        // Aquí podrías mostrar un mensaje de error al usuario
+    });
+
+    // 3. Lógica de dependencia y filtro local
+    $selectSupervisor.on('change', function() {
+        const supervisorSeleccionadoJSON = $(this).val();
+
+        // Limpiar y deshabilitar mecánico si no hay supervisor
+        $selectMecanico.val(null).trigger('change');
+        $selectMecanico.empty(); // Vaciar las opciones anteriores
+
+        if (!supervisorSeleccionadoJSON) {
+            $selectMecanico.prop('disabled', true);
+            return;
+        }
+
+        // Si hay un supervisor, filtramos los mecánicos localmente
+        const supervisorData = JSON.parse(supervisorSeleccionadoJSON);
+        const plantaSeleccionada = supervisorData.planta;
+
+        // Filtrar el array de TODOS los mecánicos usando la planta del supervisor
+        const mecanicosFiltrados = todosLosMecanicos.filter(mecanico => mecanico.planta === plantaSeleccionada);
+
+        // Transformar los mecánicos filtrados al formato de Select2
+        const mecanicosParaSelect = $.map(mecanicosFiltrados, function(item) {
+            return {
+                text: `${item.nombre} - ${item.numero_empleado}`,
+                id: JSON.stringify(item)
+            };
         });
 
+        // Habilitar y poblar el select de mecánicos con los datos filtrados
+        $selectMecanico.select2({
+            placeholder: 'Seleccione un mecánico',
+            allowClear: true,
+            data: mecanicosParaSelect
+        });
 
-        // 4. Lógica para el clic en el botón "Añadir a lista"
-        $('#btn-anadir-vinculacion').on('click', function() {
-            // Obtenemos los datos parseando los strings JSON de los valores de los selects
-            const supervisorData = JSON.parse($selectSupervisor.val());
-            const mecanicoData = JSON.parse($selectMecanico.val());
+        $selectMecanico.prop('disabled', false);
+        $selectMecanico.val(null).trigger('change'); // Asegurarse de que esté limpio
+    });
 
-            // Creamos el objeto con los datos a enviar, mapeando a las columnas de la BD
-            const datosParaEnviar = {
-                numero_empleado_supervisor: supervisorData.numero_empleado,
-                nombre_supervisor: supervisorData.nombre,
-                planta: supervisorData.planta,
-                modulo: supervisorData.modulo,
-                nombre_mecanico: mecanicoData.nombre,
-                numero_empleado_mecanico: mecanicoData.numero_empleado
-            };
+    // 4. Habilitar el botón "Añadir" (misma lógica que ya tenías)
+    $('#select-supervisor, #select-mecanico').on('change', function() {
+        const supervisorOk = $('#select-supervisor').val();
+        const mecanicoOk = $('#select-mecanico').val();
 
-            // Petición AJAX para guardar los datos
-            $.ajax({
-                url: '/vinculacion/guardar',
-                type: 'POST',
-                data: datosParaEnviar,
-                success: function(response) {
-                    alert(response.message); // O usa una notificación más elegante
-                    
-                    // Limpiar formulario para una nueva vinculación
-                    $selectSupervisor.val(null).trigger('change');
-                    $selectMecanico.val(null).trigger('change').prop('disabled', true);
-                    $('#btn-anadir-vinculacion').prop('disabled', true);
-                },
-                error: function(xhr) {
-                    const error = xhr.responseJSON;
-                    alert('Error: ' + error.message);
-                    console.error('Detalles del error:', error.error);
-                }
-            });
+        $('#btn-anadir-vinculacion').prop('disabled', !(supervisorOk && mecanicoOk));
+    });
+
+    // 5. Lógica para el clic en el botón "Añadir" (sin cambios, ya era correcta)
+    $('#btn-anadir-vinculacion').on('click', function() {
+        const supervisorData = JSON.parse($selectSupervisor.val());
+        const mecanicoData = JSON.parse($selectMecanico.val());
+
+        const datosParaEnviar = {
+            numero_empleado_supervisor: supervisorData.numero_empleado,
+            nombre_supervisor: supervisorData.nombre,
+            planta: supervisorData.planta,
+            modulo: supervisorData.modulo,
+            nombre_mecanico: mecanicoData.nombre,
+            numero_empleado_mecanico: mecanicoData.numero_empleado
+        };
+
+        $.ajax({
+            url: '/vinculacion/guardar',
+            type: 'POST',
+            data: datosParaEnviar,
+            success: function(response) {
+                // ✅ Notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Guardado!',
+                    text: response.message,
+                    timer: 2000, // La alerta se cierra automáticamente después de 2 segundos
+                    showConfirmButton: false, // Ocultamos el botón de "Ok"
+                    timerProgressBar: true
+                });
+
+                // Limpiar formulario para una nueva vinculación
+                $selectSupervisor.val(null).trigger('change');
+            },
+            error: function(xhr) {
+                // ❌ Notificación de error
+                const error = xhr.responseJSON;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al Guardar',
+                    // Usamos el mensaje de error del servidor, o uno genérico si no está disponible
+                    text: error ? error.message : 'No se pudo completar la operación. Revisa los datos e intenta de nuevo.',
+                    confirmButtonText: 'Entendido'
+                });
+
+                // Mantenemos el error en consola para depuración
+                console.error('Detalles del error:', error ? error.error : xhr);
+            }
         });
     });
+});

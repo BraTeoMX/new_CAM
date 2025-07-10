@@ -25,11 +25,13 @@ class VinculacionV2Controller extends Controller
     public function obtenerMecanicos()
     {
         try {
-            $mecanicos = DB::connection('sqlsrv_dev')
-                ->table('catalogo_mecanicos')
-                ->select('nombre', 'numero_empleado', 'planta')
-                ->orderBy('nombre')
-                ->get();
+            $mecanicos = Cache::remember('mecanicos_cache', now()->addHours(2), function () {
+                return DB::connection('sqlsrv_dev')
+                    ->table('catalogo_mecanicos')
+                    ->select('nombre', 'numero_empleado', 'planta')
+                    ->orderBy('nombre')
+                    ->get();
+            });
 
             Log::info('Mecánicos obtenidos:', $mecanicos->toArray());
             return response()->json($mecanicos);
@@ -45,11 +47,14 @@ class VinculacionV2Controller extends Controller
     public function obtenerSupervisores()
     {
         try {
-            $supervisores = DB::connection('sqlsrv_dev')
-                ->table('catalogo_supervisores')
-                ->select('modulo', 'nombre', 'numero_empleado', 'planta')
-                ->orderBy('modulo')
-                ->get();
+            $supervisores = Cache::remember('supervisores_cache', now()->addHours(2), function () {
+                return DB::connection('sqlsrv_dev')
+                    ->table('catalogo_supervisores')
+                    ->select('modulo', 'nombre', 'numero_empleado', 'planta')
+                    ->orderBy('modulo')
+                    ->get();
+            });
+
             return response()->json($supervisores);
         } catch (\Exception $e) {
             return response()->json([
