@@ -131,30 +131,48 @@ $(document).ready(function() {
                 Swal.fire({
                     icon: 'success',
                     title: '¡Guardado!',
-                    text: response.message,
-                    timer: 2000, // La alerta se cierra automáticamente después de 2 segundos
-                    showConfirmButton: false, // Ocultamos el botón de "Ok"
+                    text: response.message || 'La operación se completó exitosamente.',
+                    timer: 2000,
+                    showConfirmButton: false,
                     timerProgressBar: true
                 });
 
-                // Limpiar formulario para una nueva vinculación
+                // Limpiar formulario y recargar tabla
                 $selectSupervisor.val(null).trigger('change');
                 cargarTablaVinculaciones();
             },
             error: function(xhr) {
-                // ❌ Notificación de error
                 const error = xhr.responseJSON;
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al Guardar',
-                    // Usamos el mensaje de error del servidor, o uno genérico si no está disponible
-                    text: error ? error.message : 'No se pudo completar la operación. Revisa los datos e intenta de nuevo.',
-                    confirmButtonText: 'Entendido'
-                });
 
-                // Mantenemos el error en consola para depuración
-                console.error('Detalles del error:', error ? error.error : xhr);
+                if (xhr.status === 422 && error?.errors) {
+                    // ⚠️ Errores de validación
+                    let listaErrores = '<ul class="text-left">';
+                    for (let campo in error.errors) {
+                        error.errors[campo].forEach(mensaje => {
+                            listaErrores += `<li>🔸 ${mensaje}</li>`;
+                        });
+                    }
+                    listaErrores += '</ul>';
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Errores de validación',
+                        html: listaErrores,
+                        confirmButtonText: 'Revisar'
+                    });
+
+                } else {
+                    // ❌ Error general del servidor (500, etc.)
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al guardar',
+                        text: error?.message || 'No se pudo completar la operación.',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+
+                // Muestra detalles en consola para debugging
+                console.error('Detalles del error:', error || xhr);
             }
         });
     });

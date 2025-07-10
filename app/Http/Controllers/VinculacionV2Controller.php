@@ -114,7 +114,7 @@ class VinculacionV2Controller extends Controller
     {
         try {
             // Obtiene registros ordenados del mayor al menor por ID
-            $vinculaciones = Vinculacion::orderByDesc('modulo')->get();
+            $vinculaciones = Vinculacion::orderBy('modulo')->get();
 
             // Mapea la columna 'planta' con sus equivalentes de texto
             $vinculaciones = $vinculaciones->map(function ($item) {
