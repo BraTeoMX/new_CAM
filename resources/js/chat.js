@@ -564,83 +564,78 @@ class ChatManager {
         this.state.selectedMachineIndex = machineIndex;
         window.GLOBAL_CHAT_MACHINE_INDEX = machineIndex;
 
-        // Crear y mostrar el mensaje con el contenedor del select
         const problemDiv = document.createElement('div');
         problemDiv.className = 'text-left mb-4';
         const problemSpan = document.createElement('span');
         problemSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
+        
+        // ---- CAMBIO 1: Añadir una opción vacía en el HTML del select ----
         problemSpan.innerHTML = `Excelente. Ahora, por favor, selecciona el problema:<br>
-                                <select id="problema-select" style="width:100%; margin-top: 8px;"></select>`;
+                            <select id="problema-select" style="width:100%; margin-top: 8px;">
+                                    <option></option>
+                            </select>`;
+        
         problemDiv.appendChild(problemSpan);
         chatMessages.appendChild(problemDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Deshabilitar el input de texto, ya que no se usará
         this.elements.messageInput.disabled = true;
 
-        // Inicializar Select2
-        setTimeout(() => {
-            if (window.$ && $('#problema-select').length) {
-                $('#problema-select').select2({
-                    placeholder: 'Busca o selecciona un problema',
-                    ajax: {
-                        url: '/FormGuestV2/catalogo-problemas', // TU RUTA DEL BACKEND
-                        type: 'GET',
-                        dataType: 'json',
-                        delay: 250,
-                        processResults: function(data) {
-                            // Mapea la respuesta del backend al formato que Select2 espera
-                            const results = $.map(data, function(item) {
-                                return {
-                                    id: item.id,
-                                    text: item.nombre, // El texto que se mostrará en las opciones
-                                    pasos: item.pasos 
-                                };
-                            });
-                            return { results };
-                        },
-                        cache: true
-                    },
-                    minimumResultsForSearch: 0
-                });
-
-                // Manejar la selección del usuario
-                $('#problema-select').on('select2:select', async (e) => {
-                    const selectedProblem = e.params.data; // Ahora contiene {id, text, pasos}
-
-                    // --- Guardar la información del problema seleccionado (esto es común para ambos flujos) ---
-                    this.state.selectedProblemId = selectedProblem.id;
-                    this.state.userProblem = selectedProblem.text;
-                    window.GLOBAL_CHAT_PROBLEM_ID = selectedProblem.id;
-                    window.GLOBAL_CHAT_PROBLEM = selectedProblem.text;
-                    
-                    // Mostramos el resumen en ambos casos para que el usuario vea su selección.
-                    await this.showSummary(chatMessages);
-
-                    // --- ¡NUEVO! Aquí está la lógica condicional ---
-                    if (selectedProblem.pasos == '0') {
-                        // ---- FLUJO SIN PASOS DE AYUDA ----
-                        console.log('Problema sin pasos de ayuda. Generando ticket directamente.');
-
-                        // Añadimos un pequeño delay para que el usuario pueda leer el resumen
-                        setTimeout(() => {
-                            // Llamamos a handleResponse con 'false', simulando que el usuario presionó "NO"
-                            // Esto generará un ticket con estado '2'.
-                            this.handleResponse(false); 
-                        }, 1500); // 1.5 segundos de espera
-
-                    } else {
-                        // ---- FLUJO NORMAL (CON PASOS DE AYUDA) ----
-                        console.log('Problema con pasos de ayuda. Mostrando guía.');
-                        
-                        // Continuamos con la secuencia original de mostrar los pasos.
-                        setTimeout(() => {
-                            this.showSteps(this.state.selectedMachineIndex);
-                        }, 1000); // 1 segundo de espera
-                    }
-                });
+        try {
+            const response = await fetch('/FormGuestV2/catalogo-problemas');
+            if (!response.ok) {
+                throw new Error('Error al cargar el catálogo de problemas');
             }
-        }, 100);
+            const catalogoCompleto = await response.json();
+
+            const datosParaSelect2 = $.map(catalogoCompleto, function(item) {
+                return {
+                    id: item.id,
+                    text: item.nombre,
+                    pasos: item.pasos
+                };
+            });
+
+            $('#problema-select').select2({
+                placeholder: 'Busca o selecciona un problema',
+                data: datosParaSelect2,
+                
+                // ---- CAMBIO 2: Añadir esta línea ----
+                allowClear: true,
+                
+                minimumResultsForSearch: 0
+            });
+
+            // El resto del código no necesita cambios...
+            $('#problema-select').on('select2:select', async (e) => {
+                // Esta lógica sigue funcionando perfectamente
+                const selectedProblem = e.params.data;
+                if (!selectedProblem.id) return; // Evita disparar el flujo si se deselecciona
+
+                this.state.selectedProblemId = selectedProblem.id;
+                this.state.userProblem = selectedProblem.text;
+                window.GLOBAL_CHAT_PROBLEM_ID = selectedProblem.id;
+                window.GLOBAL_CHAT_PROBLEM = selectedProblem.text;
+                
+                await this.showSummary(chatMessages);
+
+                if (selectedProblem.pasos == '0') {
+                    console.log('Problema sin pasos de ayuda. Generando ticket directamente.');
+                    setTimeout(() => {
+                        this.handleResponse(false);  
+                    }, 1500);
+
+                } else {
+                    console.log('Problema con pasos de ayuda. Mostrando guía.');
+                    setTimeout(() => {
+                        this.showSteps(this.state.selectedMachineIndex);
+                    }, 1000);
+                }
+            });
+
+        } catch (error) {
+            console.error("No se pudo inicializar el selector de problemas:", error);
+        }
     }
 
     showSummary(chatMessages) {
