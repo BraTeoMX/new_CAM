@@ -208,7 +208,8 @@ class FormGuestV2Controller extends Controller
             // Emitir evento y enviar email solo si se creó el ticket
             if ($ticket) {
                 event(new NewOrderNotification($ticket));
-                $this->sendTicketCreatedEmail($ticket);
+                // desccomentar la siguiente línea si se desea enviar un correo electrónico al crear el ticket
+                //$this->sendTicketCreatedEmail($ticket);
 
                 // Llamar a la asignación de OT
                 $asignacionController = new AsignationOTController();
