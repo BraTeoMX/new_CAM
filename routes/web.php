@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/vinculacion/obtenerSupervisores', [VinculacionV2Controller::class, 'obtenerSupervisores']);
         Route::post('/vinculacion/guardar', [VinculacionV2Controller::class, 'guardarVinculacion']);
         Route::get('/vinculacion/mostrarRegistros', [VinculacionV2Controller::class, 'mostrarRegistros']);
+        Route::post('/vinculacion/actualizarMasivo', [VinculacionV2Controller::class, 'actualizarMasivo'])->name('vinculacion.actualizarMasivo');
 
     });
 });

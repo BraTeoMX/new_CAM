@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use App\Models\CatalogoArea;
 use App\Models\TicketOt;
 use App\Models\Vinculacion;
@@ -119,6 +120,55 @@ class VinculacionV2Controller extends Controller
                 'message' => 'Error al obtener los registros de vinculaciones.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function actualizarMasivo(Request $request)
+    {
+        // 1. Validación de los datos recibidos
+        $validator = Validator::make($request->all(), [
+            // Valida que 'vinculaciones' sea un array y que esté presente
+            'vinculaciones'   => 'required|array',
+            // Valida cada elemento dentro del array 'vinculaciones'
+            'vinculaciones.*.id' => 'required|integer|exists:vinculaciones,id', // El ID debe existir en la tabla
+            'vinculaciones.*.hora_comida_inicio' => 'nullable|date_format:H:i',
+            'vinculaciones.*.break_lunes_jueves_inicio' => 'nullable|date_format:H:i',
+            'vinculaciones.*.break_viernes_inicio' => 'nullable|date_format:H:i',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422); // Error de validación
+        }
+
+        $vinculacionesData = $request->input('vinculaciones');
+
+        // 2. Usar una transacción para garantizar la integridad de los datos
+        DB::beginTransaction();
+        try {
+            foreach ($vinculacionesData as $data) {
+                // Busca la vinculación por su ID
+                $vinculacion = Vinculacion::find($data['id']);
+
+                if ($vinculacion) {
+                    // Actualiza solo los campos necesarios
+                    $vinculacion->update([
+                        // Si el valor es un string vacío "" (desde el "Seleccionar"), lo convierte a null
+                        'hora_comida_inicio' => $data['hora_comida_inicio'] ?: null,
+                        'break_lunes_jueves_inicio' => $data['break_lunes_jueves_inicio'] ?: null,
+                        'break_viernes_inicio' => $data['break_viernes_inicio'] ?: null,
+                    ]);
+                }
+            }
+
+            DB::commit(); // Confirma los cambios si todo salió bien
+
+            return response()->json(['message' => 'Vinculaciones actualizadas correctamente.']);
+
+        } catch (\Exception $e) {
+            DB::rollBack(); // Revierte todos los cambios si algo falla
+            Log::error('Error en la actualización masiva de vinculaciones: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Ocurrió un error en el servidor.'], 500);
         }
     }
 

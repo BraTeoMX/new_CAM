@@ -230,7 +230,7 @@ $(document).ready(function() {
                             
                             <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="30">
+                                    <select name="hora_comida_inicio class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="30">
                                         <option value="">Seleccionar</option>
                                         ${opcionesComida}
                                     </select>
@@ -240,7 +240,7 @@ $(document).ready(function() {
 
                             <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="15">
+                                    <select name="break_lunes_jueves_inicio" class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="15">
                                          <option value="">Seleccionar</option>
                                         ${opcionesBreakLJ}
                                     </select>
@@ -250,7 +250,7 @@ $(document).ready(function() {
 
                             <td class="px-4 py-2 border-b ...">
                                 <div class="flex gap-2 w-full">
-                                    <select class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="15">
+                                    <select name="break_viernes_inicio" class="bg-transparent border-gray-300 dark:border-gray-700 w-[60%] border ... vinculacion-select" data-duration="15">
                                          <option value="">Seleccionar</option>
                                         ${opcionesBreakV}
                                     </select>
@@ -284,6 +284,52 @@ $(document).ready(function() {
         // Calcula la nueva hora de fin y actualiza el input
         const endTime = calcularHoraFin(selectedTime, duration);
         finInput.val(endTime);
+    });
+
+    $('#guardar-vinculacion').on('click', function() {
+        const vinculacionesAActualizar = [];
+
+        // 1. Recorrer cada fila <tr> de la tabla
+        $('#vinculacion-tbody tr').each(function() {
+            const fila = $(this);
+            const id = fila.data('id'); // Obtener el ID de la vinculación
+
+            // 2. Obtener los valores de los selects de esa fila usando su atributo 'name'
+            const horaComida = fila.find('select[name="hora_comida_inicio"]').val();
+            const breakLJ = fila.find('select[name="break_lunes_jueves_inicio"]').val();
+            const breakV = fila.find('select[name="break_viernes_inicio"]').val();
+
+            // 3. Crear un objeto con los datos de la fila
+            vinculacionesAActualizar.push({
+                id: id,
+                hora_comida_inicio: horaComida,
+                break_lunes_jueves_inicio: breakLJ,
+                break_viernes_inicio: breakV
+            });
+        });
+
+        // 4. Enviar los datos al servidor mediante AJAX
+        $.ajax({
+            url: '/vinculacion/actualizarMasivo', // La nueva ruta que crearemos
+            type: 'POST',
+            // Laravel requiere un token CSRF para peticiones POST
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') 
+            },
+            contentType: 'application/json', // Informamos que enviamos JSON
+            data: JSON.stringify({ vinculaciones: vinculacionesAActualizar }), // Convertimos el array a un string JSON
+            
+            success: function(response) {
+                // Puedes usar una alerta más amigable como SweetAlert2
+                alert(response.message); 
+                // Opcional: Recargar la tabla para confirmar visualmente los cambios guardados
+                // cargarTablaVinculaciones(); 
+            },
+            error: function(xhr) {
+                console.error("Error al guardar:", xhr.responseText);
+                alert('Ocurrió un error al guardar las vinculaciones.');
+            }
+        });
     });
     cargarTablaVinculaciones();
 
