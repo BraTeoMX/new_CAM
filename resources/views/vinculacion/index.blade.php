@@ -47,7 +47,7 @@
                             </th>
                             <th id="col-break-lj" name="break-lj"
                                 class="px-4 py-2 text-left text-xs font-medium ... uppercase min-w-[200px]">
-                                Break Lun-Jue
+                                Break Lunes-Jueves
                             </th>
                             <th id="col-break-v" name="break-v"
                                 class="px-4 py-2 text-left text-xs font-medium ... uppercase min-w-[200px]">
