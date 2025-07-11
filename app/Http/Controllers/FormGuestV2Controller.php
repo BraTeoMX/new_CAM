@@ -214,59 +214,95 @@ class FormGuestV2Controller extends Controller
             $ahora = now(); // Obtiene la fecha y hora actual.
             $diaDeLaSemana = $ahora->dayOfWeekIso; // 1 para Lunes, 7 para Domingo.
 
-            // 2. Iterar sobre cada mecánico vinculado para encontrar uno disponible.
+            $mecanicosDisponibles = [];
+
+            // 2. Filtrar para encontrar todos los mecánicos DISPONIBLES POR HORARIO.
             foreach ($vinculaciones as $vinculacion) {
                 $estaEnDescanso = false;
-                // ✅ ¡NUEVA LÓGICA! Solo se realizan verificaciones de horario de Lunes a Viernes.
+
+                // Solo se realizan verificaciones de horario de Lunes a Viernes.
                 if ($diaDeLaSemana >= 1 && $diaDeLaSemana <= 5) {
-                    // --- Verificación de Hora de Comida ---
+                    // Verificación de Hora de Comida
                     $comidaInicio = Carbon::parse($vinculacion->hora_comida_inicio);
                     $comidaFin = Carbon::parse($vinculacion->hora_comida_fin);
-
                     if ($ahora->between($comidaInicio, $comidaFin)) {
                         $estaEnDescanso = true;
                     }
-                    // --- Verificación de Breaks (solo si no está en hora de comida) ---
+
+                    // Verificación de Breaks (solo si no está en hora de comida)
                     if (!$estaEnDescanso) {
-                        // Si es Lunes (1) a Jueves (4)
-                        if ($diaDeLaSemana <= 4) {
+                        $breakInicio = null;
+                        $breakFin = null;
+                        if ($diaDeLaSemana <= 4) { // Lunes a Jueves
                             $breakInicio = Carbon::parse($vinculacion->break_lunes_jueves_inicio);
                             $breakFin = Carbon::parse($vinculacion->break_lunes_jueves_fin);
-                            if ($ahora->between($breakInicio, $breakFin)) {
-                                $estaEnDescanso = true;
-                            }
-                        }
-                        // Si es Viernes (5)
-                        else { // Ya sabemos que es 5 por la condición principal
+                        } else { // Viernes
                             $breakInicio = Carbon::parse($vinculacion->break_viernes_inicio);
                             $breakFin = Carbon::parse($vinculacion->break_viernes_fin);
-                            if ($ahora->between($breakInicio, $breakFin)) {
-                                $estaEnDescanso = true;
-                            }
+                        }
+                        if ($ahora->between($breakInicio, $breakFin)) {
+                            $estaEnDescanso = true;
                         }
                     }
                 }
-                // Para Sábado (6) y Domingo (7), $estaEnDescanso se mantendrá en `false`, 
-                // por lo que el mecánico siempre será considerado disponible.
-                // 3. Si el mecánico no está en descanso, lo seleccionamos y salimos del bucle.
+                
+                // Si el mecánico no está en descanso, se añade a la lista de disponibles.
                 if (!$estaEnDescanso) {
-                    $mecanicoSeleccionado = $vinculacion;
-                    break; // Se encontró un mecánico disponible.
+                    $mecanicosDisponibles[] = $vinculacion;
                 }
             }
-            // 4. Crear el registro de asignación (esta parte no cambia).
-            if ($mecanicoSeleccionado) {
-                // Se encontró un mecánico disponible.
+
+            // 3. Evaluar la lista de mecánicos disponibles y aplicar la nueva lógica.
+            $cantidadDisponibles = count($mecanicosDisponibles);
+
+            if ($cantidadDisponibles === 1) {
+                // CASO 1: Solo hay un mecánico disponible. Se le asigna directamente.
+                $mecanicoAsignado = $mecanicosDisponibles[0];
+
+            } elseif ($cantidadDisponibles > 1) {
+                // CASO 2: Hay múltiples mecánicos disponibles. Evaluar carga de trabajo.
+                
+                // Obtener los números de empleado de los mecánicos disponibles
+                $numerosEmpleado = collect($mecanicosDisponibles)->pluck('numero_empleado_mecanico');
+
+                // Contar los tickets asignados HOY para cada mecánico disponible
+                $conteoTicketsHoy = TicketOT::whereIn('numero_empleado_mecanico', $numerosEmpleado)
+                                            ->whereDate('created_at', today())
+                                            ->select('numero_empleado_mecanico', DB::raw('count(*) as total'))
+                                            ->groupBy('numero_empleado_mecanico')
+                                            ->pluck('total', 'numero_empleado_mecanico');
+
+                // Añadir el conteo de tickets a cada mecánico disponible. Si no tiene, su conteo es 0.
+                $mecanicosConCarga = collect($mecanicosDisponibles)->map(function ($mecanico) use ($conteoTicketsHoy) {
+                    $mecanico->carga_hoy = $conteoTicketsHoy->get($mecanico->numero_empleado_mecanico, 0);
+                    return $mecanico;
+                });
+
+                // Ordenar los mecánicos por su carga de trabajo (de menor a mayor).
+                // El primero de la lista será el que tenga menos trabajo.
+                $mecanicoAsignado = $mecanicosConCarga->sortBy('carga_hoy')->first();
+            }
+            // Si $cantidadDisponibles es 0, $mecanicoAsignado permanecerá como null y se creará una asignación pendiente.
+
+
+            // 4. Crear el registro de asignación basado en el mecánico seleccionado.
+            if ($mecanicoAsignado) {
+                // Se encontró y seleccionó un mecánico.
                 AsignacionOt::create([
                     'ticket_ot_id' => $ticket->id,
-                    'numero_empleado_mecanico' => $mecanicoSeleccionado->numero_empleado_mecanico,
-                    'nombre_mecanico' => $mecanicoSeleccionado->nombre_mecanico,
+                    'numero_empleado_mecanico' => $mecanicoAsignado->numero_empleado_mecanico,
+                    'nombre_mecanico' => $mecanicoAsignado->nombre_mecanico,
                     'estado_asignacion' => 4, // Asignado
                     'tiempo_estimado_minutos' => $tiempo_estimado,
                     'tiempo_real_minutos' => $tiempo_real,
                     'fecha_asignacion' => now(),
                     'comida_break_disponible' => 1 // Disponible
                 ]);
+
+                // Actualizar el ticket con el mecánico asignado
+                $ticket->numero_empleado_mecanico = $mecanicoAsignado->numero_empleado_mecanico;
+                $ticket->save();
+
             } else {
                 // No se encontró ningún mecánico disponible.
                 AsignacionOt::create([
