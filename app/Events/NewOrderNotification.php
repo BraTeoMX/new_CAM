@@ -45,9 +45,19 @@ class NewOrderNotification implements ShouldBroadcast
         return [
             'folio' => $this->ticket->folio,
             'modulo'=> $this->ticket->modulo,
-            'status' => $this->ticket->estado,
+            'status' => $this->estadoTexto($this->ticket->estado),
             'descripcion' => $this->ticket->descripcion_problema,
             'created_at' => $this->ticket->created_at->toDateTimeString(),
         ];
+    }
+
+    private function estadoTexto($estado)
+    {
+        return match ($estado) {
+            1 => 'Resuelto',
+            2 => 'Por asignar',
+            3 => 'Cancelado',
+            default => 'Desconocido',
+        };
     }
 }

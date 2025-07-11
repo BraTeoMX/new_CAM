@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Events\NewOrderNotification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
@@ -206,32 +207,78 @@ class FormGuestV2Controller extends Controller
                 //Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
                 return $newTicket;
             });
+            // 1. Obtener todas las vinculaciones para el módulo del ticket.
+            $vinculaciones = Vinculacion::where('modulo', $ticket->modulo)->get();
 
-            $vinculacion = Vinculacion::where('modulo', $ticket->modulo)->first();
+            $mecanicoSeleccionado = null;
+            $ahora = now(); // Obtiene la fecha y hora actual.
+            $diaDeLaSemana = $ahora->dayOfWeekIso; // 1 para Lunes, 7 para Domingo.
 
-            if ($vinculacion) {
+            // 2. Iterar sobre cada mecánico vinculado para encontrar uno disponible.
+            foreach ($vinculaciones as $vinculacion) {
+                $estaEnDescanso = false;
+                // ✅ ¡NUEVA LÓGICA! Solo se realizan verificaciones de horario de Lunes a Viernes.
+                if ($diaDeLaSemana >= 1 && $diaDeLaSemana <= 5) {
+                    // --- Verificación de Hora de Comida ---
+                    $comidaInicio = Carbon::parse($vinculacion->hora_comida_inicio);
+                    $comidaFin = Carbon::parse($vinculacion->hora_comida_fin);
+
+                    if ($ahora->between($comidaInicio, $comidaFin)) {
+                        $estaEnDescanso = true;
+                    }
+                    // --- Verificación de Breaks (solo si no está en hora de comida) ---
+                    if (!$estaEnDescanso) {
+                        // Si es Lunes (1) a Jueves (4)
+                        if ($diaDeLaSemana <= 4) {
+                            $breakInicio = Carbon::parse($vinculacion->break_lunes_jueves_inicio);
+                            $breakFin = Carbon::parse($vinculacion->break_lunes_jueves_fin);
+                            if ($ahora->between($breakInicio, $breakFin)) {
+                                $estaEnDescanso = true;
+                            }
+                        }
+                        // Si es Viernes (5)
+                        else { // Ya sabemos que es 5 por la condición principal
+                            $breakInicio = Carbon::parse($vinculacion->break_viernes_inicio);
+                            $breakFin = Carbon::parse($vinculacion->break_viernes_fin);
+                            if ($ahora->between($breakInicio, $breakFin)) {
+                                $estaEnDescanso = true;
+                            }
+                        }
+                    }
+                }
+                // Para Sábado (6) y Domingo (7), $estaEnDescanso se mantendrá en `false`, 
+                // por lo que el mecánico siempre será considerado disponible.
+                // 3. Si el mecánico no está en descanso, lo seleccionamos y salimos del bucle.
+                if (!$estaEnDescanso) {
+                    $mecanicoSeleccionado = $vinculacion;
+                    break; // Se encontró un mecánico disponible.
+                }
+            }
+            // 4. Crear el registro de asignación (esta parte no cambia).
+            if ($mecanicoSeleccionado) {
+                // Se encontró un mecánico disponible.
                 AsignacionOt::create([
                     'ticket_ot_id' => $ticket->id,
-                    'numero_empleado_mecanico' => $vinculacion->numero_empleado_mecanico,
-                    'nombre_mecanico' => $vinculacion->nombre_mecanico,
-                    'estado_asignacion' => $sanitizedData['status'],
+                    'numero_empleado_mecanico' => $mecanicoSeleccionado->numero_empleado_mecanico,
+                    'nombre_mecanico' => $mecanicoSeleccionado->nombre_mecanico,
+                    'estado_asignacion' => 4, // Asignado
                     'tiempo_estimado_minutos' => $tiempo_estimado,
                     'tiempo_real_minutos' => $tiempo_real,
                     'fecha_asignacion' => now(),
-                    'comida_break_disponible' => 0 // o puedes mapear desde `vinculacion` si deseas
+                    'comida_break_disponible' => 1 // Disponible
                 ]);
             } else {
+                // No se encontró ningún mecánico disponible.
                 AsignacionOt::create([
                     'ticket_ot_id' => $ticket->id,
                     'numero_empleado_mecanico' => 'pendiente',
                     'nombre_mecanico' => 'pendiente',
-                    'estado_asignacion' => $sanitizedData['status'],
+                    'estado_asignacion' => 5, // Pendiente por disponibilidad
                     'tiempo_estimado_minutos' => $tiempo_estimado,
                     'tiempo_real_minutos' => $tiempo_real,
                     'fecha_asignacion' => now(),
-                    'comida_break_disponible' => 0 // o puedes mapear desde `vinculacion` si deseas
+                    'comida_break_disponible' => 0 // No disponible
                 ]);
-                Log::warning("No se encontró vinculación para el módulo: {$ticket->modulo}");
             }
 
             // Emitir evento y enviar email solo si se creó el ticket
@@ -241,7 +288,7 @@ class FormGuestV2Controller extends Controller
                 //$this->sendTicketCreatedEmail($ticket);
 
                 // Llamar a la asignación de OT
-                $asignacionController = new AsignationOTController();
+                /* $asignacionController = new AsignationOTController();
                 $asignacionRequest = new Request([
                     'folio' => $ticket->folio,
                     'modulo' => $ticket->modulo,
@@ -267,6 +314,7 @@ class FormGuestV2Controller extends Controller
                         'asignacion' => $asignacionData
                     ]
                 ], 201);
+                */
             }
 
             throw new \Exception('No se pudo crear el ticket');
