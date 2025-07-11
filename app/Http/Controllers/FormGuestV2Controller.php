@@ -12,6 +12,7 @@ use App\Models\CatalogoArea;
 use App\Models\TicketOt;
 use App\Models\CatalogoProblema;
 use App\Models\Vinculacion;
+use App\Models\AsignacionOt;
 
 class FormGuestV2Controller extends Controller
 {
@@ -205,6 +206,23 @@ class FormGuestV2Controller extends Controller
                 //Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
                 return $newTicket;
             });
+
+            $vinculacion = Vinculacion::where('modulo', $ticket->modulo)->first();
+
+            if ($vinculacion) {
+                AsignacionOt::create([
+                    'ticket_ot_id' => $ticket->id,
+                    'numero_empleado_mecanico' => $vinculacion->numero_empleado_mecanico,
+                    'nombre_mecanico' => $vinculacion->nombre_mecanico,
+                    'estado_asignacion' => $sanitizedData['status'],
+                    'tiempo_estimado_minutos' => $tiempo_estimado,
+                    'tiempo_real_minutos' => $tiempo_real,
+                    'fecha_asignacion' => now(),
+                    'comida_break_disponible' => 0 // o puedes mapear desde `vinculacion` si deseas
+                ]);
+            } else {
+                Log::warning("No se encontró vinculación para el módulo: {$ticket->modulo}");
+            }
 
             // Emitir evento y enviar email solo si se creó el ticket
             if ($ticket) {

@@ -677,7 +677,7 @@ class ChatManager {
         STEPS.forEach(step => {
             const minutes = step.times[machineIndex];
             if (minutes !== null) {
-                this.state.totalEstimatedIATime += minutes;
+                this.state.totalEstimatedIATime += Math.round(minutes * 60); // en segundos
             }
         });
         console.log(`Tiempo total estimado de pasos de IA para máquina ${MACHINES[machineIndex]}: ${this.state.totalEstimatedIATime} minutos`);
@@ -908,10 +908,38 @@ class ChatManager {
                     totalActualTimeSeconds += this.state.actualStepTimes[stepKey];
                 }
             }
-            const tiempo_estimado_ia = this.state.totalEstimatedIATime;
+            const tiempo_estimado_ia = this.state.totalEstimatedIATime; 
             const minutos = Math.floor(totalActualTimeSeconds / 60);
             const segundos = totalActualTimeSeconds % 60;
-            const tiempo_real_ia = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+
+            function convertirATiempoEnSegundos(input) {
+                if (typeof input === 'string' && input.includes(':')) {
+                    // Caso tipo "1:30" o "00:01:30"
+                    const partes = input.split(':').map(Number);
+                    let segundos = 0;
+
+                    if (partes.length === 2) {
+                        // "minutos:segundos"
+                        const [minutos, seg] = partes;
+                        segundos = (minutos * 60) + seg;
+                    } else if (partes.length === 3) {
+                        // "horas:minutos:segundos"
+                        const [horas, minutos, seg] = partes;
+                        segundos = (horas * 3600) + (minutos * 60) + seg;
+                    }
+
+                    return segundos;
+
+                } else if (!isNaN(parseFloat(input))) {
+                    // Caso tipo decimal: 1.5 → 90 segundos
+                    return Math.round(parseFloat(input) * 60);
+                }
+
+                // Si el formato es inválido
+                return 0;
+            }
+
+            const tiempo_real_ia = convertirATiempoEnSegundos(`${minutos}:${segundos}`);
 
             // Determinar status a enviar
             let statusToSend;
