@@ -221,6 +221,16 @@ class FormGuestV2Controller extends Controller
                     'comida_break_disponible' => 0 // o puedes mapear desde `vinculacion` si deseas
                 ]);
             } else {
+                AsignacionOt::create([
+                    'ticket_ot_id' => $ticket->id,
+                    'numero_empleado_mecanico' => 'pendiente',
+                    'nombre_mecanico' => 'pendiente',
+                    'estado_asignacion' => $sanitizedData['status'],
+                    'tiempo_estimado_minutos' => $tiempo_estimado,
+                    'tiempo_real_minutos' => $tiempo_real,
+                    'fecha_asignacion' => now(),
+                    'comida_break_disponible' => 0 // o puedes mapear desde `vinculacion` si deseas
+                ]);
                 Log::warning("No se encontró vinculación para el módulo: {$ticket->modulo}");
             }
 
