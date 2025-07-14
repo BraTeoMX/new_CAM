@@ -255,6 +255,8 @@ class FormGuestV2Controller extends Controller
             // 3. Evaluar la lista de mecánicos disponibles y aplicar la nueva lógica.
             $cantidadDisponibles = count($mecanicosDisponibles);
 
+            $mecanicoAsignado = null;
+
             if ($cantidadDisponibles === 1) {
                 // CASO 1: Solo hay un mecánico disponible. Se le asigna directamente.
                 $mecanicoAsignado = $mecanicosDisponibles[0];
