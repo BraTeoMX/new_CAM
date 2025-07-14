@@ -1,7 +1,7 @@
 (function initVirtualAssistantButton() {
     'use strict';
 
-    const TICKET_URL = 'http://128.150.102.40:8020/FormGuest';
+    const TICKET_URL = '/FormGuestV2';
     const BUTTON_ID = 'asis-vir-flo-btn';
     const TOOLTIP_ID = 'tooltip-ticket';
 

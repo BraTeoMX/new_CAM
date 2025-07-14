@@ -20,6 +20,7 @@ use App\Http\Controllers\UserAdminController;
 
 use App\Http\Controllers\FormGuestV2Controller;
 use App\Http\Controllers\VinculacionV2Controller;
+use App\Http\Controllers\FollowAtentionV2Controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -140,4 +141,5 @@ Route::get('/FormGuestV2/obtenerAreasModulos', [FormGuestV2Controller::class, 'o
 Route::get('/FormGuestV2/obtener-operarios', [FormGuestV2Controller::class, 'obtenerOperarios']);
 Route::get('/FormGuestV2/catalogo-problemas', [FormGuestV2Controller::class, 'catalogoProblemas']);
 Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarRegistro']);
-
+// segunda version de FollowAtentionController
+Route::get('/FollowOTV2', [FollowAtentionV2Controller::class, 'FollowOT'])->name('FollowOTV2');

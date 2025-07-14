@@ -26,6 +26,7 @@ export default defineConfig({
                 'resources/js/FormOTMeca.js',
                 'resources/js/excellPDF.js',
                 'resources/js/AsisVirFlo.js',
+                'resources/js/seguimientoSolicitud.js',
                 'resources/js/dashboard/dashboard.js',
                 'resources/js/IAChat/ChatIA.js',
                 'resources/js/IAChat/select2Modulo.js',
