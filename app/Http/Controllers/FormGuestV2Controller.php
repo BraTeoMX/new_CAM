@@ -266,7 +266,7 @@ class FormGuestV2Controller extends Controller
                 $numerosEmpleado = collect($mecanicosDisponibles)->pluck('numero_empleado_mecanico');
 
                 // Contar los tickets asignados HOY para cada mecánico disponible
-                $conteoTicketsHoy = TicketOT::whereIn('numero_empleado_mecanico', $numerosEmpleado)
+                $conteoTicketsHoy = AsignacionOt::whereIn('numero_empleado_mecanico', $numerosEmpleado)
                                             ->whereDate('created_at', today())
                                             ->select('numero_empleado_mecanico', DB::raw('count(*) as total'))
                                             ->groupBy('numero_empleado_mecanico')
@@ -300,7 +300,7 @@ class FormGuestV2Controller extends Controller
                 ]);
 
                 // Actualizar el ticket con el mecánico asignado
-                $ticket->numero_empleado_mecanico = $mecanicoAsignado->numero_empleado_mecanico;
+                //$ticket->numero_empleado_mecanico = $mecanicoAsignado->numero_empleado_mecanico;
                 $ticket->save();
 
             } else {
@@ -338,7 +338,7 @@ class FormGuestV2Controller extends Controller
                 ]);
                 $asignacionResponse = $asignacionController->asignarOT($asignacionRequest);
                 $asignacionData = $asignacionResponse->getData(true);
-
+                */
                 return response()->json([
                     'success' => true,
                     'folio' => $folio,
@@ -347,10 +347,10 @@ class FormGuestV2Controller extends Controller
                         'modulo' => $ticket->modulo,
                         'estado' => $ticket->estado,
                         'created_at' => $ticket->created_at,
-                        'asignacion' => $asignacionData
+                        //'asignacion' => $asignacionData
                     ]
                 ], 201);
-                */
+                
             }
 
             throw new \Exception('No se pudo crear el ticket');
