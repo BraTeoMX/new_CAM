@@ -111,4 +111,43 @@ class FollowAtentionV2Controller extends Controller
         }
     }
 
+    public function obtenerClasesMaquina($maquina)
+    {
+        try {
+            // También retorna el TimeEstimado para cada clase
+            $clases = ClasseMaquina::where('mach', $maquina)
+                ->get(['class_id', 'class', 'TimeEstimado']);
+            $numeroMaquina = $this->obtenerNumeroMaquina($clases);
+            return response()->json([
+                'clases' => $clases,
+                'numeroMaquina' => $numeroMaquina
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en getClasesMaquina: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    private function obtenerNumeroMaquina($clases)
+    {
+        try {
+            // Extraer los valores de 'class' de la colección
+            $claseValues = $clases->pluck('class')->toArray();
+
+            // Buscar los ID_INTIMARK donde CLASIFICACION esté en la lista de clases
+            $numeroMaquina = DB::connection('sqlsrv_dev')
+                ->table('InvMecanicos')
+                ->whereIn('Clasificacion', $claseValues)
+                ->get(['Remplacad']);
+
+            Log::info("IDs de máquina encontrados: " . ($numeroMaquina ? $numeroMaquina->count() : 0));
+            return $numeroMaquina; // Retorna solo los datos
+        } catch (\Exception $e) {
+            Log::error('Error en getNumeroMaquina: ' . $e->getMessage());
+            return collect(); // Retorna colección vacía en caso de error
+        }
+    }
+
 }
