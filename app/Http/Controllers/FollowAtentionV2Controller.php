@@ -12,6 +12,8 @@ use App\Models\CatalogoEstado;
 use App\Models\CatalogoArea;
 use App\Models\DiagnosticoSolucion;
 
+use Illuminate\Support\Carbon;
+
 class FollowAtentionV2Controller extends Controller
 {
 
@@ -72,19 +74,23 @@ class FollowAtentionV2Controller extends Controller
     {
         try {
             $tickets = TicketOt::with([
-                    // Cargamos la relación del estado
                     'catalogoEstado', 
-                    // Cargamos las asignaciones y, para cada asignación, su diagnóstico
                     'asignaciones.diagnostico' 
                 ])
                 ->where('modulo', $modulo)
                 ->where('created_at', '>=', now()->subDays(10))
-                ->orderBy('created_at', 'desc') // Ordenamos por más reciente primero
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($ticket) {
+                    // Formateamos las fechas en formato "d/m/Y, H:i:s"
+                    $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
+                    $ticket->fecha_actualizacion_formateada = Carbon::parse($ticket->updated_at)->format('d/m/Y, H:i:s');
+                    return $ticket;
+                });
 
             return response()->json($tickets);
 
-        } catch (\Exception $e) {
+        }catch (\Exception $e) {
             Log::error('Error al obtener los registros detallados: ' . $e->getMessage());
             return response()->json(['error' => 'No se pudieron cargar los registros'], 500);
         }

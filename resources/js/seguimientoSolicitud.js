@@ -162,11 +162,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="text-sm text-gray-700 dark:text-gray-300 mb-4 truncate" title="${ticket.descripcion_problema}">
                         ${ticket.descripcion_problema}
                     </p>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <p><strong>Máquina:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.maquina}</span></p>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 grid grid-cols-2 gap-x-4 gap-y-1">
+                        <p><strong>Area/Modulo:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.modulo}</span></p>
+                        <p><strong>Numero Operario:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.numero_empleado_operario}</span></p>
                         <p><strong>Operario:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.nombre_operario}</span></p>
+                        <p><strong>Máquina:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.maquina}</span></p>
                         <p><strong>Mecánico:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${mecanico}</span></p>
+                        <p><strong>Supervisor:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.nombre_supervisor}</span></p>
                     </div>
+                    <div class="text-xs text-gray-500 flex justify-between">
+                        <span>Creado: ${ticket.fecha_creacion_formateada}</span>
+                        <span">Actualizado: ${ticket.fecha_actualizacion_formateada}</span>
+                    </div>
+
                 </div>
                 <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
                     <!-- Los botones de acción se añadirán aquí más adelante -->
