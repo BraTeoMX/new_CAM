@@ -10,36 +10,51 @@ document.addEventListener('DOMContentLoaded', function() {
     // Variable para guardar los datos y poder filtrarlos después sin llamar a la API
     let todosLosTicketsDelModulo = [];
 
-    // 2. Inicializamos Select2.
-    $(moduloSelect).select2({
-        placeholder: 'Selecciona tu módulo de atención',
-        allowClear: true
-    });
+    function inicializar() {
+        // Inicializamos la librería Select2.
+        $(moduloSelect).select2({
+            placeholder: 'Selecciona tu módulo de atención',
+            allowClear: true
+        });
 
-    // 3. Evento 'change' para el selector de módulo.
-    $(moduloSelect).on('change', function() {
+        // Configuramos todos los "oyentes" de eventos.
+        configurarEventListeners();
+
+        // Cargamos los datos iniciales necesarios para los selectores.
+        cargarModulos();
+        cargarFiltroDeEstados(); // <-- ESTA ES LA LLAMADA QUE FALTABA
+    }
+
+    // --- CONFIGURACIÓN DE EVENTOS ---
+    function configurarEventListeners() {
+        // Evento 'change' para el selector de módulo principal.
+        $(moduloSelect).on('change', handleModuloChange);
+
+        // Eventos para los filtros secundarios.
+        searchInput.addEventListener('input', aplicarFiltros);
+        statusFilter.addEventListener('change', aplicarFiltros);
+    }
+
+    // --- MANEJADORES DE EVENTOS ---
+    function handleModuloChange() {
         const moduloSeleccionado = this.value;
-
         if (moduloSeleccionado) {
-            // Llamamos a las dos funciones: una para el resumen y otra para los detalles.
             actualizarResumen(moduloSeleccionado);
             cargarYRenderizarRegistros(moduloSeleccionado);
         } else {
-            // Si se deselecciona, limpiamos todo.
             resetearResumen();
             container.innerHTML = '';
-            filtrosBar.classList.add('hidden'); // Ocultamos los filtros
+            filtrosBar.classList.add('hidden');
             todosLosTicketsDelModulo = [];
+            // Reseteamos los filtros al limpiar la selección principal
+            searchInput.value = '';
+            statusFilter.value = '';
         }
-    });
-
-    searchInput.addEventListener('input', aplicarFiltros);
-    statusFilter.addEventListener('change', aplicarFiltros);
+    }
 
     // --- FUNCIONES ---
 
     async function cargarModulos() {
-        // ... (esta función se queda igual)
         try {
             const response = await fetch('/FollowOTV2/obtenerAreaModulos');
             if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
@@ -273,6 +288,5 @@ document.addEventListener('DOMContentLoaded', function() {
         renderizarTarjetas(ticketsFiltrados);
     }
 
-    // 5. Llamamos a la función inicial para cargar los módulos.
-    cargarModulos();
+    inicializar();
 });
