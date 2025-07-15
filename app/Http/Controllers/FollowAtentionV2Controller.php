@@ -84,7 +84,10 @@ class FollowAtentionV2Controller extends Controller
                 ->map(function ($ticket) {
                     // Formateamos las fechas en formato "d/m/Y, H:i:s"
                     $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
-                    $ticket->fecha_actualizacion_formateada = Carbon::parse($ticket->updated_at)->format('d/m/Y, H:i:s');
+                    $diagnostico = $ticket->asignaciones->first()?->diagnostico;
+                    $ticket->fecha_actualizacion_formateada = $diagnostico 
+                        ? Carbon::parse($diagnostico->created_at)->format('d/m/Y, H:i:s') 
+                        : 'N/A';
                     return $ticket;
                 });
 

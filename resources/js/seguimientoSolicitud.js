@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const estado = ticket.catalogo_estado?.nombre || 'DESCONOCIDO';
         const asignacion = ticket.asignaciones?.[0]; // Tomamos la primera asignación
         const mecanico = asignacion?.nombre_mecanico || 'Sin asignar';
+        const numero_mecanico = asignacion?.numero_empleado_mecanico || 'Sin asignar';
         
         // Determinamos el color de la tarjeta según el estado
         let colorClase = 'border-gray-400';
