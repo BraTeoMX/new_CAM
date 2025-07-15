@@ -36,4 +36,36 @@ class FollowAtentionV2Controller extends Controller
             return response()->json(['error' => 'No se pudieron cargar los módulos'], 500);
         }
     }
+
+    public function obtenerResumen($modulo)
+    {
+        try {
+            Log::info('Obteniendo resumen para el módulo: ' . $modulo);
+            // 1. Obtenemos todos los nombres de estados posibles desde el catálogo.
+            // Esto nos asegura que siempre devolveremos todos los contadores, incluso si están en 0.
+            $todosLosEstados = CatalogoEstado::pluck('nombre')->flip()->map(fn() => 0)->all();
+            
+            // 2. Hacemos la consulta para contar los tickets por estado para el módulo y fecha dados.
+            $conteoPorEstado = TicketOt::with('catalogoEstado') // Precargamos la relación
+                ->where('modulo', $modulo)
+                ->where('created_at', '>=', now()->subDays(10))
+                ->select('estado', DB::raw('count(*) as total'))
+                ->groupBy('estado')
+                ->get()
+                ->pluck('total', 'catalogoEstado.nombre'); // Clave: nombre del estado, Valor: total
+
+            // 3. Combinamos el conteo real con nuestra plantilla de ceros.
+            $resumen = array_merge($todosLosEstados, $conteoPorEstado->all());
+
+            // 4. Calculamos el total general.
+            $resumen['TOTAL'] = array_sum($resumen);
+            
+            return response()->json($resumen);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener el resumen: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo cargar el resumen'], 500);
+        }
+    }
+
 }

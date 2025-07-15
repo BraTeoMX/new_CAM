@@ -311,7 +311,7 @@ class FormGuestV2Controller extends Controller
                     'ticket_ot_id' => $ticket->id,
                     'numero_empleado_mecanico' => 'pendiente',
                     'nombre_mecanico' => 'pendiente',
-                    'estado_asignacion' => 5, // Pendiente por disponibilidad
+                    'estado_asignacion' => 6, // estatus sin asignar
                     'tiempo_estimado_minutos' => $tiempo_estimado,
                     'tiempo_real_minutos' => $tiempo_real,
                     'fecha_asignacion' => now(),

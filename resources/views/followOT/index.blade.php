@@ -22,7 +22,7 @@
                 <span class="material-symbols-outlined text-4xl md:text-5xl">
                     smart_toy
                 </span>
-                <span class="text-2xl font-bold" id="ot-autonomas">0</span>
+                <span class="text-2xl font-bold" id="ot-autonomas">--</span>
                 <span class="text-xs font-semibold mt-1">Autonomas</span>
             </div>
             <div class="bg-blue-100 text-blue-800 rounded-lg p-4 flex items-center justify-center gap-3">
@@ -30,7 +30,7 @@
                     assignment_ind
                 </span>
                 <div class="flex flex-col items-start">
-                    <span class="text-2xl font-bold" id="ot-asignadas">0</span>
+                    <span class="text-2xl font-bold" id="ot-asignadas">--</span>
                     <span class="text-xs font-semibold mt-1">Asignadas</span>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                     av_timer
                 </span>
                 <div class="flex flex-col items-start">
-                    <span class="text-2xl font-bold" id="ot-proceso">0</span>
+                    <span class="text-2xl font-bold" id="ot-proceso">--</span>
                     <span class="text-xs font-semibold mt-1">En Proceso</span>
                 </div>
             </div>
@@ -48,7 +48,7 @@
                     pending_actions
                 </span>
                 <div class="flex flex-col items-start">
-                    <span class="text-2xl font-bold" id="ot-pendientes">0</span>
+                    <span class="text-2xl font-bold" id="ot-pendientes">--</span>
                     <span class="text-xs font-semibold mt-1">Pendientes</span>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                     preliminary
                 </span>
                 <div class="flex flex-col items-start">
-                    <span class="text-2xl font-bold" id="ot-atendidas">0</span>
+                    <span class="text-2xl font-bold" id="ot-atendidas">--</span>
                     <span class="text-xs font-semibold mt-1">Atendidas</span>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     numbers
                 </span>
                 <div class="flex flex-col items-start">
-                    <span class="text-2xl font-bold" id="ot-total">0</span>
+                    <span class="text-2xl font-bold" id="ot-total">--</span>
                     <span class="text-xs font-semibold mt-1">Total</span>
                 </div>
             </div>

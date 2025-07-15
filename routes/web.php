@@ -145,4 +145,5 @@ Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarReg
 Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2', 'index')->name('FollowOTV2');
     Route::get('/FollowOTV2/obtenerAreaModulos', 'obtenerAreaModulos');
+    Route::get('/FollowOTV2/obtenerResumen/{modulo}', 'obtenerResumen'); 
 });
