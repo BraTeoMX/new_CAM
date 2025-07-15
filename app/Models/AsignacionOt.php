@@ -49,4 +49,9 @@ class AsignacionOt extends Model
     {
         return $this->belongsTo(TicketOt::class, 'ticket_ot_id');
     }
+
+    public function diagnostico()
+    {
+        return $this->hasOne(DiagnosticoSolucion::class, 'asignacion_ot_id', 'id');
+    }
 }

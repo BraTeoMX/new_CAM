@@ -73,4 +73,21 @@ class TicketOt extends Model
     {
         return $this->hasMany(AsignacionOt::class, 'ticket_ot_id');
     }
+
+    public function catalogoEstado()
+    {
+        return $this->belongsTo(CatalogoEstado::class, 'estado', 'id');
+    }
+
+    public function diagnosticos()
+    {
+        return $this->hasManyThrough(
+            DiagnosticoSolucion::class, // El modelo final al que queremos llegar
+            AsignacionOt::class,       // El modelo intermedio
+            'ticket_ot_id',            // Foreign key en la tabla intermedia (asignaciones_ot)
+            'asignacion_ot_id',        // Foreign key en la tabla final (diagnosticos_solucion)
+            'id',                      // Local key en la tabla inicial (tickets_ot)
+            'id'                       // Local key en la tabla intermedia (asignaciones_ot)
+        );
+    }
 }
