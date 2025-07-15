@@ -80,11 +80,6 @@
                 <select id="filter-status"
                     class="rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600 px-3 py-2">
                     <option value="">Todos los estados</option>
-                    <option value="PENDIENTE">Pendiente</option>
-                    <option value="ASIGNADO">Asignado</option>
-                    <option value="PROCESO">En Proceso</option>
-                    <option value="ATENDIDO">Atendida</option>
-                    <option value="AUTONOMO">Autónoma</option>
                 </select>
             </div>
         </div>

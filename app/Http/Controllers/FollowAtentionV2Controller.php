@@ -68,4 +68,26 @@ class FollowAtentionV2Controller extends Controller
         }
     }
 
+    public function obtenerRegistros($modulo)
+    {
+        try {
+            $tickets = TicketOt::with([
+                    // Cargamos la relación del estado
+                    'catalogoEstado', 
+                    // Cargamos las asignaciones y, para cada asignación, su diagnóstico
+                    'asignaciones.diagnostico' 
+                ])
+                ->where('modulo', $modulo)
+                ->where('created_at', '>=', now()->subDays(10))
+                ->orderBy('created_at', 'desc') // Ordenamos por más reciente primero
+                ->get();
+
+            return response()->json($tickets);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener los registros detallados: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudieron cargar los registros'], 500);
+        }
+    }
+
 }
