@@ -13,7 +13,7 @@
             <select id="modulo-select" style="width:100%"
                 class="select2 rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600"
                 data-placeholder="Selecciona tu módulo de atención">
-                <option value="">Selecciona tu módulo de atención</option>
+                <option value="">Selecciona tu area o módulo de atención</option>
             </select>
         </div>
         <!-- Barra de resumen -->

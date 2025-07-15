@@ -142,4 +142,7 @@ Route::get('/FormGuestV2/obtener-operarios', [FormGuestV2Controller::class, 'obt
 Route::get('/FormGuestV2/catalogo-problemas', [FormGuestV2Controller::class, 'catalogoProblemas']);
 Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarRegistro']);
 // segunda version de FollowAtentionController
-Route::get('/FollowOTV2', [FollowAtentionV2Controller::class, 'index'])->name('FollowOTV2');
+Route::controller(FollowAtentionV2Controller::class)->group(function () {
+    Route::get('/FollowOTV2', 'index')->name('FollowOTV2');
+    Route::get('/FollowOTV2/obtenerAreaModulos', 'obtenerAreaModulos');
+});
