@@ -159,68 +159,37 @@ class FormGuestV2Controller extends Controller
         try {
             Log::info('Iniciando creación de ticket:', $request->all());
 
-            // Validación actualizada
+            // 1. VALIDACIÓN Y SANITIZACIÓN DE DATOS DE ENTRADA
+            // Esto no cambia. Primero validamos que los datos sean correctos.
             Log::info('Validando datos del formulario:', $request->all());
             $validatedData = $request->validate([
-                'modulo' => ['required', 'string', 'max:255'],
-                'problema' => ['required', 'string', 'max:255'],
-                'maquina' => ['required', 'string', 'max:255'],
+                'modulo'      => ['required', 'string', 'max:255'],
+                'problema'    => ['required', 'string', 'max:255'],
+                'maquina'     => ['required', 'string', 'max:255'],
                 'descripcion' => ['required', 'string', 'max:255'],
-                'status' => 'required|string|in:1,2,3', 
+                'status'      => 'required|string|in:1,2,3',
             ]);
 
-            // Sanitizar datos
-            $sanitizedData = array_map(function($value) {
+            $sanitizedData = array_map(function ($value) {
                 return trim(strip_tags($value));
             }, $validatedData);
 
+            // Obtenemos el resto de los datos del request
             $tiempo_estimado = $request->tiempo_estimado_ia;
             $tiempo_real = $request->tiempo_real_ia;
             $Operario = $request->Operario;
             $NombreOperario = $request->NombreOperario;
 
-            // Generar folio único
-            $folio = 'OT' .'-'. strtoupper(substr(md5(uniqid()), 0, 6));
-
-            // Preparar datos para el registro
-            $ticketData = [
-                'modulo' => $sanitizedData['modulo'],
-                'planta' => $request->planta ?? '1', // Asignar planta por defecto si no se proporciona
-                'nombre_supervisor' => $request->nombre_supervisor ?? 'N/A', // Asignar nombre de supervisor por defecto si no se proporciona
-                'numero_empleado_supervisor' => $request->numero_empleado_supervisor ?? 'N/A', // Asignar número de empleado de supervisor por defecto si no se proporciona
-                'numero_empleado_operario' => $Operario,
-                'nombre_operario' => $NombreOperario,
-                'tipo_problema' => $sanitizedData['problema'],
-                'descripcion_problema' => $sanitizedData['problema'],
-                'maquina' => $sanitizedData['maquina'],
-                'folio' => $folio,
-                'estado' => $sanitizedData['status'],
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-
-            //Log::info('Preparando para crear ticket:', $ticketData);
-
-            // Crear el ticket dentro de una transacción
-            $ticket = DB::transaction(function () use ($ticketData) {
-                $newTicket = TicketOT::create($ticketData);
-                //Log::info('Ticket creado exitosamente:', ['folio' => $newTicket->Folio]);
-                return $newTicket;
-            });
-            // 1. Obtener todas las vinculaciones para el módulo del ticket.
-            $vinculaciones = Vinculacion::where('modulo', $ticket->modulo)->get();
-
-            $mecanicoSeleccionado = null;
-            $ahora = now(); // Obtiene la fecha y hora actual.
+            // 2. LÓGICA DE BÚSQUEDA DE MECÁNICO (ANTES DE CREAR NADA)
+            // Movemos toda la búsqueda del mecánico aquí, antes de la transacción.
+            $vinculaciones = Vinculacion::where('modulo', $sanitizedData['modulo'])->get();
+            $ahora = now();
             $diaDeLaSemana = $ahora->dayOfWeekIso; // 1 para Lunes, 7 para Domingo.
-
             $mecanicosDisponibles = [];
 
-            // 2. Filtrar para encontrar todos los mecánicos DISPONIBLES POR HORARIO.
+            // Filtrar para encontrar todos los mecánicos DISPONIBLES POR HORARIO.
             foreach ($vinculaciones as $vinculacion) {
                 $estaEnDescanso = false;
-
-                // Solo se realizan verificaciones de horario de Lunes a Viernes.
                 if ($diaDeLaSemana >= 1 && $diaDeLaSemana <= 5) {
                     // Verificación de Hora de Comida
                     $comidaInicio = Carbon::parse($vinculacion->hora_comida_inicio);
@@ -228,7 +197,6 @@ class FormGuestV2Controller extends Controller
                     if ($ahora->between($comidaInicio, $comidaFin)) {
                         $estaEnDescanso = true;
                     }
-
                     // Verificación de Breaks (solo si no está en hora de comida)
                     if (!$estaEnDescanso) {
                         $breakInicio = null;
@@ -245,138 +213,136 @@ class FormGuestV2Controller extends Controller
                         }
                     }
                 }
-                
                 // Si el mecánico no está en descanso, se añade a la lista de disponibles.
                 if (!$estaEnDescanso) {
                     $mecanicosDisponibles[] = $vinculacion;
                 }
             }
 
-            // 3. Evaluar la lista de mecánicos disponibles y aplicar la nueva lógica.
+            // Evaluar la lista de mecánicos disponibles y aplicar la lógica de asignación.
+            $mecanicoAsignado = null;
             $cantidadDisponibles = count($mecanicosDisponibles);
 
-            $mecanicoAsignado = null;
-
             if ($cantidadDisponibles === 1) {
-                // CASO 1: Solo hay un mecánico disponible. Se le asigna directamente.
                 $mecanicoAsignado = $mecanicosDisponibles[0];
-
             } elseif ($cantidadDisponibles > 1) {
-                // CASO 2: Hay múltiples mecánicos disponibles. Evaluar carga de trabajo.
-                
-                // Obtener los números de empleado de los mecánicos disponibles
                 $numerosEmpleado = collect($mecanicosDisponibles)->pluck('numero_empleado_mecanico');
-
-                // Contar los tickets asignados HOY para cada mecánico disponible
                 $conteoTicketsHoy = AsignacionOt::whereIn('numero_empleado_mecanico', $numerosEmpleado)
-                                            ->whereDate('created_at', today())
-                                            ->select('numero_empleado_mecanico', DB::raw('count(*) as total'))
-                                            ->groupBy('numero_empleado_mecanico')
-                                            ->pluck('total', 'numero_empleado_mecanico');
+                    ->whereDate('created_at', today())
+                    ->select('numero_empleado_mecanico', DB::raw('count(*) as total'))
+                    ->groupBy('numero_empleado_mecanico')
+                    ->pluck('total', 'numero_empleado_mecanico');
 
-                // Añadir el conteo de tickets a cada mecánico disponible. Si no tiene, su conteo es 0.
                 $mecanicosConCarga = collect($mecanicosDisponibles)->map(function ($mecanico) use ($conteoTicketsHoy) {
                     $mecanico->carga_hoy = $conteoTicketsHoy->get($mecanico->numero_empleado_mecanico, 0);
                     return $mecanico;
                 });
-
-                // Ordenar los mecánicos por su carga de trabajo (de menor a mayor).
-                // El primero de la lista será el que tenga menos trabajo.
                 $mecanicoAsignado = $mecanicosConCarga->sortBy('carga_hoy')->first();
             }
-            // Si $cantidadDisponibles es 0, $mecanicoAsignado permanecerá como null y se creará una asignación pendiente.
 
+            // 3. DETERMINAR EL ESTADO FINAL DEL TICKET Y CREAR REGISTROS EN UNA TRANSACCIÓN
+            // Esta es la parte clave. Usamos una transacción para asegurar que ambos registros se creen correctamente.
+            
+            $ticket = DB::transaction(function () use (
+                $sanitizedData,
+                $request,
+                $mecanicoAsignado,
+                $tiempo_estimado,
+                $tiempo_real,
+                $Operario,
+                $NombreOperario
+            ) {
+                // Decidimos el estado del ticket AHORA, justo antes de crearlo.
+                // Si hay mecánico, usamos el status del form. Si no, usamos '6'.
+                $estadoFinalDelTicket = $mecanicoAsignado ? $sanitizedData['status'] : 6;
 
-            // 4. Crear el registro de asignación basado en el mecánico seleccionado.
-            if ($mecanicoAsignado) {
-                // Se encontró y seleccionó un mecánico.
-                AsignacionOt::create([
-                    'ticket_ot_id' => $ticket->id,
-                    'numero_empleado_mecanico' => $mecanicoAsignado->numero_empleado_mecanico,
-                    'nombre_mecanico' => $mecanicoAsignado->nombre_mecanico,
-                    'estado_asignacion' => 4, // Asignado
-                    'tiempo_estimado_minutos' => $tiempo_estimado,
-                    'tiempo_real_minutos' => $tiempo_real,
-                    'fecha_asignacion' => now(),
-                    'comida_break_disponible' => 1 // Disponible
-                ]);
+                // Generar folio único
+                $folio = 'OT' . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
 
-                // Actualizar el ticket con el mecánico asignado
-                //$ticket->numero_empleado_mecanico = $mecanicoAsignado->numero_empleado_mecanico;
-                $ticket->save();
+                // Preparar datos para el registro principal
+                $ticketData = [
+                    'modulo'                   => $sanitizedData['modulo'],
+                    'planta'                   => $request->planta ?? '1',
+                    'nombre_supervisor'        => $request->nombre_supervisor ?? 'N/A',
+                    'numero_empleado_supervisor' => $request->numero_empleado_supervisor ?? 'N/A',
+                    'numero_empleado_operario' => $Operario,
+                    'nombre_operario'          => $NombreOperario,
+                    'tipo_problema'            => $sanitizedData['problema'],
+                    'descripcion_problema'     => $sanitizedData['descripcion'], // Usar descripción del form
+                    'maquina'                  => $sanitizedData['maquina'],
+                    'folio'                    => $folio,
+                    'estado'                   => $estadoFinalDelTicket, // <-- ¡Aquí está la magia!
+                    'created_at'               => now(),
+                    'updated_at'               => now()
+                ];
+                
+                // Primero, creamos el ticket para obtener su ID
+                $newTicket = TicketOT::create($ticketData);
+                Log::info('Ticket creado temporalmente en transacción:', ['folio' => $newTicket->folio]);
 
-            } else {
-                // No se encontró ningún mecánico disponible.
-                AsignacionOt::create([
-                    'ticket_ot_id' => $ticket->id,
-                    'numero_empleado_mecanico' => 'pendiente',
-                    'nombre_mecanico' => 'pendiente',
-                    'estado_asignacion' => 6, // estatus sin asignar
-                    'tiempo_estimado_minutos' => $tiempo_estimado,
-                    'tiempo_real_minutos' => $tiempo_real,
-                    'fecha_asignacion' => now(),
-                    'comida_break_disponible' => 0 // No disponible
-                ]);
-            }
+                // Segundo, creamos la asignación usando el ID del ticket recién creado.
+                if ($mecanicoAsignado) {
+                    // CASO: Se encontró y seleccionó un mecánico.
+                    AsignacionOt::create([
+                        'ticket_ot_id'             => $newTicket->id, // Usamos el ID del ticket
+                        'numero_empleado_mecanico' => $mecanicoAsignado->numero_empleado_mecanico,
+                        'nombre_mecanico'          => $mecanicoAsignado->nombre_mecanico,
+                        'estado_asignacion'        => 4, // Asignado
+                        'tiempo_estimado_minutos'  => $tiempo_estimado,
+                        'tiempo_real_minutos'      => $tiempo_real,
+                        'fecha_asignacion'         => now(),
+                        'comida_break_disponible'  => 1 // Disponible
+                    ]);
+                } else {
+                    // CASO: No se encontró ningún mecánico disponible.
+                    AsignacionOt::create([
+                        'ticket_ot_id'             => $newTicket->id, // Usamos el ID del ticket
+                        'numero_empleado_mecanico' => 'pendiente',
+                        'nombre_mecanico'          => 'pendiente',
+                        'estado_asignacion'        => 6, // Estatus sin asignar
+                        'tiempo_estimado_minutos'  => $tiempo_estimado,
+                        'tiempo_real_minutos'      => $tiempo_real,
+                        'fecha_asignacion'         => now(),
+                        'comida_break_disponible'  => 0 // No disponible
+                    ]);
+                }
 
-            // Emitir evento y enviar email solo si se creó el ticket
+                // La transacción devuelve el objeto del ticket creado
+                return $newTicket;
+            }); // <-- Aquí termina la transacción. Si algo falló, todo se revierte.
+
+            // 4. EMITIR EVENTO Y DEVOLVER RESPUESTA
+            // Si llegamos aquí, la transacción fue exitosa.
             if ($ticket) {
                 event(new NewOrderNotification($ticket));
-                // desccomentar la siguiente línea si se desea enviar un correo electrónico al crear el ticket
-                //$this->sendTicketCreatedEmail($ticket);
-
-                // Llamar a la asignación de OT
-                /* $asignacionController = new AsignationOTController();
-                $asignacionRequest = new Request([
-                    'folio' => $ticket->folio,
-                    'modulo' => $ticket->modulo,
-                    'operario' => $ticket->nombre_operario,
-                    'maquina' => $ticket->maquina,
-                    'timeAutonomo' => $tiempo_estimado,
-                    'timerealAutonomo' => $tiempo_real,
-                    'status' => $ticket->Status,
-                    'descripcion' => $ticket->Descrip_prob,
-                    'created_at' => $ticket->created_at->toDateTimeString(),
-                ]);
-                $asignacionResponse = $asignacionController->asignarOT($asignacionRequest);
-                $asignacionData = $asignacionResponse->getData(true);
-                */
                 return response()->json([
                     'success' => true,
-                    'folio' => $folio,
+                    'folio'   => $ticket->folio,
                     'message' => 'Ticket creado con éxito',
-                    'data' => [
-                        'modulo' => $ticket->modulo,
-                        'estado' => $ticket->estado,
+                    'data'    => [
+                        'modulo'     => $ticket->modulo,
+                        'estado'     => $ticket->estado, // Devolverá el estado final correcto (1, 2, 3 o 6)
                         'created_at' => $ticket->created_at,
-                        //'asignacion' => $asignacionData
                     ]
                 ], 201);
-                
             }
 
+            // Esto solo se ejecutaría si la transacción falla por alguna razón inesperada.
             throw new \Exception('No se pudo crear el ticket');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Error de validación:', [
-                'errors' => $e->errors(),
-                'input' => $request->all()
-            ]);
+            Log::error('Error de validación:', ['errors' => $e->errors(), 'input' => $request->all()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación. Por favor, verifica todos los campos.',
-                'errors' => $e->errors()
+                'errors'  => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Error inesperado:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->all()
-            ]);
+            Log::error('Error inesperado:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'input' => $request->all()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al procesar la solicitud',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
