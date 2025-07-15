@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. Seleccionamos los elementos del DOM.
     const moduloSelect = document.getElementById('modulo-select');
     const container = document.getElementById('seguimiento-ot-container');
-    const filtrosBar = document.getElementById('filtros-bar'); // El contenedor de los filtros
+    const filtrosBar = document.getElementById('filtros-bar');
+    const searchInput = document.getElementById('search-ot');
+    const statusFilter = document.getElementById('filter-status');
 
     // Variable para guardar los datos y poder filtrarlos después sin llamar a la API
     let todosLosTicketsDelModulo = [];
@@ -31,6 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    searchInput.addEventListener('input', aplicarFiltros);
+    statusFilter.addEventListener('change', aplicarFiltros);
+
     // --- FUNCIONES ---
 
     async function cargarModulos() {
@@ -46,6 +51,40 @@ document.addEventListener('DOMContentLoaded', function() {
             $(moduloSelect).trigger('change.select2');
         } catch (error) {
             console.error("No se pudieron cargar los módulos:", error);
+        }
+    }
+
+    async function cargarFiltroDeEstados() {
+        try {
+            const response = await fetch('/FollowOTV2/obtenerCatalogoEstados');
+            if (!response.ok) throw new Error('Error al cargar estados');
+            const estados = await response.json();
+
+            estados.forEach(estado => {
+                // Usamos estado.nombre para el texto y el valor.
+                const option = new Option(estado.nombre, estado.nombre);
+                statusFilter.appendChild(option);
+            });
+        } catch (error) {
+            console.error("No se pudieron cargar los estados del filtro:", error);
+        }
+    }
+
+    // --- FUNCIONES DE MANEJO DE DATOS Y RENDERIZADO ---
+
+    function handleModuloChange() {
+        const moduloSeleccionado = this.value;
+        if (moduloSeleccionado) {
+            actualizarResumen(moduloSeleccionado);
+            cargarYRenderizarRegistros(moduloSeleccionado);
+        } else {
+            resetearResumen();
+            container.innerHTML = '';
+            filtrosBar.classList.add('hidden');
+            todosLosTicketsDelModulo = [];
+            // Reseteamos los filtros
+            searchInput.value = '';
+            statusFilter.value = '';
         }
     }
 
@@ -205,6 +244,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
+    }
+
+    function aplicarFiltros() {
+        const textoBusqueda = searchInput.value.toLowerCase().trim();
+        const estadoSeleccionado = statusFilter.value;
+
+        // Filtramos el array original que guardamos en memoria.
+        const ticketsFiltrados = todosLosTicketsDelModulo.filter(ticket => {
+            const asignacion = ticket.asignaciones?.[0];
+
+            // Condición 1: Filtro por estado
+            const coincideEstado = estadoSeleccionado === '' || ticket.catalogo_estado.nombre === estadoSeleccionado;
+
+            // Condición 2: Filtro por texto de búsqueda
+            const coincideBusqueda = textoBusqueda === '' ||
+                ticket.folio.toLowerCase().includes(textoBusqueda) ||
+                ticket.descripcion_problema.toLowerCase().includes(textoBusqueda) ||
+                ticket.maquina.toLowerCase().includes(textoBusqueda) ||
+                ticket.nombre_operario.toLowerCase().includes(textoBusqueda) ||
+                (asignacion && asignacion.nombre_mecanico.toLowerCase().includes(textoBusqueda));
+
+            // El ticket se muestra si cumple AMBAS condiciones.
+            return coincideEstado && coincideBusqueda;
+        });
+
+        // Volvemos a renderizar las tarjetas, pero solo con los resultados filtrados.
+        renderizarTarjetas(ticketsFiltrados);
     }
 
     // 5. Llamamos a la función inicial para cargar los módulos.

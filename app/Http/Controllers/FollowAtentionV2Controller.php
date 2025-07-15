@@ -99,4 +99,16 @@ class FollowAtentionV2Controller extends Controller
         }
     }
 
+    public function obtenerCatalogoEstados()
+    {
+        try {
+            // Devolvemos todos los estados para que el frontend los pueda usar.
+            $estados = CatalogoEstado::orderBy('nombre', 'asc')->get();
+            return response()->json($estados);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener el catálogo de estados: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo cargar el catálogo de estados'], 500);
+        }
+    }
+
 }
