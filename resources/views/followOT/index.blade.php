@@ -17,7 +17,7 @@
             </select>
         </div>
         <!-- Barra de resumen -->
-        <div id="resumen-bar" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 hidden">
+        <div id="resumen-bar" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
             <div class="bg-violet-100 text-violet-800 rounded-lg p-4 flex items-center justify-center gap-3">
                 <span class="material-symbols-outlined text-4xl md:text-5xl">
                     smart_toy
@@ -72,7 +72,7 @@
             </div>
         </div>
         <!-- Filtros y búsqueda -->
-        <div id="filtros-bar" class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2 hidden">
+        <div id="filtros-bar" class="flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2 hidden">
             <div class="flex gap-2">
                 <input type="text" id="search-ot"
                     class="rounded border-gray-300 dark:bg-gray-700 dark:border-gray-600 px-3 py-2"
@@ -95,11 +95,6 @@
     </div>
 
     <!-- Scripts -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://unpkg.com/flowbite@2.2.1/dist/flowbite.min.js"></script>
 
     @vite(['resources/js/seguimientoSolicitud.js', 'resources/js/AsisVirFlo.js'])
