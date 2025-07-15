@@ -121,41 +121,59 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {string} - El string HTML de la tarjeta.
      */
     function crearTarjetaHTML(ticket) {
-        // Obtenemos los datos de forma segura, con valores por defecto.
+        // 1. Obtenemos los datos de forma segura, con valores por defecto.
         const estado = ticket.catalogo_estado?.nombre || 'DESCONOCIDO';
         const asignacion = ticket.asignaciones?.[0]; // Tomamos la primera asignación
         const mecanico = asignacion?.nombre_mecanico || 'Sin asignar';
-        const numero_mecanico = asignacion?.numero_empleado_mecanico || 'Sin asignar';
-        
-        // Determinamos el color de la tarjeta según el estado
-        let colorClase = 'border-gray-400';
+        const numero_mecanico = asignacion?.numero_empleado_mecanico; // No necesita '||' aquí
+
+        // 2. Determinamos los colores y la clase del anillo según el estado.
         let colorTexto = 'text-gray-800 bg-gray-100';
+        let ringClass = 'ring-gray-400'; // Color del anillo por defecto
+
         switch (estado) {
             case 'ASIGNADO': 
-                colorClase = 'border-blue-500'; 
                 colorTexto = 'text-blue-800 bg-blue-100';
+                ringClass = 'ring-blue-500';
                 break;
             case 'EN PROCESO': 
-                colorClase = 'border-yellow-500'; 
                 colorTexto = 'text-yellow-800 bg-yellow-100';
+                ringClass = 'ring-yellow-500';
                 break;
             case 'ATENDIDO': 
-                colorClase = 'border-green-500'; 
                 colorTexto = 'text-green-800 bg-green-100';
+                ringClass = 'ring-green-500';
                 break;
             case 'PENDIENTE': 
-                colorClase = 'border-red-500'; 
-                colorTexto = 'text-red-800 bg-red-100';
+                colorTexto = 'text-red-500 bg-red-100';
+                ringClass = 'ring-red-500';
                 break;
             case 'AUTONOMO': 
-                colorClase = 'border-violet-500'; 
                 colorTexto = 'text-violet-800 bg-violet-100';
+                ringClass = 'ring-violet-500';
                 break;
         }
 
+        // 3. Determinamos la URL de la imagen.
+        // Si el estado es AUTONOMO o no hay número de mecánico, usamos el avatar por defecto.
+        const imgUrl = (estado === 'AUTONOMO')
+            ? '/images/Avatar.webp'
+            : `/fotos-usuarios/${numero_mecanico}.webp`;
+
+        // 4. Construimos el HTML final.
         return `
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border-l-4 ${colorClase} flex flex-col justify-between">
-                <div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-md flex flex-col justify-between pt-5 pb-4 px-5">
+                
+                <!-- Imagen del Mecánico (posicionada absolutamente) -->
+                <div class="absolute -top-5 -left-5 z-10">
+                    <img class="w-20 h-20 rounded-full ring-4 ${ringClass} shadow-lg object-cover bg-white"
+                         src="${imgUrl}" 
+                         alt="Foto de ${mecanico}"
+                         onerror="this.onerror=null; this.src='/fotos-usuarios/default-avatar.webp';">
+                </div>
+
+                <!-- Contenido de la tarjeta (con padding a la izquierda para no quedar debajo de la imagen) -->
+                <div class="pl-16">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100">${ticket.folio}</h3>
                         <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${colorTexto}">${estado}</span>
@@ -171,17 +189,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p><strong>Mecánico:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${mecanico}</span></p>
                         <p><strong>Supervisor:</strong> <span class="font-medium text-gray-800 dark:text-gray-200">${ticket.nombre_supervisor}</span></p>
                     </div>
-                    <div class="text-xs text-gray-500 flex justify-between">
-                        <span>Creado: ${ticket.fecha_creacion_formateada}</span>
-                        <span">Actualizado: ${ticket.fecha_actualizacion_formateada}</span>
-                    </div>
-
                 </div>
-                <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
-                    <!-- Los botones de acción se añadirán aquí más adelante -->
-                    <button class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">
-                        Ver Detalles
-                    </button>
+
+                <!-- Footer de la tarjeta -->
+                <div class="pl-16 mt-4">
+                    <div class="text-xs text-gray-500 flex justify-between mb-3">
+                        <span>Creado: ${ticket.fecha_creacion_formateada}</span>
+                        <span>Finalizado: ${ticket.fecha_actualizacion_formateada}</span>
+                    </div>
+                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                        <button class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">
+                            Ver Detalles
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
