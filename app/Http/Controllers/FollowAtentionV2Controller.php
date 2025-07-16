@@ -82,12 +82,17 @@ class FollowAtentionV2Controller extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function ($ticket) {
-                    // Formateamos las fechas en formato "d/m/Y, H:i:s"
                     $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
+                    // Obtenemos el diagnóstico de la primera asignación
                     $diagnostico = $ticket->asignaciones->first()?->diagnostico;
-                    $ticket->fecha_actualizacion_formateada = $diagnostico 
-                        ? Carbon::parse($diagnostico->created_at)->format('d/m/Y, H:i:s') 
+
+                    $ticket->diagnostico_data = $diagnostico;
+
+                    // La fecha de finalización ahora puede usar el campo 'hora_final' si existe
+                    $ticket->fecha_actualizacion_formateada = $diagnostico && $diagnostico->hora_final
+                        ? Carbon::parse($diagnostico->hora_final)->format('d/m/Y, H:i:s') 
                         : 'N/A';
+
                     return $ticket;
                 });
 
@@ -182,6 +187,41 @@ class FollowAtentionV2Controller extends Controller
                 
                 // 4. Actualizamos el estado del ticket principal a 3 ("EN PROCESO").
                 $asignacion->ticket()->update(['estado' => 3]);
+            });
+
+            return response()->json(['success' => true, 'message' => 'Atención iniciada correctamente.']);
+
+        } catch (\Exception $e) {
+            Log::error('Error al iniciar atención: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'No se pudo iniciar la atención.'], 500);
+        }
+    }
+
+    public function finalizarAtencion(Request $request)
+    {
+        Log::info('Finalizando atención para el ticket: ' . $request->input('ticket_id'));
+        // Validación de los datos recibidos desde el frontend
+        $validatedData = $request->validate([
+            'ticket_id' => 'required|integer|exists:tickets_ot,id',
+        ]);
+
+        try {
+            // Usamos una transacción para asegurar que todas las operaciones se completen o ninguna lo haga.
+            DB::transaction(function () use ($validatedData) {
+                // 1. Encontramos la primera asignación asociada al ticket.
+                $asignacion = AsignacionOt::where('ticket_ot_id', $validatedData['ticket_id'])->firstOrFail();
+
+                
+                $asignacion->diagnostico()->update(
+                    ['asignacion_ot_id' => $asignacion->id], // Condición para buscar
+                    [ // Datos para crear o actualizar
+                        'hora_fin' => $tiempo = 0,//tiempo del boton de "Finalizar Atención",
+                        'hora_inicio' => '0',
+                    ]
+                );
+                
+                // 4. Actualizamos el estado del ticket principal a 5 ("Atendido").
+                $asignacion->ticket()->update(['estado' => 5]);
             });
 
             return response()->json(['success' => true, 'message' => 'Atención iniciada correctamente.']);

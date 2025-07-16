@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Variable para guardar los datos y poder filtrarlos después sin llamar a la API
     let todosLosTicketsDelModulo = [];
+    
 
     function inicializar() {
         // Inicializamos la librería Select2.
@@ -261,8 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span>Finalizado: ${ticket.fecha_actualizacion_formateada}</span>
                     </div>
                 </div>
-                <div class="pl-16 mt-4">
-                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
+                <div class="pl-16">
+                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex gap-2">
                         ${generarBotonesAccion(ticket)}
                     </div>
                 </div>
