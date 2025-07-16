@@ -93,8 +93,8 @@ class FollowAtentionV2Controller extends Controller
                         $ticket->hora_inicio_diagnostico = $diagnostico->hora_inicio ?? 'N/A';
 
                         // Conversión de segundos (hora_final) a minutos enteros
-                        $ticket->hora_final_minutos = is_numeric($diagnostico->hora_final)
-                            ? intval($diagnostico->hora_final / 60)
+                        $ticket->tiempo_estimado_minutos = is_numeric($diagnostico->tiempo_estimado)
+                            ? intval($diagnostico->tiempo_estimado / 60)
                             : null;
 
                         $ticket->fecha_actualizacion_formateada = $diagnostico->created_at
@@ -102,7 +102,7 @@ class FollowAtentionV2Controller extends Controller
                             : 'N/A';
                     } else {
                         $ticket->diagnostico_data = null;
-                        $ticket->hora_final_minutos = null;
+                        $ticket->tiempo_estimado_minutos = null;
                         $ticket->fecha_actualizacion_formateada = 'N/A';
                     }
 
