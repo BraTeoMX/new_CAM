@@ -27,7 +27,7 @@ class DiagnosticoSolucion extends Model
         'numero_maquina',
         'tiempo_estimado',
         'hora_inicio',
-        'tiempo_final',
+        'hora_final',
         'tiempo_real',
         'tiempo_ejecucion',
         'diagnostico_falla',

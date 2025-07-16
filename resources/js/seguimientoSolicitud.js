@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>`;
         } else if (estado === 'EN PROCESO') {
             // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
-            return `<button class="detener-atencion-btn text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            return `<button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                             data-ticket-id="${ticket.id}"
                             data-maquina="${ticket.maquina}">
                         Finalizar Atención

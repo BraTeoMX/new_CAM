@@ -83,15 +83,28 @@ class FollowAtentionV2Controller extends Controller
                 ->get()
                 ->map(function ($ticket) {
                     $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
-                    // Obtenemos el diagnóstico de la primera asignación
+
                     $diagnostico = $ticket->asignaciones->first()?->diagnostico;
 
-                    $ticket->diagnostico_data = $diagnostico;
+                    // Agregamos datos del diagnóstico si existe
+                    if ($diagnostico) {
+                        $ticket->diagnostico_data = $diagnostico;
 
-                    // La fecha de finalización ahora puede usar el campo 'hora_final' si existe
-                    $ticket->fecha_actualizacion_formateada = $diagnostico && $diagnostico->hora_final
-                        ? Carbon::parse($diagnostico->hora_final)->format('d/m/Y, H:i:s') 
-                        : 'N/A';
+                        $ticket->hora_inicio_diagnostico = $diagnostico->hora_inicio ?? 'N/A';
+
+                        // Conversión de segundos (hora_final) a minutos enteros
+                        $ticket->hora_final_minutos = is_numeric($diagnostico->hora_final)
+                            ? intval($diagnostico->hora_final / 60)
+                            : null;
+
+                        $ticket->fecha_actualizacion_formateada = $diagnostico->created_at
+                            ? Carbon::parse($diagnostico->created_at)->format('d/m/Y, H:i:s')
+                            : 'N/A';
+                    } else {
+                        $ticket->diagnostico_data = null;
+                        $ticket->hora_final_minutos = null;
+                        $ticket->fecha_actualizacion_formateada = 'N/A';
+                    }
 
                     return $ticket;
                 });
