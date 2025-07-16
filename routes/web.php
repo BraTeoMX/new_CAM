@@ -149,4 +149,5 @@ Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2/obtenerRegistros/{modulo}', 'obtenerRegistros');
     Route::get('/FollowOTV2/obtenerCatalogoEstados', 'obtenerCatalogoEstados');
     Route::get('/FollowOTV2/obtenerClasesMaquina/{maquina}', 'obtenerClasesMaquina');
+    Route::post('/FollowOTV2/iniciarAtencion', 'iniciarAtencion');
 });

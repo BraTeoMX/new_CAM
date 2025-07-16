@@ -147,4 +147,48 @@ class FollowAtentionV2Controller extends Controller
         }
     }
 
+    public function iniciarAtencion(Request $request)
+    {
+        Log::info('Iniciando atención para el ticket: ' . $request->input('ticket_id'));
+        // Validación de los datos recibidos desde el frontend
+        $validatedData = $request->validate([
+            'ticket_id' => 'required|integer|exists:tickets_ot,id',
+            'clase' => 'required|string',
+            'numero_maquina' => 'required|string',
+            'tiempo_estimado' => 'required|string', // Recibimos como "HH:MM:SS"
+        ]);
+
+        try {
+            // Usamos una transacción para asegurar que todas las operaciones se completen o ninguna lo haga.
+            DB::transaction(function () use ($validatedData) {
+                // 1. Encontramos la primera asignación asociada al ticket.
+                $asignacion = AsignacionOt::where('ticket_ot_id', $validatedData['ticket_id'])->firstOrFail();
+
+                // 2. Convertimos el tiempo estimado de "HH:MM:SS" a segundos.
+                $parts = explode(':', $validatedData['tiempo_estimado']); // [HH, MM, SS]
+                $tiempoEnSegundos = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + ((int)$parts[2]);
+
+                // 3. Creamos el registro de diagnóstico usando la relación del modelo AsignacionOt.
+                // updateOrCreate previene duplicados si se hace clic dos veces.
+                $asignacion->diagnostico()->updateOrCreate(
+                    ['asignacion_ot_id' => $asignacion->id], // Condición para buscar
+                    [ // Datos para crear o actualizar
+                        'clase_maquina' => $validatedData['clase'], // Asumo que 'clase' va en 'clase_falla'
+                        'numero_maquina' => $validatedData['numero_maquina'],
+                        'tiempo_estimado' => $tiempoEnSegundos,
+                        'hora_inicio' => now(), // Guardamos la hora actual como inicio
+                    ]
+                );
+                
+                // 4. Actualizamos el estado del ticket principal a 3 ("EN PROCESO").
+                $asignacion->ticket()->update(['estado' => 3]);
+            });
+
+            return response()->json(['success' => true, 'message' => 'Atención iniciada correctamente.']);
+
+        } catch (\Exception $e) {
+            Log::error('Error al iniciar atención: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'No se pudo iniciar la atención.'], 500);
+        }
+    }
 }

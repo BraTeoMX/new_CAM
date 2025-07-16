@@ -309,8 +309,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>`;
         } else if (estado === 'EN PROCESO') {
             // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
-        
+            return `<button class="detener-atencion-btn text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            data-ticket-id="${ticket.id}"
+                            data-maquina="${ticket.maquina}">
+                        Finalizar Atención
+                    </button>`;
         // Aquí puedes añadir más lógica para otros estados (ej. 'EN PROCESO')
+        } else if (estado === 'AUTONOMO') {
+            // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
+            return `<p>Solucionado</p>`;
+
         } else if ( estado === 'ATENDIDO')
         // Botón por defecto para los demás casos
         return `<button class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">
@@ -323,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {number} ticketId - El ID del ticket.
      * @param {string} maquina - El nombre de la máquina.
      */
-   async function mostrarModalIniciarAtencion(ticketId, maquina) {
+    async function mostrarModalIniciarAtencion(ticketId, maquina) {
         try {
             const response = await fetch(`/FollowOTV2/obtenerClasesMaquina/${encodeURIComponent(maquina)}`);
             if (!response.ok) throw new Error('No se pudieron cargar los datos de la máquina.');
@@ -403,6 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (formValues) {
                 console.log('Datos del modal:', formValues);
+                await enviarInicioAtencion(ticketId, formValues);
                 Swal.fire({
                     title: '¡Éxito!',
                     text: 'Atención lista para iniciar.',
@@ -420,6 +429,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: error.message,
                 icon: 'error',
                 // Y al modal de error
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+            });
+        }
+    }
+
+    /**
+     * NUEVA: Envía los datos al backend para iniciar la atención.
+     * @param {number} ticketId - El ID del ticket a actualizar.
+     * @param {object} datosModal - El objeto con { clase, numero_maquina, tiempo_estimado }.
+     */
+    async function enviarInicioAtencion(ticketId, datosModal) {
+        // Obtenemos el token CSRF de la meta etiqueta en el HTML
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        try {
+            const response = await fetch('/FollowOTV2/iniciarAtencion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken // ¡Muy importante para la seguridad de Laravel!
+                },
+                body: JSON.stringify({
+                    ticket_id: ticketId,
+                    clase: datosModal.clase,
+                    numero_maquina: datosModal.numero_maquina,
+                    tiempo_estimado: datosModal.tiempo_estimado
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                // Si la respuesta no es OK o el backend devuelve success:false, lanzamos un error.
+                throw new Error(result.message || 'Error en el servidor.');
+            }
+
+            // Si todo salió bien, mostramos un mensaje de éxito.
+            await Swal.fire({
+                title: '¡Éxito!',
+                text: result.message,
+                icon: 'success',
+                timer: 2000, // El modal se cierra solo después de 2 segundos
+                showConfirmButton: false,
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb' })
+            });
+
+            // Y finalmente, recargamos las tarjetas para que reflejen el nuevo estado.
+            const moduloSeleccionado = moduloSelect.value;
+            if (moduloSeleccionado) {
+                // Hacemos ambas llamadas para que tanto el resumen como las tarjetas se actualicen.
+                actualizarResumen(moduloSeleccionado);
+                cargarYRenderizarRegistros(moduloSeleccionado);
+            }
+
+        } catch (error) {
+            console.error('Error al enviar inicio de atención:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
             });
         }

@@ -23,9 +23,10 @@ class DiagnosticoSolucion extends Model
      */
     protected $fillable = [
         'asignacion_ot_id',
-        'clase_falla',
+        'clase_maquina',
+        'numero_maquina',
         'tiempo_estimado',
-        'tiempo_inicio',
+        'hora_inicio',
         'tiempo_final',
         'tiempo_real',
         'tiempo_ejecucion',
