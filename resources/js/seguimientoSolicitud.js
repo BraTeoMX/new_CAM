@@ -165,8 +165,17 @@ document.addEventListener('DOMContentLoaded', function() {
      * NUEVA: Renderiza las tarjetas en el contenedor.
      * @param {Array} tickets - Un array de objetos de ticket.
      */
+    let activeTimers = [];
+
+    // NUEVO: Función para limpiar todos los temporizadores activos y evitar fugas de memoria.
+    function clearActiveTimers() {
+        activeTimers.forEach(timerId => clearInterval(timerId));
+        activeTimers = [];
+    }
+
     function renderizarTarjetas(tickets) {
-        container.innerHTML = ''; // Limpiamos el contenedor
+        clearActiveTimers(); // Limpiamos cualquier temporizador que estuviera corriendo.
+        container.innerHTML = ''; 
 
         if (tickets.length === 0) {
             container.innerHTML = '<p class="text-center text-gray-500 col-span-full">No hay solicitudes para este módulo.</p>';
@@ -177,6 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const cardHTML = crearTarjetaHTML(ticket);
             container.insertAdjacentHTML('beforeend', cardHTML);
         });
+
+        iniciarTemporizadores(); // Buscamos y activamos todos los nuevos temporizadores.
     }
 
     /**
@@ -263,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="pl-16">
-                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-center">
                         ${generarBotonesAccion(ticket)}
                     </div>
                 </div>
@@ -302,20 +313,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const estado = ticket.catalogo_estado?.nombre;
 
         if (estado === 'ASIGNADO') {
-            // Si está asignado, mostramos el botón "Iniciar Atención"
-            return `<button class="iniciar-atencion-btn text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            return `
+                <div class="w-full border border-gray-300 rounded-md p-4 text-center shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Acciones disponibles</h3>
+                    <button class="iniciar-atencion-btn text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                             data-ticket-id="${ticket.id}"
                             data-maquina="${ticket.maquina}">
                         Iniciar Atención
-                    </button>`;
+                    </button>
+                </div>
+            `;
         } else if (estado === 'EN PROCESO') {
-            // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
-            return `<button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                            data-ticket-id="${ticket.id}"
-                            data-maquina="${ticket.maquina}">
-                        Finalizar Atención
-                    </button>`;
-        // Aquí puedes añadir más lógica para otros estados (ej. 'EN PROCESO')
+            return `
+                <div class="w-full border border-gray-300 rounded-md p-4 text-center shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Atención en Proceso</h3>
+                    <div class="font-mono text-2xl font-bold">
+                        <span class="text-xs text-gray-500">Tiempo estimado: ${ticket.tiempo_estimado_minutos} minutos</span>
+                        <span id="timer-${ticket.id}"
+                            class="timer-display font-mono text-xl font-bold text-gray-800 dark:text-gray-100"
+                            data-start-time="${ticket.hora_inicio_diagnostico}"
+                            data-duration-minutes="${ticket.tiempo_estimado_minutos}">
+                            --:--
+                        </span>
+                        <span class="material-symbols-outlined">timer</span>
+                        <span class="text-xs text-gray-500">Tiempo Restante</span>
+                    </div>
+                    <div class="mt-4">
+                        <button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                                data-ticket-id="${ticket.id}"
+                                data-maquina="${ticket.maquina}">
+                            Finalizar Atención
+                        </button>
+                    </div>
+                </div>
+            `;
         } else if (estado === 'AUTONOMO') {
             // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
             return `<p>Solucionado</p>`;
@@ -495,6 +526,70 @@ document.addEventListener('DOMContentLoaded', function() {
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
             });
         }
+    }
+
+    function iniciarTemporizadores() {
+        const timerElements = document.querySelectorAll('.timer-display');
+        
+        timerElements.forEach(timerEl => {
+            const startTimeStr = timerEl.dataset.startTime;
+            const durationMinutes = parseInt(timerEl.dataset.durationMinutes, 10);
+
+            // Validamos que tengamos la información necesaria
+            if (!startTimeStr || isNaN(durationMinutes)) {
+                timerEl.textContent = "Error";
+                console.warn("Faltan datos para el temporizador en el ticket:", timerEl.id);
+                return;
+            }
+
+            // Creamos un intervalo que se ejecuta cada segundo para este temporizador.
+            const intervalId = setInterval(() => {
+                updateTimer(timerEl, startTimeStr, durationMinutes);
+            }, 1000);
+
+            // Guardamos el ID del intervalo para poder limpiarlo después.
+            activeTimers.push(intervalId);
+            
+            // Ejecutamos una vez al inicio para que el usuario no vea el "--:--" por un segundo.
+            updateTimer(timerEl, startTimeStr, durationMinutes);
+        });
+    }
+
+    // NUEVO: Función que realiza el cálculo y actualiza el DOM de un temporizador específico.
+    function updateTimer(element, startTimeStr, durationMinutes) {
+        // 1. Parsear la hora de inicio a un objeto Date válido para hoy.
+        const today = new Date();
+        const [hours, minutes, seconds] = startTimeStr.split(':');
+        const startTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, seconds);
+
+        // 2. Calcular los segundos restantes.
+        const now = new Date();
+        const totalDurationInSeconds = durationMinutes * 60;
+        const elapsedSeconds = Math.round((now - startTime) / 1000);
+        const remainingSeconds = totalDurationInSeconds - elapsedSeconds;
+
+        // 3. Determinar el color basado en el tiempo restante.
+        // Primero limpiamos las clases de color anteriores para evitar conflictos.
+        element.classList.remove('text-yellow-500', 'dark:text-yellow-400', 'text-red-600', 'dark:text-red-500', 'text-gray-800', 'dark:text-gray-100');
+        
+        if (remainingSeconds < 0) {
+            element.classList.add('text-red-600', 'dark:text-red-500'); // Tiempo agotado (rojo)
+        } else if (remainingSeconds < 300) { // Menos de 5 minutos (300 segundos)
+            element.classList.add('text-yellow-500', 'dark:text-yellow-400'); // Advertencia (amarillo)
+        } else {
+            element.classList.add('text-gray-800', 'dark:text-gray-100'); // Tiempo normal
+        }
+
+        // 4. Formatear la salida a MM:SS.
+        const isNegative = remainingSeconds < 0;
+        const absRemainingSeconds = Math.abs(remainingSeconds);
+        const displayMinutes = Math.floor(absRemainingSeconds / 60);
+        const displaySeconds = absRemainingSeconds % 60;
+
+        const formattedTime = `${isNegative ? '-' : ''}${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`;
+
+        // 5. Actualizar el contenido del elemento.
+        element.textContent = formattedTime;
     }
 
     inicializar();
