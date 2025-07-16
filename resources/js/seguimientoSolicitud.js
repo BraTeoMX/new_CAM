@@ -17,12 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
             allowClear: true
         });
 
-        // Configuramos todos los "oyentes" de eventos.
         configurarEventListeners();
-
-        // Cargamos los datos iniciales necesarios para los selectores.
         cargarModulos();
-        cargarFiltroDeEstados(); // <-- ESTA ES LA LLAMADA QUE FALTABA
+        cargarFiltroDeEstados(); 
     }
 
     // --- CONFIGURACIÓN DE EVENTOS ---
@@ -33,6 +30,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Eventos para los filtros secundarios.
         searchInput.addEventListener('input', aplicarFiltros);
         statusFilter.addEventListener('change', aplicarFiltros);
+
+        container.addEventListener('click', function(e) {
+            // Verificamos si el elemento clickeado (o su padre) es un botón de "Iniciar Atención"
+            const iniciarBtn = e.target.closest('.iniciar-atencion-btn');
+            if (iniciarBtn) {
+                e.preventDefault(); // Prevenimos cualquier comportamiento por defecto
+                const ticketId = iniciarBtn.dataset.ticketId;
+                const maquina = iniciarBtn.dataset.maquina;
+                // Llamamos a la función que mostrará el modal
+                mostrarModalIniciarAtencion(ticketId, maquina);
+            }
+        });
     }
 
     // --- MANEJADORES DE EVENTOS ---
@@ -251,10 +260,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span>Creado: ${ticket.fecha_creacion_formateada}</span>
                         <span>Finalizado: ${ticket.fecha_actualizacion_formateada}</span>
                     </div>
+                </div>
+                <div class="pl-16 mt-4">
                     <div class="pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2">
-                        <button class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">
-                            Ver Detalles
-                        </button>
+                        ${generarBotonesAccion(ticket)}
                     </div>
                 </div>
             </div>
@@ -286,6 +295,134 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Volvemos a renderizar las tarjetas, pero solo con los resultados filtrados.
         renderizarTarjetas(ticketsFiltrados);
+    }
+
+    function generarBotonesAccion(ticket) {
+        const estado = ticket.catalogo_estado?.nombre;
+
+        if (estado === 'ASIGNADO') {
+            // Si está asignado, mostramos el botón "Iniciar Atención"
+            return `<button class="iniciar-atencion-btn text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            data-ticket-id="${ticket.id}"
+                            data-maquina="${ticket.maquina}">
+                        Iniciar Atención
+                    </button>`;
+        } else if (estado === 'EN PROCESO') {
+            // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
+        
+        // Aquí puedes añadir más lógica para otros estados (ej. 'EN PROCESO')
+        } else if ( estado === 'ATENDIDO')
+        // Botón por defecto para los demás casos
+        return `<button class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">
+                    aqui se veria el diagnostico
+                </button>`;
+    }
+
+    /**
+     * NUEVA: Muestra el modal de SweetAlert2 para iniciar la atención.
+     * @param {number} ticketId - El ID del ticket.
+     * @param {string} maquina - El nombre de la máquina.
+     */
+   async function mostrarModalIniciarAtencion(ticketId, maquina) {
+        try {
+            const response = await fetch(`/FollowOTV2/obtenerClasesMaquina/${encodeURIComponent(maquina)}`);
+            if (!response.ok) throw new Error('No se pudieron cargar los datos de la máquina.');
+            
+            const data = await response.json();
+            const clases = data.clases || [];
+            const numerosMaquina = data.numeroMaquina || [];
+
+            // --- MEJORA PARA MODO OSCURO ---
+
+            // 1. Detectamos si el modo oscuro está activo en el tag <html>
+            const isDarkMode = document.documentElement.classList.contains('dark');
+
+            // 2. Creamos un objeto de configuración para el modal
+            const swalOptions = {
+                title: 'Iniciar Atención',
+                html: `
+                    <div class="text-left">
+                        <!-- Se han quitado las clases de color del label para que herede el color del modal -->
+                        <label class="block mb-2 text-sm font-medium">Clase de Máquina:</label>
+                        <select id="clase-select" class="swal2-select" style="width: 100%">
+                            <option value=""></option>
+                            ${clases.map(c => `<option value="${c.class}" data-tiempo="${c.TimeEstimado}">${c.class} (${c.TimeEstimado} min)</option>`).join('')}
+                        </select>
+                        
+                        <label class="block mt-4 mb-2 text-sm font-medium">Número de Máquina:</label>
+                        <select id="numero-maquina-select" class="swal2-select" style="width: 100%">
+                            <option value=""></option>
+                            ${numerosMaquina.map(nm => `<option value="${nm.Remplacad}">${nm.Remplacad}</option>`).join('')}
+                        </select>
+                    </div>`,
+                focusConfirm: false,
+                didOpen: () => {
+                    // La inicialización de Select2 se queda igual
+                    $('#clase-select').select2({
+                        dropdownParent: $('.swal2-popup'),
+                        placeholder: 'Selecciona una clase',
+                    });
+                    $('#numero-maquina-select').select2({
+                        dropdownParent: $('.swal2-popup'),
+                        placeholder: 'Selecciona el número',
+                    });
+                },
+                preConfirm: () => {
+                    // La validación se queda igual
+                    const claseSelect = document.getElementById('clase-select');
+                    const numeroMaquinaSelect = document.getElementById('numero-maquina-select');
+
+                    if (!claseSelect.value) {
+                        Swal.showValidationMessage('Debes seleccionar una clase.');
+                        return false;
+                    }
+                    if (!numeroMaquinaSelect.value) {
+                        Swal.showValidationMessage('Debes seleccionar un número de máquina.');
+                        return false;
+                    }
+                    
+                    const tiempoEstimado = claseSelect.options[claseSelect.selectedIndex].dataset.tiempo;
+
+                    return {
+                        clase: claseSelect.value,
+                        numero_maquina: numeroMaquinaSelect.value,
+                        tiempo_estimado: tiempoEstimado
+                    };
+                }
+            };
+
+            // 3. Si el modo oscuro está activo, añadimos las propiedades de color al objeto de configuración
+            if (isDarkMode) {
+                swalOptions.background = '#1f2937'; // Color de fondo similar a bg-gray-800
+                swalOptions.color = '#f9fafb';      // Color de texto similar a text-gray-100
+                swalOptions.confirmButtonColor = '#3b82f6'; // Un color de botón que contraste
+            }
+
+            // 4. Mostramos el modal usando la configuración que hemos preparado
+            const { value: formValues } = await Swal.fire(swalOptions);
+
+            if (formValues) {
+                console.log('Datos del modal:', formValues);
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: 'Atención lista para iniciar.',
+                    icon: 'success',
+                    // Aplicamos también el tema oscuro al modal de éxito
+                    ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+                });
+            }
+
+        } catch (error) {
+            console.error('Error al mostrar el modal:', error);
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                // Y al modal de error
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+            });
+        }
     }
 
     inicializar();
