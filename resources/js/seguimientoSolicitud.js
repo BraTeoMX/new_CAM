@@ -314,8 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (estado === 'ASIGNADO') {
             return `
-                <div class="w-full border border-gray-300 rounded-md p-4 text-center shadow-sm">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Acciones disponibles</h3>
+                <div class="w-full border border-gray-500 rounded-md p-4 text-center shadow-sm">
                     <button class="iniciar-atencion-btn text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                             data-ticket-id="${ticket.id}"
                             data-maquina="${ticket.maquina}">
@@ -325,19 +324,19 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else if (estado === 'EN PROCESO') {
             return `
-                <div class="w-full border border-gray-300 rounded-md p-4 text-center shadow-sm">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Atención en Proceso</h3>
+                <div class="w-full border border-gray-500 rounded-md p-4 text-center shadow-sm">
                     <div class="font-mono text-2xl font-bold">
                         <span class="text-xs text-gray-500">Tiempo estimado: ${ticket.tiempo_estimado_minutos} minutos</span>
-                        <span id="timer-${ticket.id}"
-                            class="timer-display font-mono text-xl font-bold text-gray-800 dark:text-gray-100"
-                            data-start-time="${ticket.hora_inicio_diagnostico}"
-                            data-duration-minutes="${ticket.tiempo_estimado_minutos}">
-                            --:--
-                        </span>
-                        <span class="material-symbols-outlined">timer</span>
-                        <span class="text-xs text-gray-500">Tiempo Restante</span>
                     </div>
+                    <h2 class="font-mono text-2xl text-gray-800 dark:text-gray-100 font-bold"><span class="material-symbols-outlined">timer</span> Tiempo Restante: </h2>
+                    <span id="timer-${ticket.id}"
+                        class="timer-display font-mono text-xl font-bold text-gray-800 dark:text-gray-100"
+                        data-start-time="${ticket.hora_inicio_diagnostico}"
+                        data-duration-minutes="${ticket.tiempo_estimado_minutos}">
+                        --:--
+                    </span>
+                    
+                        
                     <div class="mt-4">
                         <button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                                 data-ticket-id="${ticket.id}"
