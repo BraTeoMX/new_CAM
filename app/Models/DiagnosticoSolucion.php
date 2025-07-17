@@ -35,6 +35,7 @@ class DiagnosticoSolucion extends Model
         'accion_correctiva',
         'comentarios',
         'encuesta',
+        'estado_bahia',
     ];
 
     /**
