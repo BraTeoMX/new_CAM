@@ -56,4 +56,10 @@ class DiagnosticoSolucion extends Model
     {
         return $this->belongsTo(AsignacionOt::class, 'asignacion_ot_id', 'id');
     }
+
+    public function tiemposBahia()
+    {
+        return $this->hasMany(TiempoBahia::class, 'diagnostico_solucion_id', 'id');
+    }
+
 }
