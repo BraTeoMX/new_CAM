@@ -234,36 +234,44 @@ class FollowAtentionV2Controller extends Controller
 
     public function finalizarAtencion(Request $request)
     {
-        Log::info('Finalizando atención para el ticket: ' . $request->input('ticket_id'));
-        // Validación de los datos recibidos desde el frontend
+        Log::info('Finalizando atención para el ticket: ' . $request->input('ticket_id'), $request->all());
+
+        // 1. Validación de los datos recibidos
         $validatedData = $request->validate([
             'ticket_id' => 'required|integer|exists:tickets_ot,id',
+            'falla' => 'required|string|max:255',
+            'causa_falla' => 'required|string|max:255',
+            'accion_implementada' => 'required|string|max:255',
+            'hora_finalizacion' => 'required|date_format:H:i:s',
+            'comentarios' => 'nullable|string', // Comentarios son opcionales
         ]);
 
         try {
-            // Usamos una transacción para asegurar que todas las operaciones se completen o ninguna lo haga.
+            // 2. Usamos una transacción para garantizar la integridad de los datos
             DB::transaction(function () use ($validatedData) {
-                // 1. Encontramos la primera asignación asociada al ticket.
+                // 3. Encontramos la asignación del ticket. firstOrFail detendrá la ejecución si no la encuentra.
                 $asignacion = AsignacionOt::where('ticket_ot_id', $validatedData['ticket_id'])->firstOrFail();
 
+                // 4. Actualizamos el registro de diagnóstico existente.
+                // No usamos create, solo update, porque el diagnóstico ya fue creado en "iniciarAtencion".
+                $asignacion->diagnostico()->update([
+                    'falla' => $validatedData['falla'],
+                    'causa' => $validatedData['causa_falla'], // Columna 'causa' en la BD
+                    'accion_correctiva' => $validatedData['accion_implementada'], // Columna 'accion_correctiva' en la BD
+                    'comentarios' => $validatedData['comentarios'],
+                    'hora_final' => $validatedData['hora_finalizacion'], // Columna 'hora_final' en la BD
+                ]);
                 
-                $asignacion->diagnostico()->update(
-                    ['asignacion_ot_id' => $asignacion->id], // Condición para buscar
-                    [ // Datos para crear o actualizar
-                        'hora_fin' => $tiempo = 0,//tiempo del boton de "Finalizar Atención",
-                        'hora_inicio' => '0',
-                    ]
-                );
-                
-                // 4. Actualizamos el estado del ticket principal a 5 ("Atendido").
+                // 5. Actualizamos el estado del ticket principal a 5 ("ATENDIDO").
                 $asignacion->ticket()->update(['estado' => 5]);
             });
 
-            return response()->json(['success' => true, 'message' => 'Atención iniciada correctamente.']);
+            return response()->json(['success' => true, 'message' => 'Atención finalizada y registrada correctamente.']);
 
         } catch (\Exception $e) {
-            Log::error('Error al iniciar atención: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'No se pudo iniciar la atención.'], 500);
+            // Si algo falla, registramos el error y devolvemos una respuesta de error.
+            Log::error('Error al finalizar atención para el ticket ' . $validatedData['ticket_id'] . ': ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'No se pudo registrar la finalización de la atención.'], 500);
         }
     }
 }

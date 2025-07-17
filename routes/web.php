@@ -150,8 +150,8 @@ Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2/obtenerCatalogoEstados', 'obtenerCatalogoEstados');
     Route::get('/FollowOTV2/obtenerClasesMaquina/{maquina}', 'obtenerClasesMaquina');
     Route::post('/FollowOTV2/iniciarAtencion', 'iniciarAtencion');
-    Route::post('/FollowOTV2/finalizarAtencion', 'finalizarAtencion');
     Route::get('/FollowOTV2/obtenerFallas', 'obtenerFallas');
     Route::get('/FollowOTV2/obtenerCausas', 'obtenerCausas');
     Route::get('/FollowOTV2/obtenerAcciones', 'obtenerAcciones');
+    Route::post('/FollowOTV2/finalizarAtencion', 'finalizarAtencion');
 });

@@ -744,10 +744,11 @@ document.addEventListener('DOMContentLoaded', function() {
      * NUEVA: Envía los datos al backend para finalizar la atención.
      * @param {number} ticketId - El ID del ticket.
      * @param {string} horaFinalizacion - La hora en que se detuvo la atención.
-     * @param {object} datosModal - El objeto con { causaFalla, accionImplementada, comentarios }.
+     * @param {object} datosModal - El objeto con { falla, causaFalla, accionImplementada, comentarios }.
      */
     async function enviarFinalizacionAtencion(ticketId, horaFinalizacion, datosModal) {
-        // Resumimos los 4 datos que se enviarán al controlador
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        // Resumimos los datos que se enviarán al controlador
         const datosParaEnviar = {
             ticket_id: ticketId,
             falla: datosModal.falla,
@@ -759,11 +760,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("✅ Datos listos para enviar al controlador:", datosParaEnviar);
 
-        // Aquí iría la lógica de la llamada fetch al controlador de Laravel,
-        // similar a la función 'enviarInicioAtencion'.
-
-        /*
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
         try {
             const response = await fetch('/FollowOTV2/finalizarAtencion', {
                 method: 'POST',
@@ -777,9 +775,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
 
-            if (!response.ok) throw new Error(result.message || 'Error al finalizar la atención.');
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Error al finalizar la atención.');
+            }
 
-            Swal.fire('¡Éxito!', result.message, 'success');
+            await Swal.fire({
+                title: '¡Éxito!',
+                text: result.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb' })
+            });
             
             // Recargar los datos para reflejar el cambio
             const moduloSeleccionado = moduloSelect.value;
@@ -789,10 +796,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
         } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', error.message, 'error');
+            console.error('Error al enviar la finalización:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+            });
         }
-        */
     }
 
     inicializar();
