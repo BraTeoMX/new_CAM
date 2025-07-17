@@ -443,13 +443,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formValues) {
                 console.log('Datos del modal:', formValues);
                 await enviarInicioAtencion(ticketId, formValues);
-                Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'Atención lista para iniciar.',
-                    icon: 'success',
-                    // Aplicamos también el tema oscuro al modal de éxito
-                    ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
-                });
             }
 
         } catch (error) {
