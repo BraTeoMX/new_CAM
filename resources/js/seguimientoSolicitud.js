@@ -58,6 +58,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+
+    /**
+     * NUEVA: Muestra un modal para la encuesta de satisfacción.
+     * @returns {Promise<string|undefined>} El valor numérico de la satisfacción o undefined si se cancela.
+     */
+    async function mostrarModalEncuesta() {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
+        // Mapeo de valores: Texto amigable y emojis para el usuario, número para el backend.
+        const opciones = [
+            { valor: '4', emoji: '🌟', texto: 'Excelente' },
+            { valor: '3', emoji: '👍', texto: 'Bueno' },
+            { valor: '2', emoji: '😐', texto: 'Regular' },
+            { valor: '1', emoji: '👎', texto: 'Malo' },
+        ];
+
+        const opcionesHTML = opciones.map(opt => `
+            <label style="display:flex; align-items:center; margin-bottom:10px; cursor:pointer; padding: 8px; border-radius: 8px;" class="sw_satisfaccion_label">
+                <input type="radio" name="satisfaccion" value="${opt.valor}" style="margin-right:12px; transform: scale(1.2);">
+                <span style="font-size:1.5em; margin-right:12px;">${opt.emoji}</span>
+                <span>${opt.texto}</span>
+            </label>
+        `).join('');
+
+        const { value: satisfaccion } = await Swal.fire({
+            title: 'Encuesta de Satisfacción',
+            html: `
+                <p class="mb-4">¿Cómo calificarías el servicio recibido?</p>
+                <div>${opcionesHTML}</div>
+                <style>
+                .sw_satisfaccion_label:has(input:checked) { 
+                    background-color: ${isDarkMode ? '#3b82f6' : '#dbeafe'};
+                }
+                </style>
+            `,
+            confirmButtonText: 'Finalizar y Enviar',
+            focusConfirm: false,
+            // Aplicamos estilos de modo oscuro si es necesario
+            ...(isDarkMode && {
+                background: '#1f2937',
+                color: '#f9fafb',
+                confirmButtonColor: '#3b82f6'
+            }),
+            preConfirm: () => {
+                const seleccion = document.querySelector('input[name="satisfaccion"]:checked');
+                if (!seleccion) {
+                    Swal.showValidationMessage('Por favor, selecciona una calificación.');
+                    return false;
+                }
+                return seleccion.value;
+            }
+        });
+
+        return satisfaccion;
+    }
+
     /**
      * NUEVA: Muestra el modal para finalizar la atención y registrar la causa.
      * @param {number} ticketId - El ID del ticket.
@@ -186,7 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const { value: formValues } = await Swal.fire(swalOptions);
 
             if (formValues) {
-                await enviarFinalizacionAtencion(ticketId, horaFinalizacion, formValues);
+                // ...mostramos el SEGUNDO modal (Encuesta)
+                const satisfaccionValue = await mostrarModalEncuesta();
+                
+                // Si el usuario completó la encuesta...
+                if (satisfaccionValue) {
+                    // ...AHORA SÍ enviamos TODO al backend.
+                    await enviarFinalizacionAtencion(ticketId, horaFinalizacion, formValues, satisfaccionValue);
+                }
             }
 
         } catch (error) {
@@ -745,8 +808,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {number} ticketId - El ID del ticket.
      * @param {string} horaFinalizacion - La hora en que se detuvo la atención.
      * @param {object} datosModal - El objeto con { falla, causaFalla, accionImplementada, comentarios }.
+     * @param {string} satisfaccion - El valor numérico de la encuesta.
      */
-    async function enviarFinalizacionAtencion(ticketId, horaFinalizacion, datosModal) {
+    async function enviarFinalizacionAtencion(ticketId, horaFinalizacion, datosModal, satisfaccion) {
         const isDarkMode = document.documentElement.classList.contains('dark');
         // Resumimos los datos que se enviarán al controlador
         const datosParaEnviar = {
@@ -755,7 +819,8 @@ document.addEventListener('DOMContentLoaded', function() {
             causa_falla: datosModal.causaFalla,
             accion_implementada: datosModal.accionImplementada,
             comentarios: datosModal.comentarios,
-            hora_finalizacion: horaFinalizacion // Hora, minutos y segundos
+            hora_finalizacion: horaFinalizacion,
+            satisfaccion: satisfaccion
         };
 
         console.log("✅ Datos listos para enviar al controlador:", datosParaEnviar);

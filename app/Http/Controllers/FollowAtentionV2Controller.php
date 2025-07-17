@@ -243,6 +243,7 @@ class FollowAtentionV2Controller extends Controller
             'accion_implementada' => 'required|string|max:255',
             'hora_finalizacion' => 'required|date_format:H:i:s',
             'comentarios' => 'nullable|string',
+            'satisfaccion' => 'required|integer|between:1,4',
         ]);
 
         try {
@@ -275,6 +276,7 @@ class FollowAtentionV2Controller extends Controller
                     'comentarios' => $validatedData['comentarios'],
                     'hora_final' => $validatedData['hora_finalizacion'],
                     'tiempo_ejecucion' => $tiempoDeEjecucionEnSegundos, // <-- Guardamos el valor calculado
+                    'encuesta' => $validatedData['satisfaccion'],
                 ]);
                 
                 // 5. Actualizamos el estado del ticket principal a 5 ("ATENDIDO").
