@@ -542,26 +542,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         } else if (estado === 'EN PROCESO') {
+            // --- INICIO DE LA NUEVA LÓGICA ---
+
+            let botonesHTML = '';
+
+            // Comprobamos el estado de la bahía que ahora viene en el objeto ticket
+            if (ticket.estado_bahia == 1) {
+                // ESTADO PAUSADO: Mostramos solo el botón para reanudar
+                botonesHTML = `
+                    <button class="reanudar-bahia-btn text-xs bg-violet-950 hover:bg-violet-800 text-white font-bold py-2 px-4 rounded"
+                            data-ticket-id="${ticket.id}">
+                        Reanudar Atención
+                    </button>
+                `;
+            } else {
+                // ESTADO ACTIVO (estado_bahia es 0 o null): Mostramos ambos botones
+                botonesHTML = `
+                    <button class="activar-bahia-btn text-xs bg-violet-400 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded"
+                            data-ticket-id="${ticket.id}">
+                        Activar Tiempo Bahía
+                    </button>
+                    <button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                            data-ticket-id="${ticket.id}"
+                            data-maquina="${ticket.maquina}">
+                        Finalizar Atención
+                    </button>
+                `;
+            }
+
             return `
                 <div class="w-full border border-gray-500 rounded-md p-4 text-center shadow-sm">
                     <div class="font-mono text-2xl font-bold">
                         <span class="text-xs text-gray-500">Tiempo estimado: ${ticket.tiempo_estimado_minutos} minutos</span>
                     </div>
-                    <h2 class="font-mono text-2xl text-gray-800 dark:text-gray-100 font-bold"><span class="material-symbols-outlined">timer</span> Tiempo Restante: </h2>
+                    <h2 class="font-mono text-2xl text-gray-800 dark:text-gray-100 font-bold">
+                        <span class="material-symbols-outlined">timer</span> Tiempo Restante: 
+                    </h2>
                     <span id="timer-${ticket.id}"
                         class="timer-display font-mono text-xl font-bold text-gray-800 dark:text-gray-100"
                         data-start-time="${ticket.hora_inicio_diagnostico}"
-                        data-duration-minutes="${ticket.tiempo_estimado_minutos}">
+                        data-duration-minutes="${ticket.tiempo_estimado_minutos}"
+                        data-estado-bahia="${ticket.estado_bahia}"
+                        data-tiempos-bahia='${JSON.stringify(ticket.tiempos_bahia_data || [])}'>
                         --:--
                     </span>
                     
-                        
-                    <div class="mt-4">
-                        <button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                                data-ticket-id="${ticket.id}"
-                                data-maquina="${ticket.maquina}">
-                            Finalizar Atención
-                        </button>
+                    <div class="mt-4 flex justify-center items-center gap-x-2">
+                        ${botonesHTML}
                     </div>
                 </div>
             `;

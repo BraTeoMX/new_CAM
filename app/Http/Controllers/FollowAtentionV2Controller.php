@@ -11,6 +11,7 @@ use App\Models\AsignacionOt;
 use App\Models\CatalogoEstado;
 use App\Models\CatalogoArea;
 use App\Models\DiagnosticoSolucion;
+use App\Models\TiempoBahia;
 use App\Models\Falla;
 use App\Models\Causa;
 use App\Models\Accion;
@@ -77,8 +78,9 @@ class FollowAtentionV2Controller extends Controller
     {
         try {
             $tickets = TicketOt::with([
+                    // 1. CARGA EFICIENTE DE LA 4TA TABLA ANIDADA
                     'catalogoEstado', 
-                    'asignaciones.diagnostico' 
+                    'asignaciones.diagnostico.tiemposBahia' // Cargamos las pausas de cada diagnóstico
                 ])
                 ->where('modulo', $modulo)
                 ->where('created_at', '>=', now()->subDays(10))
@@ -87,26 +89,34 @@ class FollowAtentionV2Controller extends Controller
                 ->map(function ($ticket) {
                     $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
 
+                    // Usamos una variable para el diagnóstico para simplificar el acceso
                     $diagnostico = $ticket->asignaciones->first()?->diagnostico;
 
-                    // Agregamos datos del diagnóstico si existe
                     if ($diagnostico) {
-                        $ticket->diagnostico_data = $diagnostico;
-
+                        // --- Datos existentes del diagnóstico ---
                         $ticket->hora_inicio_diagnostico = $diagnostico->hora_inicio ?? 'N/A';
-
-                        // Conversión de segundos (hora_final) a minutos enteros
                         $ticket->tiempo_estimado_minutos = is_numeric($diagnostico->tiempo_estimado)
                             ? intval($diagnostico->tiempo_estimado / 60)
                             : null;
-
                         $ticket->fecha_actualizacion_formateada = $diagnostico->created_at
                             ? Carbon::parse($diagnostico->created_at)->format('d/m/Y, H:i:s')
                             : 'N/A';
+
+                        // --- 2. NUEVA LÓGICA PARA TIEMPOS DE BAHÍA ---
+
+                        // Enviamos el estado actual de la bahía (0 = activo, 1 = pausado)
+                        $ticket->estado_bahia = $diagnostico->estado_bahia;
+
+                        // Enviamos la colección completa de pausas al frontend en lugar de calcularla.
+                        // El frontend tendrá la responsabilidad de interpretar estos datos.
+                        $ticket->tiempos_bahia_data = $diagnostico->tiemposBahia;
+
                     } else {
-                        $ticket->diagnostico_data = null;
+                        // Valores por defecto si no hay diagnóstico
                         $ticket->tiempo_estimado_minutos = null;
                         $ticket->fecha_actualizacion_formateada = 'N/A';
+                        $ticket->estado_bahia = 0; // Por defecto, no está en pausa
+                        $ticket->tiempos_bahia_data = []; // Enviamos un array vacío si no hay pausas
                     }
 
                     return $ticket;
@@ -114,7 +124,7 @@ class FollowAtentionV2Controller extends Controller
 
             return response()->json($tickets);
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Error al obtener los registros detallados: ' . $e->getMessage());
             return response()->json(['error' => 'No se pudieron cargar los registros'], 500);
         }
