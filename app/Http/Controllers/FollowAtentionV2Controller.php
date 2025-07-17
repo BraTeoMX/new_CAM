@@ -236,30 +236,45 @@ class FollowAtentionV2Controller extends Controller
     {
         Log::info('Finalizando atención para el ticket: ' . $request->input('ticket_id'), $request->all());
 
-        // 1. Validación de los datos recibidos
         $validatedData = $request->validate([
             'ticket_id' => 'required|integer|exists:tickets_ot,id',
             'falla' => 'required|string|max:255',
             'causa_falla' => 'required|string|max:255',
             'accion_implementada' => 'required|string|max:255',
             'hora_finalizacion' => 'required|date_format:H:i:s',
-            'comentarios' => 'nullable|string', // Comentarios son opcionales
+            'comentarios' => 'nullable|string',
         ]);
 
         try {
-            // 2. Usamos una transacción para garantizar la integridad de los datos
             DB::transaction(function () use ($validatedData) {
-                // 3. Encontramos la asignación del ticket. firstOrFail detendrá la ejecución si no la encuentra.
+                // Encontramos la asignación del ticket.
                 $asignacion = AsignacionOt::where('ticket_ot_id', $validatedData['ticket_id'])->firstOrFail();
 
-                // 4. Actualizamos el registro de diagnóstico existente.
-                // No usamos create, solo update, porque el diagnóstico ya fue creado en "iniciarAtencion".
-                $asignacion->diagnostico()->update([
+                // <-- 2. OBTENEMOS EL DIAGNÓSTICO PARA LEER LA HORA DE INICIO
+                $diagnostico = $asignacion->diagnostico;
+
+                // Verificación por si acaso el diagnóstico no existiera.
+                if (!$diagnostico) {
+                    throw new \Exception('No se encontró un diagnóstico iniciado para esta asignación.');
+                }
+
+                // <-- 3. CÁLCULO DEL TIEMPO DE EJECUCIÓN
+                // Convertimos las horas (string) a objetos Carbon para poder calcular la diferencia.
+                $horaInicio = Carbon::parse($diagnostico->hora_inicio);
+                $horaFinal = Carbon::parse($validatedData['hora_finalizacion']);
+
+                // Calculamos la diferencia total en segundos.
+                $tiempoDeEjecucionEnSegundos = $horaFinal->diffInSeconds($horaInicio);
+
+                // <-- 4. ACTUALIZAMOS EL DIAGNÓSTICO (INCLUYENDO EL NUEVO CÁLCULO)
+                // Usamos el objeto $diagnostico que ya obtuvimos para hacer el update.
+                $diagnostico->update([
                     'falla' => $validatedData['falla'],
-                    'causa' => $validatedData['causa_falla'], // Columna 'causa' en la BD
-                    'accion_correctiva' => $validatedData['accion_implementada'], // Columna 'accion_correctiva' en la BD
+                    'causa' => $validatedData['causa_falla'],
+                    'accion_correctiva' => $validatedData['accion_implementada'],
                     'comentarios' => $validatedData['comentarios'],
-                    'hora_final' => $validatedData['hora_finalizacion'], // Columna 'hora_final' en la BD
+                    'hora_final' => $validatedData['hora_finalizacion'],
+                    'tiempo_ejecucion' => $tiempoDeEjecucionEnSegundos, // <-- Guardamos el valor calculado
                 ]);
                 
                 // 5. Actualizamos el estado del ticket principal a 5 ("ATENDIDO").
@@ -269,8 +284,7 @@ class FollowAtentionV2Controller extends Controller
             return response()->json(['success' => true, 'message' => 'Atención finalizada y registrada correctamente.']);
 
         } catch (\Exception $e) {
-            // Si algo falla, registramos el error y devolvemos una respuesta de error.
-            Log::error('Error al finalizar atención para el ticket ' . $validatedData['ticket_id'] . ': ' . $e->getMessage());
+            Log::error('Error al finalizar atención para el ticket ' . ($validatedData['ticket_id'] ?? 'N/A') . ': ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'No se pudo registrar la finalización de la atención.'], 500);
         }
     }
