@@ -11,6 +11,9 @@ use App\Models\AsignacionOt;
 use App\Models\CatalogoEstado;
 use App\Models\CatalogoArea;
 use App\Models\DiagnosticoSolucion;
+use App\Models\Falla;
+use App\Models\Causa;
+use App\Models\Accion;
 
 use Illuminate\Support\Carbon;
 
@@ -209,6 +212,25 @@ class FollowAtentionV2Controller extends Controller
             return response()->json(['success' => false, 'message' => 'No se pudo iniciar la atención.'], 500);
         }
     }
+
+    public function obtenerFallas()
+    {
+        $fallas = Falla::select('id', 'nombre')->orderBy('nombre')->get();
+        return response()->json($fallas);
+    }
+
+    public function obtenerCausas()
+    {
+        $causas = Causa::select('id', 'nombre')->orderBy('nombre')->get();
+        return response()->json($causas);
+    }
+
+    public function obtenerAcciones()
+    {
+        $acciones = Accion::select('id', 'nombre')->orderBy('nombre')->get();
+        return response()->json($acciones);
+    }
+
 
     public function finalizarAtencion(Request $request)
     {

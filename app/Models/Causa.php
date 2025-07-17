@@ -32,7 +32,7 @@ class Causa extends Model
      *
      * @var string
      */
-    protected $table = 'causas'; // Nombre de la tabla
+    protected $table = 'catalogo_causas'; // Nombre de la tabla
 
     /**
      * Los atributos que son asignables en masa.
@@ -41,7 +41,7 @@ class Causa extends Model
      */
     protected $fillable = [
         'codigo',
-        'Causa', // El nombre de tu columna de texto para la descripción de la causa
+        'nombre', // El nombre de tu columna de texto para la descripción de la causa
     ];
 
     /**

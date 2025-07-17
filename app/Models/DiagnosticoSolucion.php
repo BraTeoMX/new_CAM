@@ -34,6 +34,7 @@ class DiagnosticoSolucion extends Model
         'causa_raiz',
         'accion_correctiva',
         'comentarios',
+        'encuesta',
     ];
 
     /**

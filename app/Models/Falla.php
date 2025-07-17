@@ -30,7 +30,7 @@ class Falla extends Model
      *
      * @var string
      */
-    protected $table = 'fallas';
+    protected $table = 'catalogo_fallas';
 
     /**
      * Los atributos que son asignables en masa.
@@ -38,7 +38,7 @@ class Falla extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'Fallas', // El nombre de tu columna de texto
+        'nombre', // El nombre de tu columna de texto
     ];
 
     /**

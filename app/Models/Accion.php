@@ -30,7 +30,7 @@ class Accion extends Model
      *
      * @var string
      */
-    protected $table = 'acciones'; // Nombre de la tabla
+    protected $table = 'catalogo_acciones'; // Nombre de la tabla
 
     /**
      * Los atributos que son asignables en masa.
@@ -38,7 +38,7 @@ class Accion extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'Accion', // Columna para el nombre o descripción de la acción
+        'nombre', // Columna para el nombre o descripción de la acción
     ];
 
     /**
