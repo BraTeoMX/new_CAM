@@ -64,99 +64,140 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {string} horaFinalizacion - La hora exacta (HH:MM:SS) en que se hizo clic.
      */
     async function mostrarModalFinalizarAtencion(ticketId, horaFinalizacion) {
-        // Detectamos el modo oscuro para aplicar estilos consistentes
         const isDarkMode = document.documentElement.classList.contains('dark');
 
-        const swalOptions = {
-            title: 'Finalizar Atención',
-            html: `
-                <div class="text-left space-y-4">
-                    <div>
-                        <label for="falla-select" class="block mb-2 text-sm font-medium">
-                            Seleccione la falla:
-                        </label>
-                        <select id="falla-select" class="swal2-select" style="width: 100%;">
-                            <option value=""></option>
-                            <option value="causa_1">Ejemplo Causa 1</option>
-                            <option value="causa_2">Ejemplo Causa 2</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="causa-falla-select" class="block mb-2 text-sm font-medium">
-                            Seleccione la causa de la falla:
-                        </label>
-                        <select id="causa-falla-select" class="swal2-select" style="width: 100%;">
-                            <option value=""></option>
-                            <option value="causa_1">Ejemplo Causa 1</option>
-                            <option value="causa_2">Ejemplo Causa 2</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="accion-implementada-select" class="block mb-2 text-sm font-medium">
-                            Seleccione la acción que implementó:
-                        </label>
-                        <select id="accion-implementada-select" class="swal2-select" style="width: 100%;">
-                            <option value=""></option>
-                            <option value="accion_1">Ejemplo Acción 1</option>
-                            <option value="accion_2">Ejemplo Acción 2</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="comentarios-textarea" class="block mb-2 text-sm font-medium">
-                            Comentarios adicionales (opcional):
-                        </label>
-                        <textarea id="comentarios-textarea" class="swal2-textarea" placeholder="Añade detalles relevantes aquí..."></textarea>
-                    </div>
-                </div>`,
-            focusConfirm: false,
-            didOpen: () => {
-                // Inicializamos Select2 para los menús desplegables
-                $('#causa-falla-select').select2({
-                    dropdownParent: $('.swal2-popup'),
-                    placeholder: 'Selecciona una causa',
-                });
-                $('#accion-implementada-select').select2({
-                    dropdownParent: $('.swal2-popup'),
-                    placeholder: 'Selecciona una acción',
-                });
-            },
-            preConfirm: () => {
-                // Validación de los campos antes de enviar
-                const causa = document.getElementById('causa-falla-select').value;
-                const accion = document.getElementById('accion-implementada-select').value;
-                
-                if (!causa) {
-                    Swal.showValidationMessage('Debes seleccionar la causa de la falla.');
-                    return false;
-                }
-                if (!accion) {
-                    Swal.showValidationMessage('Debes seleccionar la acción implementada.');
-                    return false;
-                }
+        try {
+            // 1. OBTENER DATOS DE LAS 3 RUTAS SIMULTÁNEAMENTE
+            // Usamos Promise.all para que las 3 llamadas se hagan al mismo tiempo y esperamos a que todas terminen.
+            const [fallasResponse, causasResponse, accionesResponse] = await Promise.all([
+                fetch('/FollowOTV2/obtenerFallas'),
+                fetch('/FollowOTV2/obtenerCausas'),
+                fetch('/FollowOTV2/obtenerAcciones')
+            ]);
 
-                // Devolvemos los datos del formulario
-                return {
-                    causaFalla: causa,
-                    accionImplementada: accion,
-                    comentarios: document.getElementById('comentarios-textarea').value.trim()
-                };
+            // Verificamos que todas las respuestas sean correctas
+            if (!fallasResponse.ok || !causasResponse.ok || !accionesResponse.ok) {
+                throw new Error('No se pudieron cargar los catálogos para finalizar la atención.');
             }
-        };
 
-        // Aplicamos estilos de modo oscuro si es necesario
-        if (isDarkMode) {
-            swalOptions.background = '#1f2937';
-            swalOptions.color = '#f9fafb';
-            swalOptions.confirmButtonColor = '#3b82f6';
-        }
+            // Extraemos el JSON de cada respuesta
+            const fallas = await fallasResponse.json();
+            const causas = await causasResponse.json();
+            const acciones = await accionesResponse.json();
 
-        // Mostramos el modal y esperamos la respuesta
-        const { value: formValues } = await Swal.fire(swalOptions);
+            // 2. CONSTRUIR EL HTML DE LAS OPCIONES PARA CADA SELECT
+            // Usamos map() para convertir cada objeto del array en un string <option>
+            // y join('') para unirlos todos en un solo bloque de texto.
+            const fallasOptionsHTML = fallas.map(falla => 
+                `<option value="${falla.nombre}">${falla.nombre}</option>`
+            ).join('');
 
-        // Si el usuario confirmó y los datos son válidos...
-        if (formValues) {
-            // Llamamos a la función que enviará los datos al backend
-            await enviarFinalizacionAtencion(ticketId, horaFinalizacion, formValues);
+            const causasOptionsHTML = causas.map(causa => 
+                `<option value="${causa.nombre}">${causa.nombre}</option>`
+            ).join('');
+
+            const accionesOptionsHTML = acciones.map(accion => 
+                `<option value="${accion.nombre}">${accion.nombre}</option>`
+            ).join('');
+
+            // 3. ACTUALIZAR LA CONFIGURACIÓN DEL MODAL (SWAL)
+            const swalOptions = {
+                title: 'Finalizar Atención',
+                html: `
+                    <div class="text-left space-y-4">
+                        <div>
+                            <label for="falla-select" class="block mb-2 text-sm font-medium">Seleccione la falla:</label>
+                            <select id="falla-select" class="swal2-select" style="width: 100%;">
+                                <option value=""></option> ${fallasOptionsHTML}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="causa-falla-select" class="block mb-2 text-sm font-medium">Seleccione la causa de la falla:</label>
+                            <select id="causa-falla-select" class="swal2-select" style="width: 100%;">
+                                <option value=""></option>
+                                ${causasOptionsHTML}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="accion-implementada-select" class="block mb-2 text-sm font-medium">Seleccione la acción que implementó:</label>
+                            <select id="accion-implementada-select" class="swal2-select" style="width: 100%;">
+                                <option value=""></option>
+                                ${accionesOptionsHTML}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="comentarios-textarea" class="block mb-2 text-sm font-medium">Comentarios adicionales (opcional):</label>
+                            <textarea id="comentarios-textarea" class="swal2-textarea" placeholder="Añade detalles relevantes aquí..."></textarea>
+                        </div>
+                    </div>`,
+                focusConfirm: false,
+                didOpen: () => {
+                    // Inicializamos Select2 en los TRES menús desplegables
+                    $('#falla-select').select2({
+                        dropdownParent: $('.swal2-popup'),
+                        placeholder: 'Selecciona una falla',
+                    });
+                    $('#causa-falla-select').select2({
+                        dropdownParent: $('.swal2-popup'),
+                        placeholder: 'Selecciona una causa',
+                    });
+                    $('#accion-implementada-select').select2({
+                        dropdownParent: $('.swal2-popup'),
+                        placeholder: 'Selecciona una acción',
+                    });
+                },
+                preConfirm: () => {
+                    // Validación de los TRES campos antes de enviar
+                    const falla = document.getElementById('falla-select').value;
+                    const causa = document.getElementById('causa-falla-select').value;
+                    const accion = document.getElementById('accion-implementada-select').value;
+                    
+                    if (!falla) {
+                        Swal.showValidationMessage('Debes seleccionar la falla.');
+                        return false;
+                    }
+                    if (!causa) {
+                        Swal.showValidationMessage('Debes seleccionar la causa de la falla.');
+                        return false;
+                    }
+                    if (!accion) {
+                        Swal.showValidationMessage('Debes seleccionar la acción implementada.');
+                        return false;
+                    }
+
+                    // Devolvemos los datos del formulario
+                    return {
+                        falla: falla,
+                        causaFalla: causa,
+                        accionImplementada: accion,
+                        comentarios: document.getElementById('comentarios-textarea').value.trim()
+                    };
+                }
+            };
+
+            // Aplicamos estilos de modo oscuro si es necesario
+            if (isDarkMode) {
+                swalOptions.background = '#1f2937';
+                swalOptions.color = '#f9fafb';
+                swalOptions.confirmButtonColor = '#3b82f6';
+            }
+
+            // Mostramos el modal y esperamos la respuesta
+            const { value: formValues } = await Swal.fire(swalOptions);
+
+            if (formValues) {
+                await enviarFinalizacionAtencion(ticketId, horaFinalizacion, formValues);
+            }
+
+        } catch (error) {
+            console.error("Error al preparar el modal de finalización:", error);
+            // Si algo falla, mostramos un modal de error
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+            });
         }
     }
 
@@ -709,6 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Resumimos los 4 datos que se enviarán al controlador
         const datosParaEnviar = {
             ticket_id: ticketId,
+            falla: datosModal.falla,
             causa_falla: datosModal.causaFalla,
             accion_implementada: datosModal.accionImplementada,
             comentarios: datosModal.comentarios,
