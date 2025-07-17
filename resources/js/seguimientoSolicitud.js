@@ -72,6 +72,16 @@ document.addEventListener('DOMContentLoaded', function() {
             html: `
                 <div class="text-left space-y-4">
                     <div>
+                        <label for="falla-select" class="block mb-2 text-sm font-medium">
+                            Seleccione la falla:
+                        </label>
+                        <select id="falla-select" class="swal2-select" style="width: 100%;">
+                            <option value=""></option>
+                            <option value="causa_1">Ejemplo Causa 1</option>
+                            <option value="causa_2">Ejemplo Causa 2</option>
+                        </select>
+                    </div>
+                    <div>
                         <label for="causa-falla-select" class="block mb-2 text-sm font-medium">
                             Seleccione la causa de la falla:
                         </label>
