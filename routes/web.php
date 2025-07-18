@@ -143,6 +143,7 @@ Route::get('/FormGuestV2/obtenerAreasModulos', [FormGuestV2Controller::class, 'o
 Route::get('/FormGuestV2/obtener-operarios', [FormGuestV2Controller::class, 'obtenerOperarios']);
 Route::get('/FormGuestV2/catalogo-problemas', [FormGuestV2Controller::class, 'catalogoProblemas']);
 Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarRegistro']);
+Route::get('/FormGuestV2/obtenerAreasModulosSeguimiento', [FormGuestV2Controller::class, 'obtenerAreasModulosSeguimiento']);
 // segunda version de FollowAtentionController
 Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2', 'index')->name('FollowOTV2');

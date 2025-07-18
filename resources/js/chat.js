@@ -171,7 +171,7 @@ class ChatManager {
                 $('#modulo-seguimiento').select2({
                     placeholder: 'Selecciona un módulo',
                     ajax: {
-                        url: '/FormGuestV2/obtenerAreasModulos',
+                        url: '/FormGuestV2/obtenerAreasModulosSeguimiento',
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
@@ -202,7 +202,7 @@ class ChatManager {
                     });
                     // Redirigir con el módulo como query param
                     setTimeout(() => {
-                        window.location.href = `/FollowOT?modulo=${encodeURIComponent(modulo)}`;
+                        window.location.href = `/FollowOTV2?modulo=${encodeURIComponent(modulo)}`;
                     }, 1200);
                 });
             }
