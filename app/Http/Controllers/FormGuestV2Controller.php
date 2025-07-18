@@ -265,8 +265,8 @@ class FormGuestV2Controller extends Controller
                     'planta'                   => $request->planta ?? '1',
                     'nombre_supervisor'        => $request->nombre_supervisor ?? 'N/A',
                     'numero_empleado_supervisor' => $request->numero_empleado_supervisor ?? 'N/A',
-                    'numero_empleado_operario' => $Operario,
-                    'nombre_operario'          => $NombreOperario,
+                    'numero_empleado_operario' => $Operario ?? 'N/A',
+                    'nombre_operario'          => $NombreOperario ?? 'N/A',
                     'tipo_problema'            => $sanitizedData['problema'],
                     'descripcion_problema'     => $sanitizedData['descripcion'], // Usar descripción del form
                     'maquina'                  => $sanitizedData['maquina'],

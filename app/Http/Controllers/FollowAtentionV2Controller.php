@@ -88,6 +88,7 @@ class FollowAtentionV2Controller extends Controller
                 ->get()
                 ->map(function ($ticket) {
                     $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
+                    $ticket->fecha_actualizacion_formateada = Carbon::parse($ticket->updated_at)->format('d/m/Y, H:i:s');
 
                     // Usamos una variable para el diagnóstico para simplificar el acceso
                     $diagnostico = $ticket->asignaciones->first()?->diagnostico;
@@ -98,10 +99,6 @@ class FollowAtentionV2Controller extends Controller
                         $ticket->tiempo_estimado_minutos = is_numeric($diagnostico->tiempo_estimado)
                             ? intval($diagnostico->tiempo_estimado / 60)
                             : null;
-                        $ticket->fecha_actualizacion_formateada = $diagnostico->created_at
-                            ? Carbon::parse($diagnostico->created_at)->format('d/m/Y, H:i:s')
-                            : 'N/A';
-
                         // --- 2. NUEVA LÓGICA PARA TIEMPOS DE BAHÍA ---
 
                         // Enviamos el estado actual de la bahía (0 = activo, 1 = pausado)
@@ -114,7 +111,7 @@ class FollowAtentionV2Controller extends Controller
                     } else {
                         // Valores por defecto si no hay diagnóstico
                         $ticket->tiempo_estimado_minutos = null;
-                        $ticket->fecha_actualizacion_formateada = 'N/A';
+                        //$ticket->fecha_actualizacion_formateada = 'N/A';
                         $ticket->estado_bahia = 0; // Por defecto, no está en pausa
                         $ticket->tiempos_bahia_data = []; // Enviamos un array vacío si no hay pausas
                     }

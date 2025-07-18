@@ -29,6 +29,7 @@ class TiempoBahia extends Model
         'diagnostico_solucion_id',
         'hora_inicio_pausa',
         'hora_fin_pausa',
+        'duracion_segundos',
         'motivo',
     ];
 

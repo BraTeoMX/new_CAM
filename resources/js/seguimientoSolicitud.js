@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="pl-16 mt-4">
                     <div class="text-xs text-gray-500 flex justify-between mb-3">
                         <span>Creado: ${ticket.fecha_creacion_formateada}</span>
-                        <span>Finalizado: ${ticket.fecha_actualizacion_formateada}</span>
+                        <span>Actualizado: ${ticket.fecha_actualizacion_formateada}</span>
                     </div>
                 </div>
                 <div class="pl-16">
