@@ -21,6 +21,7 @@ use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\FormGuestV2Controller;
 use App\Http\Controllers\VinculacionV2Controller;
 use App\Http\Controllers\FollowAtentionV2Controller;
+use App\Http\Controllers\DashboardV2Controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Rutas solo para Administradores
     Route::middleware(['role:Administrador'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboardV2', [DashboardV2Controller::class, 'index'])->name('dashboard.index');
         Route::get('/AdminControl', [AdminControlController::class, 'index'])->name('admin.index');
         Route::get('/admin-control/users', [AdminControlController::class, 'getUsers'])->name('admin-control.users');
         Route::post('/admin-control/users', [AdminControlController::class, 'store']);

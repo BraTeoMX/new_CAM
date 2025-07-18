@@ -173,7 +173,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 background: '#1f2937',
                 color: '#f9fafb',
                 confirmButtonColor: '#8b5cf6' // Un color violeta
-            })
+            }),
+            didOpen: () => {
+                // Obtenemos la referencia al campo de entrada
+                const input = Swal.getInput();
+                if (input) {
+                    // Forzamos el color del texto a negro
+                    input.style.color = 'black'; 
+                }
+            }
         });
 
         // Si el usuario confirma (incluso si el motivo está vacío), procedemos.

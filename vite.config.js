@@ -33,6 +33,7 @@ export default defineConfig({
                 'resources/js/user/userAdmin.js',
                 'resources/js/chat.js',
                 'resources/js/vinculacionV2.js',
+                'resources/js/dashboard/dashboardV2.js',
             ],
             refresh: true,
         }),
