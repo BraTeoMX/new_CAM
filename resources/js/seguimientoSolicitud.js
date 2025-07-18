@@ -39,8 +39,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault(); // Prevenimos cualquier comportamiento por defecto
                 const ticketId = iniciarBtn.dataset.ticketId;
                 const maquina = iniciarBtn.dataset.maquina;
-                // Llamamos a la función que mostrará el modal
-                mostrarModalIniciarAtencion(ticketId, maquina);
+
+                // --- INICIO DE LA MODIFICACIÓN ---
+
+                // 1. Verificamos si la máquina es 'N/A'
+                if (maquina === 'N/A') {
+                    // Si es 'N/A', no mostramos el modal.
+                    console.log(`Ticket ${ticketId} con máquina N/A. Omitiendo modal.`);
+
+                    // 2. Creamos el objeto 'formValues' con los datos predefinidos.
+                    const formValuesNA = {
+                        clase: 'N/A',
+                        numero_maquina: 'N/A',
+                        tiempo_estimado: "00:15:00" // Usamos 0 como un valor seguro para el tiempo.
+                    };
+
+                    // 3. Llamamos directamente a la función de envío.
+                    // Usamos una función autoejecutable asíncrona para poder usar 'await'.
+                    (async () => {
+                        await enviarInicioAtencion(ticketId, formValuesNA);
+                    })();
+                    
+                } else {
+                    // Si la máquina tiene un valor válido, continuamos con el flujo normal.
+                    mostrarModalIniciarAtencion(ticketId, maquina);
+                }
+                // --- FIN DE LA MODIFICACIÓN ---
             }
 
             const finalizarBtn = e.target.closest('.detener-atencion-btn');
@@ -714,36 +738,6 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {string} maquina - El nombre de la máquina.
      */
     async function mostrarModalIniciarAtencion(ticketId, maquina) {
-        if (maquina === 'N/A') {
-            try {
-                console.log('Máquina es N/A. Omitiendo modal y enviando datos por defecto.');
-                
-                // 2. Creamos el objeto 'formValues' con los datos predeterminados.
-                const formValues = {
-                    clase: 'N/A',
-                    numero_maquina: 'N/A',
-                    tiempo_estimado: 0 // Puedes usar 0 o 'N/A' según lo que espere tu backend.
-                };
-
-                // 3. Llamamos directamente a la función de envío con los datos creados.
-                await enviarInicioAtencion(ticketId, formValues);
-                
-                // 4. Usamos 'return' para salir de la función y evitar que se ejecute el código del modal.
-                return; 
-
-            } catch (error) {
-                // Es una buena práctica manejar también los errores que puedan ocurrir aquí.
-                console.error('Error al enviar inicio de atención para el caso N/A:', error);
-                const isDarkMode = document.documentElement.classList.contains('dark');
-                Swal.fire({
-                    title: 'Error Inesperado',
-                    text: 'No se pudo iniciar la atención para el ticket (caso N/A).',
-                    icon: 'error',
-                    ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
-                });
-            }
-        }
-
         try {
             const response = await fetch(`/FollowOTV2/obtenerClasesMaquina/${encodeURIComponent(maquina)}`);
             if (!response.ok) throw new Error('No se pudieron cargar los datos de la máquina.');
