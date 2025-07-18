@@ -78,9 +78,8 @@ class FollowAtentionV2Controller extends Controller
     {
         try {
             $tickets = TicketOt::with([
-                    // 1. CARGA EFICIENTE DE LA 4TA TABLA ANIDADA
                     'catalogoEstado', 
-                    'asignaciones.diagnostico.tiemposBahia' // Cargamos las pausas de cada diagnóstico
+                    'asignaciones.diagnostico.tiemposBahia'
                 ])
                 ->where('modulo', $modulo)
                 ->where('created_at', '>=', now()->subDays(10))
@@ -90,30 +89,34 @@ class FollowAtentionV2Controller extends Controller
                     $ticket->fecha_creacion_formateada = Carbon::parse($ticket->created_at)->format('d/m/Y, H:i:s');
                     $ticket->fecha_actualizacion_formateada = Carbon::parse($ticket->updated_at)->format('d/m/Y, H:i:s');
 
-                    // Usamos una variable para el diagnóstico para simplificar el acceso
                     $diagnostico = $ticket->asignaciones->first()?->diagnostico;
 
                     if ($diagnostico) {
-                        // --- Datos existentes del diagnóstico ---
+                        // --- Datos para estados 'EN PROCESO' y 'ATENDIDO' ---
                         $ticket->hora_inicio_diagnostico = $diagnostico->hora_inicio ?? 'N/A';
-                        $ticket->tiempo_estimado_minutos = is_numeric($diagnostico->tiempo_estimado)
-                            ? intval($diagnostico->tiempo_estimado / 60)
-                            : null;
-                        // --- 2. NUEVA LÓGICA PARA TIEMPOS DE BAHÍA ---
-
-                        // Enviamos el estado actual de la bahía (0 = activo, 1 = pausado)
+                        $ticket->tiempo_estimado_minutos = is_numeric($diagnostico->tiempo_estimado) ? intval($diagnostico->tiempo_estimado / 60) : null;
                         $ticket->estado_bahia = $diagnostico->estado_bahia;
-
-                        // Enviamos la colección completa de pausas al frontend en lugar de calcularla.
-                        // El frontend tendrá la responsabilidad de interpretar estos datos.
                         $ticket->tiempos_bahia_data = $diagnostico->tiemposBahia;
+                        
+                        // --- NUEVO CÁLCULO PARA EL TIEMPO REAL ---
+                        // Suma la duración de todas las pausas finalizadas.
+                        $total_duracion_segundos = $diagnostico->tiemposBahia->sum('duracion_segundos');
+
+                        // Resta el tiempo total de pausa del tiempo de ejecución total.
+                        $tiempo_ejecucion = is_numeric($diagnostico->tiempo_ejecucion) ? (int)$diagnostico->tiempo_ejecucion : 0;
+                        
+                        $ticket->tiempo_real_calculado = $tiempo_ejecucion - $total_duracion_segundos;
+
+                        // Adjuntamos el objeto de diagnóstico completo para el modal final
+                        $ticket->diagnostico_completo = $diagnostico;
 
                     } else {
                         // Valores por defecto si no hay diagnóstico
                         $ticket->tiempo_estimado_minutos = null;
-                        //$ticket->fecha_actualizacion_formateada = 'N/A';
-                        $ticket->estado_bahia = 0; // Por defecto, no está en pausa
-                        $ticket->tiempos_bahia_data = []; // Enviamos un array vacío si no hay pausas
+                        $ticket->estado_bahia = 0;
+                        $ticket->tiempos_bahia_data = [];
+                        $ticket->tiempo_real_calculado = 0;
+                        $ticket->diagnostico_completo = null;
                     }
 
                     return $ticket;

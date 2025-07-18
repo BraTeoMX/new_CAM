@@ -696,11 +696,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
             return `<p>Solucionado</p>`;
 
-        } else if ( estado === 'ATENDIDO')
-        // Botón por defecto para los demás casos
-        return `<button class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-3 rounded">
-                    aqui se veria el diagnostico
-                </button>`;
+        } else if ( estado === 'ATENDIDO'){
+             return `
+                <div class="w-full border border-gray-500 rounded-md p-4 text-center shadow-sm">
+                    <h2 class="font-mono text-2xl text-gray-800 dark:text-gray-100 font-bold">
+                        <span class="material-symbols-outlined">timer</span> Tiempo total de atención: 
+                    </h2>
+                    <h1>${ticket.tiempo_real_calculado}</h1>
+                </div>
+            `;
+        }
     }
 
     /**
