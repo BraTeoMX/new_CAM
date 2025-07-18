@@ -23,6 +23,41 @@ document.addEventListener('DOMContentLoaded', function() {
         cargarFiltroDeEstados(); 
     }
 
+    async function inicializar() {
+        // Inicializamos la librería Select2.
+        $(moduloSelect).select2({
+            placeholder: 'Selecciona tu módulo de atención',
+            allowClear: true
+        });
+
+        configurarEventListeners();
+        cargarFiltroDeEstados(); 
+
+        // 1. Esperamos a que la carga de módulos termine
+        await cargarModulos(); 
+
+        // 2. Una vez cargados, revisamos la URL y seleccionamos el módulo si existe
+        seleccionarModuloDesdeURL();
+    }
+
+    function seleccionarModuloDesdeURL() {
+        // Creamos un objeto para leer fácilmente los parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Obtenemos el valor del parámetro 'modulo'
+        const moduloDesdeURL = urlParams.get('modulo');
+
+        if (moduloDesdeURL) {
+            console.log(`Módulo encontrado en la URL: ${moduloDesdeURL}. Cargando datos...`);
+            
+            // Usamos jQuery para establecer el valor del select y
+            // disparamos el evento 'change' para que Select2 reaccione.
+            // Esto ejecutará el listener que tengas en 'configurarEventListeners'
+            // para cargar los tickets de ese módulo.
+            $(moduloSelect).val(moduloDesdeURL).trigger('change');
+        }
+    }
+
     // --- CONFIGURACIÓN DE EVENTOS ---
     function configurarEventListeners() {
         // Evento 'change' para el selector de módulo principal.
