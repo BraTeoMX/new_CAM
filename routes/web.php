@@ -154,4 +154,6 @@ Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2/obtenerCausas', 'obtenerCausas');
     Route::get('/FollowOTV2/obtenerAcciones', 'obtenerAcciones');
     Route::post('/FollowOTV2/finalizarAtencion', 'finalizarAtencion');
+    Route::post('/FollowOTV2/activarBahia', 'activarBahia');
+    Route::post('/FollowOTV2/finalizarBahia', 'finalizarBahia');
 });

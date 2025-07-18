@@ -300,4 +300,92 @@ class FollowAtentionV2Controller extends Controller
             return response()->json(['success' => false, 'message' => 'No se pudo registrar la finalización de la atención.'], 500);
         }
     }
+
+    public function activarBahia(Request $request)
+    {
+        // 1. Validación de los datos
+        $validatedData = $request->validate([
+            'ticket_id' => 'required|integer|exists:tickets_ot,id',
+            'motivo' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            DB::transaction(function () use ($validatedData) {
+                // 2. Encontrar el diagnóstico asociado al ticket
+                $diagnostico = TicketOt::findOrFail($validatedData['ticket_id'])
+                                    ->asignaciones->first()
+                                    ->diagnostico;
+
+                if (!$diagnostico) {
+                    throw new \Exception('No se encontró un diagnóstico activo para este ticket.');
+                }
+
+                // 3. Actualizar el estado del diagnóstico a "pausado"
+                $diagnostico->update(['estado_bahia' => 1]);
+
+                // 4. Crear el nuevo registro en la tabla de pausas
+                $diagnostico->tiemposBahia()->create([
+                    'hora_inicio_pausa' => now(),
+                    'hora_fin_pausa' => null, // Se deja nulo porque la pausa está activa
+                    'motivo' => $validatedData['motivo'],
+                ]);
+            });
+
+            return response()->json(['success' => true, 'message' => 'El tiempo de bahía ha sido activado.']);
+
+        } catch (\Exception $e) {
+            Log::error('Error al activar tiempo de bahía para ticket ' . $validatedData['ticket_id'] . ': ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Ocurrió un error al intentar activar la pausa.'], 500);
+        }
+    }
+
+    public function finalizarBahia(Request $request)
+    {
+        // 1. Validación simple, solo necesitamos el ID del ticket
+        $validatedData = $request->validate([
+            'ticket_id' => 'required|integer|exists:tickets_ot,id',
+        ]);
+
+        try {
+            DB::transaction(function () use ($validatedData) {
+                // 2. Encontrar el diagnóstico asociado al ticket
+                $diagnostico = TicketOt::findOrFail($validatedData['ticket_id'])
+                                    ->asignaciones->first()
+                                    ->diagnostico;
+
+                if (!$diagnostico) {
+                    throw new \Exception('No se encontró un diagnóstico activo para este ticket.');
+                }
+
+                // 3. Encontrar la última pausa activa (la que no tiene hora de fin)
+                $pausaActiva = $diagnostico->tiemposBahia()
+                                        ->whereNull('hora_fin_pausa')
+                                        ->latest('hora_inicio_pausa') // Por seguridad, tomamos la más reciente
+                                        ->first();
+
+                if (!$pausaActiva) {
+                    throw new \Exception('No se encontró una pausa activa para reanudar.');
+                }
+
+                // 4. Actualizar la pausa activa
+                $horaFin = now();
+                $horaInicio = Carbon::parse($pausaActiva->hora_inicio_pausa);
+                
+                $pausaActiva->update([
+                    'hora_fin_pausa' => $horaFin,
+                    'duracion_segundos' => $horaFin->diffInSeconds($horaInicio) // Calculamos y guardamos la duración
+                ]);
+
+                // 5. Actualizar el estado del diagnóstico principal a "activo"
+                $diagnostico->update(['estado_bahia' => 0]);
+            });
+
+            return response()->json(['success' => true, 'message' => 'La atención ha sido reanudada.']);
+
+        } catch (\Exception $e) {
+            Log::error('Error al finalizar tiempo de bahía para ticket ' . $validatedData['ticket_id'] . ': ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Ocurrió un error al intentar reanudar la atención.'], 500);
+        }
+    }
+
 }

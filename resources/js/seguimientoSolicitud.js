@@ -55,9 +55,109 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 2. Llamamos a la nueva función que mostrará el modal de finalización
                 mostrarModalFinalizarAtencion(ticketId, horaFinalizacion);
             }
+
+            const activarBahiaBtn = e.target.closest('.activar-bahia-btn');
+                if (activarBahiaBtn) {
+                    e.preventDefault();
+                    const ticketId = activarBahiaBtn.dataset.ticketId;
+                    handleActivarBahia(ticketId); // Llamamos a la nueva función manejadora
+                }
+
+                const reanudarBahiaBtn = e.target.closest('.reanudar-bahia-btn');
+            if (reanudarBahiaBtn) {
+                e.preventDefault();
+                const ticketId = reanudarBahiaBtn.dataset.ticketId;
+                enviarFinalizacionBahia(ticketId); // Llamamos directamente a la función de envío
+            }
         });
     }
 
+    /**
+     * Envía la solicitud al backend para finalizar la pausa activa.
+     * @param {string} ticketId - El ID del ticket cuya atención se va a reanudar.
+     */
+    async function enviarFinalizacionBahia(ticketId) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        try {
+            const response = await fetch('/FollowOTV2/finalizarBahia', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    ticket_id: ticketId
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'No se pudo reanudar la atención.');
+            }
+
+            await Swal.fire({
+                title: 'Atención Reanudada',
+                text: result.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb' })
+            });
+
+            // Recargamos todo para que la tarjeta refleje el nuevo estado (botones de "Activar" y "Finalizar")
+            const moduloSeleccionado = moduloSelect.value;
+            if (moduloSeleccionado) {
+                actualizarResumen(moduloSeleccionado);
+                cargarYRenderizarRegistros(moduloSeleccionado);
+            }
+
+        } catch (error) {
+            console.error('Error al reanudar la bahía:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#ef4444' })
+            });
+        }
+    }
+
+
+    /**
+     * Maneja la acción de activar el tiempo de bahía.
+     * Muestra un modal para que el usuario pueda añadir un motivo.
+     * @param {string} ticketId - El ID del ticket que se va a pausar.
+     */
+    async function handleActivarBahia(ticketId) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+
+        // Preguntamos opcionalmente por un motivo para la pausa
+        const { value: motivo } = await Swal.fire({
+            title: 'Activar Tiempo Bahía',
+            input: 'text',
+            inputLabel: 'Motivo de la pausa (opcional)',
+            inputPlaceholder: 'Ej: Esperando refacción, consulta con supervisor...',
+            showCancelButton: true,
+            confirmButtonText: 'Activar Pausa',
+            cancelButtonText: 'Cancelar',
+            // Estilos para modo oscuro
+            ...(isDarkMode && {
+                background: '#1f2937',
+                color: '#f9fafb',
+                confirmButtonColor: '#8b5cf6' // Un color violeta
+            })
+        });
+
+        // Si el usuario confirma (incluso si el motivo está vacío), procedemos.
+        // 'motivo' será undefined si el usuario presiona "Cancelar".
+        if (typeof motivo !== 'undefined') {
+            await enviarActivacionBahia(ticketId, motivo);
+        }
+    }
 
     /**
      * NUEVA: Muestra un modal para la encuesta de satisfacción.
@@ -894,6 +994,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: error.message,
                 icon: 'error',
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+            });
+        }
+    }
+
+    /**
+     * Envía la solicitud al backend para crear el registro de la pausa.
+     * @param {string} ticketId - El ID del ticket a pausar.
+     * @param {string} motivo - El motivo opcional de la pausa.
+     */
+    async function enviarActivacionBahia(ticketId, motivo) {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        try {
+            const response = await fetch('/FollowOTV2/activarBahia', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    ticket_id: ticketId,
+                    motivo: motivo
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'No se pudo activar el tiempo de bahía.');
+            }
+
+            await Swal.fire({
+                title: 'Pausa Activada',
+                text: result.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb' })
+            });
+
+            // Recargamos todo para que la tarjeta refleje el nuevo estado (botón "Reanudar")
+            const moduloSeleccionado = moduloSelect.value;
+            if (moduloSeleccionado) {
+                actualizarResumen(moduloSeleccionado);
+                cargarYRenderizarRegistros(moduloSeleccionado);
+            }
+
+        } catch (error) {
+            console.error('Error al activar la bahía:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message,
+                icon: 'error',
+                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#ef4444' })
             });
         }
     }
