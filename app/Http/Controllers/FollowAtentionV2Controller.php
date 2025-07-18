@@ -101,13 +101,15 @@ class FollowAtentionV2Controller extends Controller
                         // --- NUEVO CÁLCULO PARA EL TIEMPO REAL ---
                         // Suma la duración de todas las pausas finalizadas.
                         $total_duracion_segundos = $diagnostico->tiemposBahia->sum('duracion_segundos');
-
-                        // Resta el tiempo total de pausa del tiempo de ejecución total.
                         $tiempo_ejecucion = is_numeric($diagnostico->tiempo_ejecucion) ? (int)$diagnostico->tiempo_ejecucion : 0;
                         
                         $ticket->tiempo_real_calculado = $tiempo_ejecucion - $total_duracion_segundos;
 
-                        // Adjuntamos el objeto de diagnóstico completo para el modal final
+                        // --- NUEVA CONVERSIÓN A MINUTOS Y SEGUNDOS ---
+                        $totalSegundosReales = $ticket->tiempo_real_calculado > 0 ? $ticket->tiempo_real_calculado : 0;
+                        $ticket->tiempo_real_minutos = floor($totalSegundosReales / 60);
+                        $ticket->tiempo_real_segundos = $totalSegundosReales % 60;
+                        
                         $ticket->diagnostico_completo = $diagnostico;
 
                     } else {

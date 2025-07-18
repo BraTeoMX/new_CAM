@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2 class="font-mono text-2xl text-gray-800 dark:text-gray-100 font-bold">
                         <span class="material-symbols-outlined">timer</span> Tiempo total de atención: 
                     </h2>
-                    <h1>${ticket.tiempo_real_calculado}</h1>
+                    <h1>${ticket.tiempo_real_minutos} Minutos y ${ticket.tiempo_real_segundos} Segundos</h1>
                 </div>
             `;
         }
