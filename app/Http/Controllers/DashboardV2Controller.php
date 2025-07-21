@@ -241,4 +241,70 @@ class DashboardV2Controller extends Controller
         return response()->json($finalResponse);
     }
 
+    /**
+     * Calcula y devuelve los rankings "Top 5" de problemas, módulos y máquinas
+     * para un mes y año específicos.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function tops(Request $request)
+    {
+        // 1. OBTENER PARÁMETROS DE LA PETICIÓN
+        // Se obtiene el mes de la URL. Si no se proporciona, se usa el mes actual.
+        $month = $request->input('month', Carbon::now()->month);
+        // Se usa siempre el año actual para los cálculos.
+        $year = Carbon::now()->year;
+
+        // 2. CREAR LA CONSULTA BASE
+        // Para no repetir el filtro de fecha en cada consulta, creamos una base.
+        // Esto hace el código más limpio y fácil de mantener.
+        // Solo seleccionamos los tickets del mes y año solicitados.
+        $baseQuery = TicketOt::whereYear('created_at', $year)
+                             ->whereMonth('created_at', $month);
+
+        // 3. REALIZAR LOS CÁLCULOS DE LOS "TOPS"
+        
+        // --- 3.1. Top 5 Problemas ---
+        // Clonamos la consulta base para no modificarla.
+        // Usamos DB::raw para poder contar y agrupar.
+        $topProblemas = $baseQuery->clone() // Usamos clone() para empezar desde la baseQuery limpia
+            ->select('tipo_problema', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('tipo_problema') // Opcional: Ignorar registros con problema nulo
+            ->groupBy('tipo_problema')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // --- 3.2. Top 5 Módulos ---
+        $topModulos = $baseQuery->clone()
+            ->select('modulo', DB::raw('COUNT(*) as total'))
+            ->whereNotNull('modulo') // Opcional: Ignorar registros con módulo nulo
+            ->groupBy('modulo')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // --- 3.3. Top 5 Máquinas ---
+        // Aquí agregamos la condición específica de no incluir 'N/A'.
+        $topMaquinas = $baseQuery->clone()
+            ->where('maquina', '!=', 'N/A') // Condición clave: descartar 'N/A'
+            ->whereNotNull('maquina') // Opcional: Por si hubiera valores nulos además de 'N/A'
+            ->select('maquina', DB::raw('COUNT(*) as total'))
+            ->groupBy('maquina')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // 4. CONSTRUIR Y DEVOLVER LA RESPUESTA JSON
+        // Agrupamos los 3 resultados en un único objeto JSON para el frontend.
+        // Si una consulta no devuelve resultados, Eloquent entregará una colección vacía [],
+        // lo cual es perfecto para que el frontend lo maneje sin errores.
+        return response()->json([
+            'top_problemas' => $topProblemas,
+            'top_modulos'   => $topModulos,
+            'top_maquinas'  => $topMaquinas,
+        ]);
+    }
+
 }

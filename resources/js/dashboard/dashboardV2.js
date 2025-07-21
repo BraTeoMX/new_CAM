@@ -1,8 +1,7 @@
 // resources/js/dashboard.js
 import './calendarSelects.js';
-//import './calculoMinutos.js';
 import './dashboardStats.js';
-//import './elemento1dashboard.js';
+import './top5.js';
 //import './dashboardHeatmap.js';
 //import './linetime.js';
 //import './efectividad.js';
