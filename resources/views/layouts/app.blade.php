@@ -15,6 +15,7 @@
      <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
@@ -103,6 +104,7 @@
         <!-- Livewire Sidebar -->
             <x-livewire.sidebar-usuarios-activos-nuevo />
     </div>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     @livewireScriptConfig
 </body>
 

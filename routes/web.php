@@ -75,6 +75,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/dashboardV2', [DashboardV2Controller::class, 'index'])->name('dashboard.index');
         Route::get('/dashboardV2/obtenerMeses', [DashboardV2Controller::class, 'obtenerMeses']);
         Route::get('/dashboardV2/calcularMinutos', [DashboardV2Controller::class, 'calcularMinutos']);
+        Route::get('/dashboardV2/obtenerDetallesTickets', [DashboardV2Controller::class, 'obtenerDetallesTickets']);
 
     });
 });
