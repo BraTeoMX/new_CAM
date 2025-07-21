@@ -6,4 +6,3 @@ import './linetime.js';
 import './efectividad.js';
 import './tops.js';
 import './creatComplet.js';
-import './minmachdesc.js';

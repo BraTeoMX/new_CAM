@@ -62,4 +62,104 @@ class DashboardV2Controller extends Controller
             return response()->json(['error' => 'No se pudieron cargar los datos de los meses.'], 500);
         }
     }
+
+    public function calcularMinutos(Request $request)
+    {
+        Log::info('Calcular minutos - Request data: ', $request->all());
+        $month = $request->input('month', Carbon::now()->month);
+        $year = Carbon::now()->year;
+
+        // 1. LA CONSULTA ÚNICA Y OPTIMIZADA
+        // Traemos todos los tickets del mes con sus relaciones anidadas,
+        // seleccionando solo las columnas que realmente necesitamos.
+        $tickets = TicketOt::with([
+            'asignaciones.diagnostico' => function ($query) {
+                // Para cada diagnóstico, trae sus tiempos de bahía
+                $query->select('id', 'asignacion_ot_id', 'tiempo_ejecucion')
+                      ->with(['tiemposBahia' => function($subQuery) {
+                          $subQuery->select('diagnostico_solucion_id', 'duracion_segundos');
+                      }]);
+            }
+        ])
+        ->whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->select('id', 'planta') // Solo necesitamos id y planta del ticket principal
+        ->get();
+
+        // 2. INICIALIZAR ACUMULADORES
+        // Un array para cada grupo que necesitamos.
+        $results = [
+            'planta_1' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0],
+            'planta_2' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0],
+            'general'  => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0],
+        ];
+
+        // 3. PROCESAR LOS DATOS EN PHP (UNA SOLA PASADA)
+        foreach ($tickets as $ticket) {
+            $ticketKey = 'planta_' . $ticket->planta;
+            
+            $tiempoEjecucionTicket = 0;
+            $duracionSegundosTicket = 0;
+
+            // Sumamos los tiempos de todas las asignaciones/diagnósticos del ticket
+            foreach ($ticket->asignaciones as $asignacion) {
+                if ($asignacion->diagnostico) {
+                    $tiempoEjecucionTicket += (int) $asignacion->diagnostico->tiempo_ejecucion;
+                    // Sumamos los tiempos de bahía de este diagnóstico
+                    $duracionSegundosTicket += $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
+                }
+            }
+
+            // Acumular en el grupo de la planta correspondiente
+            if (array_key_exists($ticketKey, $results)) {
+                $results[$ticketKey]['total_tickets']++;
+                $results[$ticketKey]['sum_tiempo_ejecucion'] += $tiempoEjecucionTicket;
+                $results[$ticketKey]['sum_duracion_segundos'] += $duracionSegundosTicket;
+            }
+
+            // Acumular siempre en el grupo general
+            $results['general']['total_tickets']++;
+            $results['general']['sum_tiempo_ejecucion'] += $tiempoEjecucionTicket;
+            $results['general']['sum_duracion_segundos'] += $duracionSegundosTicket;
+        }
+
+        // 4. CALCULAR LOS VALORES FINALES Y FORMATEAR LA RESPUESTA
+        $finalResponse = [
+            'plantas' => [],
+            'global' => []
+        ];
+
+        foreach ($results as $key => $data) {
+            $totalTickets = $data['total_tickets'];
+            
+            if ($totalTickets > 0) {
+                $tiempoBahiaEnMinutos = floor($data['sum_duracion_segundos'] / 60);
+                $minutosTotales = $data['sum_tiempo_ejecucion'] - $tiempoBahiaEnMinutos;
+                
+                // Validación sobre el cálculo del promedio: ¡Es correcto!
+                // El promedio de minutos netos por ticket es el total de minutos netos dividido entre el total de tickets.
+                $promedioMinutos = round($minutosTotales / $totalTickets, 2);
+
+                $formattedData = [
+                    'minutos' => $minutosTotales,
+                    'tickets' => $totalTickets,
+                    'promedio_min' => $promedioMinutos
+                ];
+            } else {
+                // Si no hay tickets, todos los valores son 0.
+                $formattedData = ['minutos' => 0, 'tickets' => 0, 'promedio_min' => 0];
+            }
+            
+            if ($key === 'general') {
+                $finalResponse['global'] = $formattedData;
+            } else {
+                // Añadimos el nombre de la planta para la UI
+                $formattedData['planta'] = ($key === 'planta_1') ? 'Ixtlahuaca' : 'San Bartolo';
+                $finalResponse['plantas'][] = $formattedData;
+            }
+        }
+        
+        return response()->json($finalResponse);
+    }
+
 }
