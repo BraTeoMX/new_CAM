@@ -133,12 +133,15 @@ class DashboardV2Controller extends Controller
             $totalTickets = $data['total_tickets'];
             
             if ($totalTickets > 0) {
-                $tiempoBahiaEnMinutos = floor($data['sum_duracion_segundos'] / 60);
-                $minutosTotales = $data['sum_tiempo_ejecucion'] - $tiempoBahiaEnMinutos;
+                // 1. Restamos los segundos directamente
+                $segundosNetos = $data['sum_tiempo_ejecucion'] - $data['sum_duracion_segundos'];
                 
-                // Validación sobre el cálculo del promedio: ¡Es correcto!
-                // El promedio de minutos netos por ticket es el total de minutos netos dividido entre el total de tickets.
-                $promedioMinutos = round($minutosTotales / $totalTickets, 2);
+                // 2. Convertimos el resultado neto a minutos. Usamos floor para obtener minutos completos.
+                $minutosTotales = floor($segundosNetos / 60);
+
+                // 3. Para el promedio, usamos el valor en segundos para mayor precisión antes de redondear.
+                // Se divide el total de segundos netos entre 60 y luego entre el número de tickets.
+                $promedioMinutos = round(($segundosNetos / 60) / $totalTickets, 2);
 
                 $formattedData = [
                     'minutos' => $minutosTotales,
