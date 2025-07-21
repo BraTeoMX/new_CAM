@@ -41,46 +41,54 @@ async function loadCalculoMinutosData(month) {
 }
 
 /**
- * Función que renderiza las pestañas y el contenido dinámicamente.
- * @param {object} data - Los datos recibidos de la API (con .global y .plantas).
+ * Función que renderiza las pestañas y el contenido con el diseño de Flowbite.
+ * @param {object} data - Los datos recibidos de la API.
  * @param {HTMLElement} container - El elemento donde se renderizará todo.
  */
 function renderCalculoMinutosTabs(data, container) {
     console.log("Datos recibidos para renderizar:", data);
+    container.innerHTML = ''; // Limpia el contenedor
 
-    // Limpia el contenedor (quita el "Cargando...")
-    container.innerHTML = ''; 
+    // Clases base para los botones de las pestañas
+    const baseButtonClasses = 'inline-block w-full p-4 focus:outline-none font-medium transition';
+    const activeClasses = 'bg-indigo-800 text-white font-bold'; // Clases para la pestaña activa
+    const inactiveClasses = 'bg-indigo-600 text-white hover:bg-indigo-700'; // Clases para pestañas inactivas
 
     // 1. Crear las cabeceras de las pestañas (los botones)
     const tabHeaders = `
-        <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
-            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="myTab" role="tablist">
-                <li class="mr-2" role="presentation">
-                    <button class="tab-btn inline-block p-4 border-b-2 rounded-t-lg" type="button" role="tab" data-tab-content-id="global-content">
-                        <span class="material-icons-outlined mr-2 align-middle" style="font-size: 1.1em;">apps</span>
-                        Global
-                    </button>
-                </li>
-                ${data.plantas.map((planta, index) => `
-                    <li class="mr-2" role="presentation">
-                        <button class="tab-btn inline-block p-4 border-b-2 rounded-t-lg" type="button" role="tab" data-tab-content-id="planta${index}-content">
-                            <span class="material-icons-outlined mr-2 align-middle" style="font-size: 1.1em;">factory</span>
+        <ul class="text-sm font-medium text-center divide-x divide-gray-200 rounded-lg shadow-lg sm:flex rtl:divide-x-reverse" id="fullWidthTab" role="tablist">
+            <li class="w-full">
+                <button id="global-tab" data-tabs-target="#global-content" type="button" role="tab"
+                        class="tab-btn rounded-ss-lg ${baseButtonClasses} ${activeClasses}">
+                    <span class="material-symbols-rounded align-middle text-lg mr-1">dashboard</span>
+                    Global
+                </button>
+            </li>
+            ${data.plantas.map((planta, index) => {
+                // Lógica para asignar el icono correcto a cada planta
+                const icon = planta.planta === 'Ixtlahuaca' ? 'factory' : 'apartment';
+                const roundedClass = (index === data.plantas.length - 1) ? 'rounded-se-lg' : ''; // Redondear la última pestaña
+                return `
+                    <li class="w-full">
+                        <button id="planta${index}-tab" data-tabs-target="#planta${index}-content" type="button" role="tab"
+                                class="tab-btn ${roundedClass} ${baseButtonClasses} ${inactiveClasses}">
+                            <span class="material-symbols-rounded align-middle text-lg mr-1">${icon}</span>
                             ${planta.planta}
                         </button>
                     </li>
-                `).join('')}
-            </ul>
-        </div>
+                `;
+            }).join('')}
+        </ul>
     `;
 
     // 2. Crear los paneles de contenido para cada pestaña
     const tabContents = `
-        <div id="myTabContent">
-            <div class="tab-content hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="global-content" role="tabpanel">
+        <div id="fullWidthTabContent" class="border-t-0">
+            <div id="global-content" role="tabpanel" class="tab-content p-6">
                 ${createDataGrid(data.global)}
             </div>
             ${data.plantas.map((planta, index) => `
-                <div class="tab-content hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="planta${index}-content" role="tabpanel">
+                <div id="planta${index}-content" role="tabpanel" class="tab-content hidden p-6">
                     ${createDataGrid(planta)}
                 </div>
             `).join('')}
@@ -90,28 +98,36 @@ function renderCalculoMinutosTabs(data, container) {
     // 3. Insertar el HTML generado en el contenedor principal
     container.innerHTML = tabHeaders + tabContents;
 
-    // 4. Añadir interactividad a las pestañas
-    const tabButtons = container.querySelectorAll('.tab-btn');
-    const tabContentPanels = container.querySelectorAll('.tab-content');
-
-    // Activar la primera pestaña por defecto
-    tabButtons[0].classList.add('active', 'text-blue-600', 'dark:text-blue-500', 'border-blue-600', 'dark:border-blue-500');
-    tabContentPanels[0].classList.remove('hidden');
+    // 4. Añadir interactividad
+    const tabButtons = container.querySelectorAll('[role="tab"]');
+    const tabContentPanels = container.querySelectorAll('[role="tabpanel"]');
 
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Desactivar todos los botones y ocultar todos los paneles
-            tabButtons.forEach(btn => btn.classList.remove('active', 'text-blue-600', 'dark:text-blue-500', 'border-blue-600', 'dark:border-blue-500'));
+            // Desactivar todas las pestañas
+            tabButtons.forEach(btn => {
+                btn.setAttribute('aria-selected', 'false');
+                btn.classList.remove(...activeClasses.split(' '));
+                btn.classList.add(...inactiveClasses.split(' '));
+            });
+
+            // Ocultar todos los paneles
             tabContentPanels.forEach(panel => panel.classList.add('hidden'));
 
-            // Activar el botón clickeado
-            button.classList.add('active', 'text-blue-600', 'dark:text-blue-500', 'border-blue-600', 'dark:border-blue-500');
+            // Activar la pestaña y panel seleccionados
+            button.setAttribute('aria-selected', 'true');
+            button.classList.add(...activeClasses.split(' '));
+            button.classList.remove(...inactiveClasses.split(' '));
             
-            // Mostrar el panel de contenido correspondiente
-            const contentId = button.getAttribute('data-tab-content-id');
-            document.getElementById(contentId).classList.remove('hidden');
+            const targetPanelId = button.getAttribute('data-tabs-target');
+            document.querySelector(targetPanelId).classList.remove('hidden');
         });
     });
+
+    // Activar el primer tab por defecto (aria-selected)
+    if (tabButtons.length > 0) {
+        tabButtons[0].setAttribute('aria-selected', 'true');
+    }
 }
 
 /**
@@ -120,6 +136,7 @@ function renderCalculoMinutosTabs(data, container) {
  * @returns {string} - El HTML de la rejilla de datos.
  */
 function createDataGrid(stats) {
+    // Este es el mismo helper de la respuesta anterior, se reutiliza.
     return `
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div class="flex flex-col items-center justify-center">
