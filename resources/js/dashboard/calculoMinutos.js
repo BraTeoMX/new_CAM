@@ -140,17 +140,17 @@ function createDataGrid(stats) {
     return `
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div class="flex flex-col items-center justify-center">
-                <span class="material-icons-outlined text-4xl text-blue-500 mb-2">timer</span>
+                <span class="material-symbols-rounded text-4xl text-blue-500 mb-1">timer</span>
                 <p class="text-4xl font-bold text-gray-800 dark:text-white">${Math.round(stats.minutos).toLocaleString('es-MX')}</p>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Minutos Totales</p>
             </div>
             <div class="flex flex-col items-center justify-center">
-                <span class="material-icons-outlined text-4xl text-green-500 mb-2">confirmation_number</span>
+                <span class="material-symbols-rounded text-4xl text-green-500 mb-1">confirmation_number</span>
                 <p class="text-4xl font-bold text-gray-800 dark:text-white">${stats.tickets.toLocaleString('es-MX')}</p>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Tickets</p>
             </div>
             <div class="flex flex-col items-center justify-center">
-                <span class="material-icons-outlined text-4xl text-purple-500 mb-2">functions</span>
+                <span class="material-symbols-rounded text-4xl text-purple-500 mb-2">functions</span>
                 <p class="text-4xl font-bold text-gray-800 dark:text-white">${stats.promedio_min.toFixed(2)}</p>
                 <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Promedio Min/Ticket</p>
             </div>
