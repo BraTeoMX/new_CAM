@@ -1,169 +1,83 @@
-let calendarData = [];
-let calendarDates = [];
+// Archivo: resources/js/dashboard/calendarSelects.js
 
-function saveCalendarToLocal() {
-    try {
-        localStorage.setItem('calendarData', JSON.stringify(calendarData));
-        localStorage.setItem('calendarDates', JSON.stringify(calendarDates));
-    } catch (e) {}
-}
+document.addEventListener('DOMContentLoaded', async () => {
+    const container = document.getElementById('month-selector-container');
+    if (!container) return;
 
-function loadCalendarFromLocal() {
-    try {
-        const data = localStorage.getItem('calendarData');
-        const dates = localStorage.getItem('calendarDates');
-        calendarData = data ? JSON.parse(data) : [];
-        calendarDates = dates ? JSON.parse(dates) : [];
-    } catch (e) {
-        calendarData = [];
-        calendarDates = [];
+    function dispatchMonthChangeEvent(month) {
+        const event = new CustomEvent('monthChanged', {
+            detail: { month: month }
+        });
+        window.dispatchEvent(event);
+        console.log(`📢 Anuncio: El mes cambió a ${month}`);
     }
-}
 
-async function initCalendarSelects() {
-    const monthSelect = document.getElementById('calendar-month');
-    const yearSelect = document.getElementById('calendar-year');
-    const daySelect = document.getElementById('calendar-day');
-    if (!monthSelect || !yearSelect || !daySelect) return;
-
-    loadCalendarFromLocal();
-
-    let fetched = false;
     try {
-        if (!calendarData.length) {
-            calendarData = await window.getCardsAteOTsData();
-            fetched = true;
+        // 1. Llama a la nueva ruta para obtener los meses disponibles
+        const response = await fetch('/dashboardV2/obtenerMeses');
+        if (!response.ok) {
+            throw new Error('Error al conectar con el servidor.');
         }
-        if (!calendarDates.length && calendarData.length) {
-            calendarDates = calendarData
-                .map(item => item.created_at)
-                .filter(Boolean)
-                .map(dateStr => {
-                    const d = new Date(dateStr);
-                    return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
-                });
-            fetched = true;
-        }
-        if (fetched) saveCalendarToLocal();
+        const availableMonths = await response.json();
 
-        if (!calendarData.length || !calendarDates.length) {
-            loadCalendarFromLocal();
-        }
-        if (!calendarData.length || !calendarDates.length) throw new Error('No data');
-
-        const years = [...new Set(calendarDates.map(d => d.year))].sort((a, b) => a - b);
-        yearSelect.innerHTML = '';
-        years.forEach(y => {
-            const opt = document.createElement('option');
-            opt.value = y;
-            opt.textContent = y;
-            yearSelect.appendChild(opt);
-        });
-
-        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        function fillMonthOptions(selectedYear) {
-            monthSelect.innerHTML = '';
-            const months = [...new Set(calendarDates.filter(d => d.year === selectedYear).map(d => d.month))];
-            for (let m = 0; m < 12; m++) {
-                if (months.includes(m)) {
-                    const opt = document.createElement('option');
-                    opt.value = m;
-                    opt.textContent = monthNames[m];
-                    monthSelect.appendChild(opt);
-                }
-            }
-        }
-        function fillDayOptions(selectedYear, selectedMonth) {
-            daySelect.innerHTML = '';
-            const optAll = document.createElement('option');
-            optAll.value = '';
-            optAll.textContent = 'Todos';
-            daySelect.appendChild(optAll);
-            const days = [...new Set(calendarDates.filter(d => d.year === selectedYear && d.month === selectedMonth).map(d => d.day))].sort((a, b) => a - b);
-            days.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d;
-                opt.textContent = d;
-                daySelect.appendChild(opt);
-            });
-        }
-
-        // Selección robusta de año y mes
-        const now = new Date();
-        let currentYear = now.getFullYear();
-        let currentMonth = now.getMonth();
-
-        let hasCurrentMonth = calendarDates.some(d => d.year === currentYear && d.month === currentMonth);
-
-        if (!hasCurrentMonth) {
-            let prevMonth = currentMonth - 1;
-            let prevYear = currentYear;
-            if (prevMonth < 0) {
-                prevMonth = 11;
-                prevYear = currentYear - 1;
-            }
-            let hasPrevMonth = calendarDates.some(d => d.year === prevYear && d.month === prevMonth);
-            if (hasPrevMonth) {
-                currentYear = prevYear;
-                currentMonth = prevMonth;
-            } else {
-                currentYear = Number(yearSelect.options[0]?.value);
-                currentMonth = undefined;
-            }
-        }
-
-        fillMonthOptions(currentYear);
-
-        let monthOptionValues = Array.from(monthSelect.options).map(opt => Number(opt.value));
-        if (currentMonth === undefined || !monthOptionValues.includes(currentMonth)) {
-            currentMonth = monthOptionValues.length > 0 ? monthOptionValues[0] : 0;
-        }
-        yearSelect.value = currentYear;
-        monthSelect.value = currentMonth;
-
-        fillDayOptions(currentYear, currentMonth);
-        daySelect.value = '';
-
-        // Dispara el evento SOLO cuando los selects ya tienen valores válidos
-        function dispatchCalendarChange() {
-            const detail = {
-                year: Number(yearSelect.value),
-                month: Number(monthSelect.value),
-                day: daySelect.value ? Number(daySelect.value) : null
-            };
-            window.dispatchEvent(new CustomEvent('calendar:change', { detail }));
-        }
-
-        dispatchCalendarChange();
-
-        yearSelect.addEventListener('change', () => {
-            fillMonthOptions(Number(yearSelect.value));
-            monthSelect.value = monthSelect.options[0]?.value;
-            fillDayOptions(Number(yearSelect.value), Number(monthSelect.value));
-            daySelect.value = '';
-            dispatchCalendarChange();
-        });
-        monthSelect.addEventListener('change', () => {
-            fillDayOptions(Number(yearSelect.value), Number(monthSelect.value));
-            daySelect.value = '';
-            dispatchCalendarChange();
-        });
-        daySelect.addEventListener('change', () => {
-            dispatchCalendarChange();
-        });
-
-    } catch (e) {
-        loadCalendarFromLocal();
-        if (calendarData.length && calendarDates.length) {
-            initCalendarSelects();
+        // 2. Maneja el caso de que no haya registros en todo el año
+        if (availableMonths.length === 0) {
+            container.innerHTML = '<span class="text-sm font-semibold text-red-500">No hay datos para mostrar en el año actual.</span>';
             return;
         }
-        const now = new Date();
-        yearSelect.innerHTML = `<option value="${now.getFullYear()}">${now.getFullYear()}</option>`;
-        monthSelect.innerHTML = `<option value="${now.getMonth()}">${['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][now.getMonth()]}</option>`;
-        daySelect.innerHTML = `<option value="">Todos</option>`;
-        window.dispatchEvent(new Event('calendar:change'));
-    }
-}
 
-document.addEventListener('DOMContentLoaded', initCalendarSelects);
+        // 3. Crea el elemento <select>
+        const select = document.createElement('select');
+        select.id = 'month-select';
+        select.className = 'w-40 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-emerald-500 focus:border-emerald-500 block p-2.5 transition';
+
+        const currentMonthNumber = new Date().getMonth() + 1;
+        let currentMonthExists = false;
+
+        // 4. Pobla el select con los meses obtenidos
+        availableMonths.forEach(month => {
+            const option = document.createElement('option');
+            option.value = month.value;
+            option.textContent = month.text.charAt(0).toUpperCase() + month.text.slice(1); // Pone la primera letra en mayúscula
+
+            if (month.value === currentMonthNumber) {
+                option.selected = true;
+                currentMonthExists = true;
+            }
+            select.appendChild(option);
+        });
+        
+        // Limpia el contenedor y prepara la nueva estructura
+        container.innerHTML = `
+            <label for="month-select" class="text-sm font-semibold text-gray-700 dark:text-gray-200">Mes:</label>
+        `;
+        container.appendChild(select);
+        container.insertAdjacentHTML('beforeend', `<span class="text-gray-500 font-semibold">${new Date().getFullYear()}</span>`);
+
+
+        // 5. Maneja el caso de que el mes actual no tenga registros
+        if (!currentMonthExists) {
+            // Si el mes actual no está, el <select> ya mostrará el más reciente (porque lo ordenamos DESC)
+            // Agregamos un mensaje para el usuario.
+            const noDataMessage = document.createElement('p');
+            noDataMessage.className = 'text-xs text-amber-600 ml-4';
+            noDataMessage.textContent = 'Nota: No hay registros para el mes actual. Mostrando el mes más reciente con datos.';
+            container.appendChild(noDataMessage);
+        }
+
+        // 6. Añade un evento para cuando el usuario cambie de mes
+        select.addEventListener('change', (event) => {
+            const selectedMonth = event.target.value;
+            // Llama a la función para anunciar el cambio
+            dispatchMonthChangeEvent(selectedMonth); 
+        });
+
+        // 7. ¡MUY IMPORTANTE! Anuncia el mes inicial en la carga de la página
+        // Esto asegura que todos los componentes carguen sus datos la primera vez.
+        dispatchMonthChangeEvent(select.value);
+
+    } catch (error) {
+        container.innerHTML = '<span class="text-sm font-semibold text-red-500">No se pudo cargar el filtro.</span>';
+        console.error('Error en calendarSelects.js:', error);
+    }
+});

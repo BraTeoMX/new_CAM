@@ -41,7 +41,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Rutas solo para Administradores
     Route::middleware(['role:Administrador'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboardV2', [DashboardV2Controller::class, 'index'])->name('dashboard.index');
+        
         Route::get('/AdminControl', [AdminControlController::class, 'index'])->name('admin.index');
         Route::get('/admin-control/users', [AdminControlController::class, 'getUsers'])->name('admin-control.users');
         Route::post('/admin-control/users', [AdminControlController::class, 'store']);
@@ -70,6 +70,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/vinculacion/guardar', [VinculacionV2Controller::class, 'guardarVinculacion']);
         Route::get('/vinculacion/mostrarRegistros', [VinculacionV2Controller::class, 'mostrarRegistros']);
         Route::post('/vinculacion/actualizarMasivo', [VinculacionV2Controller::class, 'actualizarMasivo'])->name('vinculacion.actualizarMasivo');
+
+        //segunda version de Dashboard
+        Route::get('/dashboardV2', [DashboardV2Controller::class, 'index'])->name('dashboard.index');
+        Route::get('/dashboardV2/obtenerMeses', [DashboardV2Controller::class, 'obtenerMeses']);
 
     });
 });
