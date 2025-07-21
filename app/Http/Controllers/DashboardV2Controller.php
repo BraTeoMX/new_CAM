@@ -83,6 +83,7 @@ class DashboardV2Controller extends Controller
         ])
         ->whereYear('created_at', $year)
         ->whereMonth('created_at', $month)
+        ->whereIn('estado', [3, 5])
         ->select('id', 'planta') // Solo necesitamos id y planta del ticket principal
         ->get();
 
