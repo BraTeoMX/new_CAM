@@ -2,7 +2,7 @@ import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import * as d3 from "d3";
 
-// --- Configuración de Echo/Pusher ---
+// --- Configuración de Echo/Pusher (sin cambios) ---
 window.Pusher = Pusher;
 window.Echo = new Echo({
     broadcaster: "pusher",
@@ -14,7 +14,7 @@ window.Echo = new Echo({
 
 /**
  * Módulo para la gráfica de barras de Status de Tickets (D3).
- * Implementa Lazy Loading y contiene todas las funcionalidades visuales.
+ * Refactorizado para usar un endpoint eficiente y responder a eventos.
  */
 const StatusChartModule = (function () {
 
@@ -22,59 +22,59 @@ const StatusChartModule = (function () {
     const state = {
         isInitialized: false,
         container: null,
-        rawData: [],
     };
 
-    const STATUS_LIST = ['PENDIENTE', 'ASIGNADO', 'PROCESO', 'ATENDIDO', 'AUTONOMO', 'CANCELADO', 'FINALIZADO'];
+    // La configuración de los status se mantiene, es útil para la visualización
     const STATUS_CONFIG = {
         'PENDIENTE': { icon: '<span class="material-symbols-outlined text-red-800 text-3xl">pending_actions</span>', color: "from-red-300 to-red-400" },
         'ASIGNADO': { icon: '<span class="material-symbols-outlined text-blue-400 text-3xl">assignment_ind</span>', color: "from-blue-300 to-blue-400" },
-        'PROCESO': { icon: '<span class="material-symbols-outlined text-yellow-800 text-3xl">av_timer</span>', color: "from-yellow-300 to-yellow-400" },
+        'EN PROCESO': { icon: '<span class="material-symbols-outlined text-yellow-800 text-3xl">av_timer</span>', color: "from-yellow-300 to-yellow-400" },
         'ATENDIDO': { icon: '<span class="material-symbols-outlined text-green-800 text-3xl">preliminary</span>', color: "from-green-300 to-green-400" },
         'AUTONOMO': { icon: '<span class="material-symbols-outlined text-violet-800 text-3xl">smart_toy</span>', color: "from-violet-300 to-violet-400" },
         'CANCELADO': { icon: '<span class="material-symbols-outlined text-orange-800 text-3xl">dangerous</span>', color: "from-orange-300 to-orange-400" },
-        'FINALIZADO': { icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">fact_check</span>', color: "from-blue-300 to-blue-400" },
+        'SIN ASIGNACION': { icon: '<span class="material-symbols-outlined text-blue-800 text-3xl">fact_check</span>', color: "from-blue-300 to-blue-400" },
     };
 
-    // --- FUNCIONES INTERNAS ---
+    // --- NUEVA FUNCIÓN PARA OBTENER DATOS DEL SERVIDOR ---
+    async function fetchChartData(params) {
+        const urlParams = new URLSearchParams();
+        if (params.year) urlParams.append('year', params.year);
+        if (params.month) urlParams.append('month', params.month);
 
-    function getSelectedFilters() {
-        const monthSelect = document.getElementById('calendar-month');
-        const yearSelect = document.getElementById('calendar-year');
-        const daySelect = document.getElementById('calendar-day');
-        const month = monthSelect ? parseInt(monthSelect.value, 10) : new Date().getMonth();
-        const year = yearSelect ? parseInt(yearSelect.value, 10) : new Date().getFullYear();
-        const day = daySelect && daySelect.value ? parseInt(daySelect.value, 10) : null;
-        return { month, year, day };
+        const url = `/dashboardV2/obtenerEstatus?${urlParams.toString()}`;
+        console.log(`StatusChart 🚀: Pidiendo datos a ${url}`);
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+        return response.json(); // Devuelve ej: [{Status: "ATENDIDO", total: 42}, ...]
     }
 
-    function filterDataByDate(data, year, month, day) {
-        return data.filter(item => {
-            if (!item.created_at) return false;
-            const date = new Date(item.created_at);
-            if (date.getFullYear() !== year || date.getMonth() !== month) return false;
-            if (day !== null && date.getDate() !== day) return false;
-            return true;
-        });
-    }
-
-    function renderBarChart(data) {
+    // --- FUNCIÓN DE RENDERIZADO (Adaptada para recibir datos pre-contados) ---
+    function renderBarChart(apiData) {
         if (!state.container) return;
 
-        const statusCounts = {};
-        STATUS_LIST.forEach(status => statusCounts[status] = 0);
-        data.forEach(item => {
-            const status = (item.Status || "").toUpperCase();
-            if (STATUS_LIST.includes(status)) statusCounts[status]++;
-        });
+        // El conteo y filtrado ya no se hacen aquí, vienen del backend.
 
-        const chartData = Object.entries(statusCounts)
-            .map(([key, value]) => ({ key, value, ...STATUS_CONFIG[key] }))
-            .filter(d => d.value > 0)
+        // 1. Unir datos de la API con la configuración de colores/íconos
+        // y responder a tu pregunta sobre el orden:
+        const chartData = apiData
+            .map(d => ({
+                key: d.Status,
+                value: d.total,
+                ...STATUS_CONFIG[d.Status.toUpperCase()] // Unir con la config de íconos/colores
+            }))
+            // RESPUESTA A TU PREGUNTA: Sí, podemos ordenar.
+            // Esta línea asegura que la gráfica siempre se muestre de mayor a menor.
             .sort((a, b) => b.value - a.value);
 
         const totalTickets = chartData.reduce((sum, d) => sum + d.value, 0);
         const maxValue = Math.max(...chartData.map(d => d.value), 1);
+
+        // --- El resto de la lógica de D3 y renderizado de HTML es la misma ---
+        // (La pego completa para que no tengas que unir partes)
+
         const yScale = d3.scaleBand().domain(chartData.map(d => d.key)).range([0, 100]).padding(0.25);
         const xScale = d3.scaleLinear().domain([0, maxValue]).range([0, 100]);
 
@@ -122,7 +122,6 @@ const StatusChartModule = (function () {
             valueLabel.innerText = d.value;
             chartArea.appendChild(valueLabel);
 
-            // --- LÓGICA DE TOOLTIPS RESTAURADA ---
             bar.addEventListener("mouseenter", function (e) {
                 let tooltip = document.getElementById("bar-tooltip");
                 if (!tooltip) {
@@ -149,7 +148,6 @@ const StatusChartModule = (function () {
             });
         });
 
-        // --- LÓGICA DE LÍNEAS GUÍA (GRID) RESTAURADA ---
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("class", "absolute top-0 left-0 h-full w-full pointer-events-none");
         svg.setAttribute("viewBox", "0 0 100 100");
@@ -159,16 +157,9 @@ const StatusChartModule = (function () {
             if (tick === 0) return;
             const x = xScale(tick);
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("x1", x);
-            line.setAttribute("x2", x);
-            line.setAttribute("y1", "0");
-            line.setAttribute("y2", "100");
-            line.setAttribute("stroke", "#e5e7eb"); // Color para tema claro
-            if (document.documentElement.classList.contains('dark')) {
-                line.setAttribute("stroke", "#3f3f46"); // Color para tema oscuro
-            }
-            line.setAttribute("stroke-dasharray", "2,4");
-            line.setAttribute("stroke-width", "0.5");
+            line.setAttribute("x1", x); line.setAttribute("x2", x); line.setAttribute("y1", "0"); line.setAttribute("y2", "100");
+            line.setAttribute("stroke", document.documentElement.classList.contains('dark') ? "#3f3f46" : "#e5e7eb");
+            line.setAttribute("stroke-dasharray", "2,4"); line.setAttribute("stroke-width", "0.5");
             svg.appendChild(line);
         });
         chartArea.appendChild(svg);
@@ -177,27 +168,29 @@ const StatusChartModule = (function () {
              const x = xScale(value);
              const label = document.createElement("div");
              label.className = "absolute text-xs -translate-x-1/2 tabular-nums text-gray-400 dark:text-zinc-500";
-             label.style.left = `${x}%`;
-             label.style.top = "100%";
-             label.style.marginTop = "4px";
+             label.style.left = `${x}%`; label.style.top = "100%"; label.style.marginTop = "4px";
              label.innerText = value;
              chartArea.appendChild(label);
         });
     }
 
+    // --- LÓGICA PRINCIPAL DE ORQUESTACIÓN ---
     async function fetchAndRender() {
-        if (state.rawData.length === 0) {
-            try {
-                state.rawData = await window.getCardsAteOTsData();
-            } catch (e) {
-                console.error("StatusChart: Error fetching data:", e);
-                state.container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar los datos del gráfico.</div>';
-                return;
-            }
+        if (!state.container) return;
+        state.container.innerHTML = `<div class="w-full min-h-[400px] flex items-center justify-center text-gray-400 animate-pulse">Actualizando Gráfico...</div>`;
+        
+        try {
+            const monthSelect = document.getElementById('month-select');
+            const params = {
+                year: new Date().getFullYear(),
+                month: monthSelect ? parseInt(monthSelect.value, 10) : new Date().getMonth() + 1
+            };
+            const apiData = await fetchChartData(params);
+            renderBarChart(apiData);
+        } catch (e) {
+            console.error("StatusChart: Error en fetchAndRender:", e);
+            state.container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar datos del gráfico.</div>';
         }
-        const filters = getSelectedFilters();
-        const filteredData = filterDataByDate(state.rawData, filters.year, filters.month, filters.day);
-        renderBarChart(filteredData);
     }
 
     function debounce(func, delay) {
@@ -208,26 +201,29 @@ const StatusChartModule = (function () {
         };
     }
 
+    // --- FUNCIÓN DE INICIALIZACIÓN (LAZY) ---
     async function initializeComponent() {
         if (state.isInitialized) return;
         state.isInitialized = true;
 
-        state.container.innerHTML = `<div class="w-full min-h-[400px] flex items-center justify-center text-gray-400 animate-pulse">Cargando Gráfico...</div>`;
+        // Escuchar el evento 'monthChanged' de los otros módulos
+        window.addEventListener('monthChanged', fetchAndRender);
+        window.addEventListener('resize', debounce(renderBarChart, 200)); // Considera si necesitas recargar o solo re-renderizar
 
-        window.addEventListener('calendar:change', fetchAndRender);
-        window.addEventListener('resize', debounce(fetchAndRender, 200));
-
+        // Configurar el listener de Pusher para actualizaciones en tiempo real
         if (window.Echo) {
             window.Echo.channel("asignaciones-ot")
                 .listen("StatusOTUpdated", () => {
-                    state.rawData = []; // Forzar refetch en la siguiente acción
-                    fetchAndRender();
+                    console.log("StatusChart ⚡: Recibido evento de Pusher. Actualizando...");
+                    fetchAndRender(); // Simplemente vuelve a cargar los datos
                 });
         }
 
+        // Carga inicial de datos
         await fetchAndRender();
     }
 
+    // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---
     function init() {
         state.container = document.getElementById('dashboard-elemento1');
         if (!state.container) {

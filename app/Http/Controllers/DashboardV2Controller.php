@@ -401,4 +401,44 @@ class DashboardV2Controller extends Controller
         }
     }
 
+    public function obtenerEstatus(Request $request)
+    {
+        try {
+            // 1. Obtener parámetros con valores por defecto al mes y año actual
+            $year = $request->input('year', Carbon::now()->year);
+            // El frontend enviará el mes como 1-12, lo cual es correcto para esta consulta
+            $month = $request->input('month', Carbon::now()->month);
+
+            // 2. Realizar la consulta optimizada
+            $statusCounts = TicketOt::query()
+                // Une la tabla de tickets con la tabla del catálogo de estados
+                ->join('catalogo_estados', 'tickets_ot.estado', '=', 'catalogo_estados.id')
+                
+                // Filtra por el año y mes de creación del ticket
+                ->whereYear('tickets_ot.created_at', $year)
+                ->whereMonth('tickets_ot.created_at', $month)
+                
+                // Selecciona el nombre del estado y el conteo total
+                ->select(
+                    'catalogo_estados.nombre as Status', // Renombra 'nombre' a 'Status' para que coincida con el JS
+                    DB::raw('COUNT(tickets_ot.id) as total')
+                )
+                
+                // Agrupa los resultados por el nombre del estado
+                ->groupBy('catalogo_estados.nombre')
+                
+                // Opcional pero recomendado: ordena los resultados en el backend
+                ->orderByDesc('total')
+                
+                ->get();
+
+            // 3. Devuelve el resultado en formato JSON
+            return response()->json($statusCounts);
+
+        } catch (\Exception $e) {
+            Log::error('Error en obtenerEstatus: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo obtener el conteo de estatus.'], 500);
+        }
+    }
+
 }
