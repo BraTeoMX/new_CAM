@@ -141,29 +141,35 @@ const EfectividadGaugeModule = (function () {
         // 1. Prepara los divs internos para el gauge y la info
         if (!prepareContainers()) return;
 
-        // 2. Configura los listeners de eventos AHORA, no al inicio.
-        window.addEventListener('calendar:change', (e) => {
+        // --- CAMBIOS PRINCIPALES AQUÍ ---
+
+        // 2. Escucha el NUEVO evento 'monthChanged' que dispara calendarSelects.js
+        window.addEventListener('monthChanged', (e) => {
             const detail = e.detail || {};
+            const selectedMonth = detail.month; // Este es el mes (valor 1-12)
+
+            // Como el controlador necesita el mes en formato 0-11, lo ajustamos aquí
+            const monthForQuery = Number(selectedMonth) - 1;
+
+            console.log(`EfectividadGaugeModule 👂: Recibido mes ${selectedMonth}, consultando con ${monthForQuery}`);
+
             fetchAndUpdateEfectividad({
-                year: detail.year,
-                month: detail.month,
-                day: detail.day || null
+                year: new Date().getFullYear(), // Asumimos el año actual
+                month: monthForQuery,
+                day: null
             });
         });
 
-        // Listener para el cambio de tema (dark/light)
+        // 3. El listener para el cambio de tema (dark/light) se mantiene igual
         new MutationObserver(() => {
             if (state.isInitialized) {
                 renderGauge();
             }
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-        // 3. Realiza la primera carga de datos
-        await fetchAndUpdateEfectividad({
-            year: new Date().getFullYear(),
-            month: new Date().getMonth(),
-            day: null
-        });
+        // 4. Se ELIMINA la primera carga de datos de aquí.
+        // La carga inicial ahora se dispara automáticamente cuando calendarSelects.js
+        // emite el primer evento 'monthChanged' al cargar la página.
     }
 
     // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---

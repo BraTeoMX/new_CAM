@@ -53,24 +53,38 @@ const DashboardTopsModule = (function () {
     }
 
     // --- FUNCIÓN DE INICIALIZACIÓN (LAZY) ---
-    async function initializeComponent() {
-        if (state.isInitialized) return;
-        state.isInitialized = true;
+    async function fetchAndRenderTops(params = {}) {
+        if (!state.container) return;
 
-        state.container.innerHTML = `<div class="flex justify-center items-center min-h-[120px] text-gray-400 animate-pulse">Cargando Ranking...</div>`;
+        // Muestra el estado de carga cada vez que se actualiza
+        state.container.innerHTML = `<div class="flex justify-center items-center min-h-[120px] text-gray-400 animate-pulse">Actualizando Ranking...</div>`;
+
+        // Limpia el intervalo anterior para evitar múltiples ciclos corriendo a la vez
+        if (state.carouselIntervalId) clearInterval(state.carouselIntervalId);
 
         let topsData;
         try {
+            // --- CAMBIO 2: Se añaden los parámetros a la URL de la API ---
+            const urlParams = new URLSearchParams();
+            if (params.month) {
+                urlParams.append('month', params.month);
+            }
+            
+            const fullUrl = `${API_ENDPOINT}?${urlParams.toString()}`;
+            console.log(`TopsCarousel 🚀: Pidiendo datos a ${fullUrl}`);
+
             const headers = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-            const res = await fetch(API_ENDPOINT, { headers });
+            const res = await fetch(fullUrl, { headers });
             if (!res.ok) throw new Error(`La respuesta del servidor no fue OK: ${res.status}`);
             topsData = await res.json();
+
         } catch (e) {
             console.error("Tops Carousel: Falló la obtención de datos", e);
             state.container.innerHTML = `<div class="text-red-500 p-4 text-center">No se pudo cargar el ranking.</div>`;
             return;
         }
 
+        // --- El resto de esta función es la lógica de renderizado que ya tenías ---
         const maquinasIcon = `<svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 16v-2m8-8h2M4 12H2m15.364 6.364l1.414 1.414M4.222 4.222l1.414 1.414m12.728 0l-1.414 1.414M5.636 18.364l-1.414 1.414M12 18a6 6 0 100-12 6 6 0 000 12z" /></svg>`;
         const maquinas = (topsData.top_maquinas || []).slice(0, 5).map(m => ({ label: m.maquina, total: m.total }));
 
@@ -80,7 +94,6 @@ const DashboardTopsModule = (function () {
         const modulosIcon = `<svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>`;
         const modulos = (topsData.top_modulos || []).slice(0, 5).map(m => ({ label: m.modulo, total: m.total }));
 
-        // CAMBIO 1: Se ajustan los colores para coincidir con el script de referencia.
         const tops = [
             { html: renderTopCard('Top 5 Máquinas con mas Fallas', maquinas, maquinasIcon, "bg-blue-50 dark:bg-blue-900") },
             { html: renderTopCard('Top 5 Problemas Recurrentes', problemas, problemasIcon, "bg-red-50 dark:bg-red-900") },
@@ -124,6 +137,26 @@ const DashboardTopsModule = (function () {
                 });
             }
         }, 0);
+    }
+
+    async function initializeComponent() {
+        if (state.isInitialized) return;
+        state.isInitialized = true;
+
+        // --- CAMBIO 3: La función de inicialización ahora solo prepara y escucha ---
+        
+        // 1. Muestra un mensaje de carga inicial.
+        state.container.innerHTML = `<div class="flex justify-center items-center min-h-[120px] text-gray-400 animate-pulse">Cargando Ranking...</div>`;
+
+        // 2. Se suscribe al evento 'monthChanged'.
+        window.addEventListener('monthChanged', (e) => {
+            const selectedMonth = e.detail.month; // Mes en formato 1-12
+            console.log(`TopsCarousel 👂: Recibido mes ${selectedMonth}`);
+            fetchAndRenderTops({ month: selectedMonth });
+        });
+
+        // La carga inicial se disparará automáticamente cuando 'calendarSelects.js'
+        // emita el primer evento al cargar la página.
     }
 
     // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---

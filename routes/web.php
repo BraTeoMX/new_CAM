@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/dashboardV2/obtenerDetallesTickets', [DashboardV2Controller::class, 'obtenerDetallesTickets']);
         Route::get('/dashboardV2/tops', [DashboardV2Controller::class, 'tops']);
         Route::get('/dashboardV2/efectividad', [DashboardV2Controller::class, 'efectividad']);
+        Route::get('/dashboardV2/calendarioTickets', [DashboardV2Controller::class, 'calendarioTickets']);
 
     });
 });

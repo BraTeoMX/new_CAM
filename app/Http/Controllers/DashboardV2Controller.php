@@ -371,5 +371,33 @@ class DashboardV2Controller extends Controller
         ]);
     }
 
+    public function calendarioTickets(Request $request)
+    {
+        try {
+            // 1. Obtener mes y año de la petición, con valores por defecto al mes/año actual.
+            $year = $request->input('year', Carbon::now()->year);
+            $month = $request->input('month', Carbon::now()->month); // Espera el mes como 1-12
+
+            // 2. Realizar la consulta optimizada
+            $activity = AsignacionOt::select(
+                    // Extrae el DÍA de la fecha y lo nombra 'day'
+                    DB::raw('DAY(created_at) as day'),
+                    // Cuenta cuántos registros hay por cada día y lo nombra 'total'
+                    DB::raw('COUNT(*) as total')
+                )
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->groupBy('day') // Agrupa los resultados por el día
+                ->orderBy('day', 'asc') // Opcional: ordena los resultados
+                ->get();
+
+            // 3. Devolver la respuesta JSON ya procesada
+            return response()->json($activity);
+
+        } catch (\Exception $e) {
+            Log::error('Error en calendarioTickets: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo obtener la actividad.'], 500);
+        }
+    }
 
 }
