@@ -307,4 +307,69 @@ class DashboardV2Controller extends Controller
         ]);
     }
 
+    public function efectividad(Request $request)
+    {
+        // 1. OBTENER PARÁMETROS DE LA URL (con valores por defecto al mes y año actual)
+        // El script de JS envía el mes como 0-11, PHP Carbon lo entiende así.
+        $month = $request->input('month', Carbon::now()->month - 1);
+        $year = $request->input('year', Carbon::now()->year);
+
+        // Como el script JS envía el mes como 0-11 y la BBDD lo quiere como 1-12, sumamos 1.
+        $queryMonth = $month + 1;
+
+        // 2. CONSULTA CON ELOQUENT
+        // Usamos 'whereHas' para asegurarnos de que solo traemos tickets que tienen asignaciones con diagnóstico.
+        $tickets = TicketOt::with([
+                'asignaciones.diagnostico' // Carga ansiosa de las relaciones necesarias
+            ])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $queryMonth)
+            // Si el día es un parámetro, también lo filtramos
+            ->when($request->has('day'), function ($query) use ($request) {
+                return $query->whereDay('created_at', $request->input('day'));
+            })
+            ->get();
+
+        // 3. INICIALIZAR CONTADORES
+        $totalAsignaciones = 0;
+        $asignacionesEfectivas = 0;
+
+        // 4. PROCESAR LOS RESULTADOS
+        foreach ($tickets as $ticket) {
+            foreach ($ticket->asignaciones as $asignacion) {
+                // Omitir si una asignación no tiene un diagnóstico registrado
+                if (!$diagnostico = $asignacion->diagnostico) {
+                    continue;
+                }
+
+                // Contamos esta asignación para el total
+                $totalAsignaciones++;
+
+                // --- LÓGICA DE NEGOCIO PRINCIPAL ---
+                $tiempoRealSeg = (int) $diagnostico->tiempo_ejecucion;
+                
+                // !!! IMPORTANTE: Reemplaza 'tiempo_estimado_segundos' con el nombre real de tu campo
+                $tiempoEstimadoSeg = (int) $diagnostico->tiempo_estimado; 
+
+                // Comparamos si la ejecución fue dentro del tiempo estimado
+                if ($tiempoRealSeg > 0 && $tiempoEstimadoSeg > 0 && $tiempoRealSeg <= $tiempoEstimadoSeg) {
+                    $asignacionesEfectivas++;
+                }
+            }
+        }
+
+        // 5. CALCULAR EL PORCENTAJE FINAL
+        $efectividadCalculada = ($totalAsignaciones > 0)
+            ? round(($asignacionesEfectivas / $totalAsignaciones) * 100, 2)
+            : 0;
+
+        // 6. DEVOLVER LA RESPUESTA JSON (con los mismos alias que espera el script)
+        return response()->json([
+            'efectividad' => $efectividadCalculada,
+            'total'       => $totalAsignaciones,
+            'efectivos'   => $asignacionesEfectivas,
+        ]);
+    }
+
+
 }

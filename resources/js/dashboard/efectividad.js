@@ -106,7 +106,7 @@ const EfectividadGaugeModule = (function () {
             if (params.month !== undefined && params.month !== null) urlParams.append('month', params.month);
             if (params.day) urlParams.append('day', params.day);
 
-            const res = await fetch(`/dashboard/efectividad?${urlParams.toString()}`, {
+            const res = await fetch(`/dashboardV2/efectividad?${urlParams.toString()}`, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
