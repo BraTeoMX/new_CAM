@@ -1,4 +1,4 @@
-import Carousel from 'flowbite/lib/esm/components/carousel'; // Asegúrate de que esta ruta sea correcta
+import Carousel from 'flowbite/lib/esm/components/carousel';
 
 /**
  * Módulo para el carrusel de "Tops" del dashboard V2.
@@ -8,7 +8,7 @@ import Carousel from 'flowbite/lib/esm/components/carousel'; // Asegúrate de qu
 const DashboardTopsModule = (function () {
 
     // --- ESTADO Y CONSTANTES PRIVADAS ---
-    const API_ENDPOINT = '/dashboardV2/tops';
+    const API_ENDPOINT = '/dashboardV2/tops'; // Asegúrate que el endpoint es el correcto
     const CAROUSEL_INTERVAL = 5000; // Intervalo de 5 segundos
 
     const state = {
@@ -26,16 +26,16 @@ const DashboardTopsModule = (function () {
     }
     
     // --- LÓGICA DE RENDERIZADO (CORREGIDA) ---
+    // CAMBIO 2: Se ajusta la lógica de renderizado para mostrar el nombre y debajo el total.
     function renderTopCard(title, items, iconSvg, cardColor) {
         let content;
         if (!items || items.length === 0) {
             content = `<div class="col-span-5 flex items-center justify-center h-full text-gray-500 dark:text-gray-400">No hay datos disponibles</div>`;
         } else {
-            // **CAMBIO CLAVE AQUÍ:** Ajuste en el HTML para mostrar nombre y debajo el total.
             content = items.map(item => `
                 <div class="flex flex-col items-center justify-center bg-transparent rounded hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition text-sm py-1 px-1 h-full">
-                    <span class="text-xs text-gray-600 dark:text-gray-300 truncate text-center w-full" title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span>
-                    <span class="font-bold text-gray-800 dark:text-gray-100">${escapeHtml(item.total)}</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-300 text-center w-full" title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span>
+                    <span class="font-bold text-base text-gray-800 dark:text-gray-100">${escapeHtml(item.total)}</span>
                 </div>
             `).join('');
         }
@@ -80,17 +80,18 @@ const DashboardTopsModule = (function () {
         const modulosIcon = `<svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>`;
         const modulos = (topsData.top_modulos || []).slice(0, 5).map(m => ({ label: m.modulo, total: m.total }));
 
+        // CAMBIO 1: Se ajustan los colores para coincidir con el script de referencia.
         const tops = [
-            { html: renderTopCard('Top 5 Máquinas con +Fallas', maquinas, maquinasIcon, "bg-blue-50 dark:bg-gray-800/50") },
-            { html: renderTopCard('Top 5 Problemas Recurrentes', problemas, problemasIcon, "bg-red-50 dark:bg-gray-800/50") },
-            { html: renderTopCard('Top 5 Módulos con +Tickets', modulos, modulosIcon, "bg-emerald-50 dark:bg-gray-800/50") }
+            { html: renderTopCard('Top 5 Máquinas con mas Fallas', maquinas, maquinasIcon, "bg-blue-50 dark:bg-blue-900") },
+            { html: renderTopCard('Top 5 Problemas Recurrentes', problemas, problemasIcon, "bg-red-50 dark:bg-red-900") },
+            { html: renderTopCard('Top 5 Módulos con mas Tickets', modulos, modulosIcon, "bg-emerald-50 dark:bg-emerald-900") }
         ];
 
         const carouselId = 'tops-v2-carousel';
         const itemIdPrefix = 'tops-v2-item-';
         state.container.innerHTML = `
             <div id="${carouselId}" class="relative w-full" data-carousel="slide">
-                <div class="relative h-[120px] overflow-hidden rounded-lg w-full">
+                <div class="relative h-[130px] overflow-hidden rounded-lg w-full">
                     ${tops.map((top, idx) => `<div id="${itemIdPrefix}${idx}" class="hidden duration-700 ease-in-out w-full h-[120px]" data-carousel-item${idx === 0 ? '="active"' : ''}><div class="flex justify-center items-center h-full w-full">${top.html}</div></div>`).join('')}
                 </div>
                 <button type="button" class="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-2 cursor-pointer group focus:outline-none" data-carousel-prev> <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/30 dark:bg-gray-900/30 group-hover:bg-white/50 dark:group-hover:bg-gray-700/60 group-focus:ring-2 group-focus:ring-white dark:group-focus:ring-gray-800/70"><svg class="w-3 h-3 text-gray-800 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/></svg></span></button>
