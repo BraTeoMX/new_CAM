@@ -81,9 +81,26 @@ const HeatmapModule = (function () {
         await fetchAndRender();
     }
     
-    function init() { /* ...esta función no cambia... */ }
-    
-    return { init };
+    // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---
+    function init() {
+        state.container = document.getElementById('dashboard-heatmap');
+        if (!state.container) return;
+
+        const observer = new IntersectionObserver((entries, observerInstance) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    initializeComponent();
+                    observerInstance.unobserve(state.container);
+                }
+            });
+        }, { threshold: 0.05 }); // Activa cuando un 5% del componente sea visible
+
+        observer.observe(state.container);
+    }
+
+    return {
+        init: init
+    };
 })();
 
 document.addEventListener('DOMContentLoaded', HeatmapModule.init);

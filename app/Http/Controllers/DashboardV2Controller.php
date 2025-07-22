@@ -374,6 +374,7 @@ class DashboardV2Controller extends Controller
     public function calendarioTickets(Request $request)
     {
         try {
+            Log::info('Calendario Tickets - Request data: ', $request->all());
             // 1. Obtener mes y año de la petición, con valores por defecto al mes/año actual.
             $year = $request->input('year', Carbon::now()->year);
             $month = $request->input('month', Carbon::now()->month); // Espera el mes como 1-12
