@@ -37,16 +37,16 @@ const HeatmapModule = (function () {
         // Escala de color consistente: más tickets = número más alto en la escala de Tailwind
         
         // 15+ tickets: El verde más oscuro y saturado
-        if (value > 14) return 'bg-emerald-600 dark:bg-emerald-600 text-white dark:text-emerald-100';
+        if (value > 14) return 'bg-emerald-600 dark:bg-emerald-800 text-white dark:text-white';
         
         // 10-14 tickets
-        if (value > 9)  return 'bg-emerald-500 dark:bg-emerald-700 text-white dark:text-emerald-100';
+        if (value > 9)  return 'bg-emerald-500 dark:bg-emerald-500 text-white dark:text-white';
         
         // 5-9 tickets
-        if (value > 4)  return 'bg-emerald-300 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200';
+        if (value > 4)  return 'bg-emerald-300 dark:bg-emerald-300 text-emerald-800 dark:text-emerald-800';
         
         // 1-4 tickets: El verde más claro y sutil
-        if (value > 0)  return 'bg-emerald-200 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300';
+        if (value > 0)  return 'bg-emerald-200 dark:bg-emerald-200 text-emerald-700 dark:text-emerald-700';
         
         // 0 tickets: Sin color
         return 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300';
