@@ -33,8 +33,78 @@ const HeatmapModule = (function () {
         return dayMap;
     }
 
-    function getCellColor(value) { /* ...esta función no cambia... */ }
-    function renderCalendarHeatmap(year, month, dayMap, daysInMonth) { /* ...esta función no cambia en su mayoría, solo cómo se llama... */ }
+    function getCellColor(value) {
+        // Escala de color consistente: más tickets = número más alto en la escala de Tailwind
+        
+        // 15+ tickets: El verde más oscuro y saturado
+        if (value > 14) return 'bg-emerald-600 dark:bg-emerald-600 text-white dark:text-emerald-100';
+        
+        // 10-14 tickets
+        if (value > 9)  return 'bg-emerald-500 dark:bg-emerald-700 text-white dark:text-emerald-100';
+        
+        // 5-9 tickets
+        if (value > 4)  return 'bg-emerald-300 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200';
+        
+        // 1-4 tickets: El verde más claro y sutil
+        if (value > 0)  return 'bg-emerald-200 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300';
+        
+        // 0 tickets: Sin color
+        return 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300';
+    }
+
+    function renderCalendarHeatmap(year, month, dayMap, daysInMonth) {
+        // 1. Crea el contenedor principal del componente
+        const componentContainer = document.createElement('div');
+        componentContainer.className = "group py-4 px-2 sm:px-4 md:px-6 lg:px-8 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 rounded-lg relative overflow-hidden flex flex-col w-full";
+        
+        // Se ha eliminado el div de la leyenda del siguiente bloque de HTML
+        componentContainer.innerHTML = `
+            <div class="flex flex-col w-full">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-xl lg:text-2xl font-medium tracking-tight text-gray-950 dark:text-white">Actividad de Tickets</div>
+                </div>
+                <div class="overflow-x-auto w-full">
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2 min-w-[340px] w-max mx-auto"></div>
+                </div>
+            </div>
+            `;
+
+        const grid = componentContainer.querySelector('#calendar-grid');
+        const daysOfWeek = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+        // Dibuja las etiquetas de los días de la semana
+        daysOfWeek.forEach(day => {
+            const label = document.createElement('div');
+            label.textContent = day;
+            label.className = 'text-sm text-center text-gray-500 font-bold';
+            grid.appendChild(label);
+        });
+
+        // Calcula el día de inicio para alinear el calendario (Lunes=0)
+        const firstDayOfMonth = new Date(year, month, 1).getDay(); // Domingo=0, Lunes=1
+        const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+
+        // Añade celdas vacías al inicio para la alineación
+        for (let i = 0; i < startOffset; i++) {
+            grid.appendChild(document.createElement('div'));
+        }
+
+        // Dibuja una celda para cada día del mes
+        for (let d = 1; d <= daysInMonth; d++) {
+            const value = dayMap[d] || 0;
+            const cell = document.createElement('div');
+            
+            cell.className = `flex flex-col items-center justify-center text-sm font-medium ${getCellColor(value)} rounded-lg transition-transform hover:scale-110 cursor-pointer w-[44px] h-[44px]`;
+            cell.title = `${d}/${month + 1}/${year}: ${value} tickets`; // El tooltip se mantiene
+            cell.textContent = d;
+
+            grid.appendChild(cell);
+        }
+
+        // Limpia el contenedor principal y dibuja el nuevo calendario
+        state.container.innerHTML = '';
+        state.container.appendChild(componentContainer);
+    }
 
     // --- CAMBIO 3: Refactorizar la función principal de renderizado ---
     async function fetchAndRender() {
