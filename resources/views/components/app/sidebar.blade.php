@@ -29,7 +29,7 @@
                     </svg>
                 </button>
                 <!-- Logo -->
-                <a class="block mx-auto" href="{{ route('dashboard') }}">
+                <a class="block mx-auto" href="{{ route('dashboard.index') }}">
                     <img src="{{ asset('images/intimark.webp') }}" alt="Logo" class="h-12 w-auto mx-auto" />
                 </a>
             </div>
@@ -106,10 +106,10 @@
                         @if (auth()->user()->isAdmin() || auth()->user()->ISNULL())
                             <li>
                                 <a class="flex items-center pl-4 pr-3 py-2 rounded-lg
-                                @if (Request::segment(1) === 'dashboard') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif
+                                @if (Request::segment(1) === 'dashboardV2') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif
                                 transition truncate text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                                    href="{{ route('dashboard') }}">
-                                    <svg class="shrink-0 fill-current @if (in_array(Request::segment(1), ['dashboard'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif"
+                                    href="{{ route('dashboard.index') }}">
+                                    <svg class="shrink-0 fill-current @if (in_array(Request::segment(1), ['dashboardV2'])) text-violet-500 @else text-gray-400 dark:text-gray-500 @endif"
                                         xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                         viewBox="0 0 16 16">
                                         <path
