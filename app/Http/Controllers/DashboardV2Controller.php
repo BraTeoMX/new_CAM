@@ -441,4 +441,50 @@ class DashboardV2Controller extends Controller
         }
     }
 
+    public function obtenerCreadosCompletados(Request $request)
+    {
+        try {
+            // 1. Obtener parámetros con valores por defecto
+            $year = $request->input('year', Carbon::now()->year);
+            // El frontend enviará el mes como 1-12, que es lo que espera esta consulta
+            $month = $request->input('month', Carbon::now()->month);
+
+            // 2. Obtener los tickets CREADOS en ese mes, agrupados por día
+            $creados = TicketOt::query()
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->select(DB::raw('DAY(created_at) as day'), DB::raw('COUNT(*) as total'))
+                ->groupBy('day')
+                ->pluck('total', 'day'); // Devuelve un array asociativo [día => total]
+
+            // 3. Obtener los tickets COMPLETADOS (estado=5) en ese mes, agrupados por día de ACTUALIZACIÓN
+            $completados = TicketOt::query()
+                ->where('estado', 5) // El estado "Atendido" o "Completado"
+                ->whereYear('updated_at', $year) // Usamos 'updated_at' como fecha de completado
+                ->whereMonth('updated_at', $month)
+                ->select(DB::raw('DAY(updated_at) as day'), DB::raw('COUNT(*) as total'))
+                ->groupBy('day')
+                ->pluck('total', 'day');
+
+            // 4. Construir la respuesta final día por día
+            $daysInMonth = Carbon::createFromDate($year, $month)->daysInMonth;
+            $data = [];
+
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                $formattedDate = Carbon::createFromDate($year, $month, $day)->format('d/m');
+                $data[] = [
+                    'date' => $formattedDate,
+                    'creadas' => $creados->get($day, 0), // Obtiene el total o 0 si no hay
+                    'completadas' => $completados->get($day, 0) // Obtiene el total o 0 si no hay
+                ];
+            }
+
+            return response()->json($data);
+
+        } catch (\Exception $e) {
+            Log::error('Error en obtenerCreadosCompletados: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo obtener la comparación de tickets.'], 500);
+        }
+    }
+
 }

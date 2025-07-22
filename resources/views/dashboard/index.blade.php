@@ -28,7 +28,7 @@
             {{-- Fin de creatComplet --}}
             <hr class="my-4 border-gray-200 dark:border-gray-700 border-2 rounded-lg ">
             {{-- NUEVO: línea de tiempo --}}
-            <x-dashboard.timeline />
+           {{-- <x-dashboard.timeline />--}}
             {{-- Fin de línea de tiempo --}}
             @vite(['resources/js/dashboard/dashboardV2.js'])
         </div>
