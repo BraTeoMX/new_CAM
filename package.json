@@ -46,6 +46,7 @@
         "fullcalendar": "^6.1.15",
         "gojs": "^3.0.22",
         "highcharts": "^12.2.0",
+        "highcharts-more": "^0.1.7",
         "highcharts-vue": "^2.0.1",
         "jquery": "^3.7.1",
         "jspdf": "^3.0.1",

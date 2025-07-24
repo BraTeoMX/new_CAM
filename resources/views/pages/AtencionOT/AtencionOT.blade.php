@@ -1,5 +1,4 @@
 <x-app-layout>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div class="px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 w-full max-w-9xl mx-auto">
         <!-- Título -->
@@ -65,7 +64,7 @@
         </div>
         <!-- Modal -->
         <div id="modalPendiente"
-            class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 flex items-center justify-center">
+            class="fixed inset-0 z-50 hidden bg-gray-800 bg-opacity-50 items-center justify-center">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-lg">
                 <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Mover OT a Pendiente</h2>
 
