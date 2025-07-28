@@ -1,5 +1,4 @@
 <x-guest-layout>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div x-cloak x-data="{ init() {} }">
         <!-- Título -->
         <div class="sm:flex sm:justify-between sm:items-center mb-8">
