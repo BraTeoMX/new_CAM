@@ -41,10 +41,9 @@ class OrdenOTController extends Controller
         }
     }
 
-    public function obtenerResumen($modulo)
+    public function obtenerResumen()
     {
         try {
-            Log::info('Obteniendo resumen para el módulo: ' . $modulo);
             // 1. Obtenemos todos los nombres de estados posibles desde el catálogo.
             // Esto nos asegura que siempre devolveremos todos los contadores, incluso si están en 0.
             $todosLosEstados = CatalogoEstado::pluck('nombre')->flip()->map(fn() => 0)->all();
