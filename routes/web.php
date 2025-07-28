@@ -108,7 +108,7 @@ Route::get('/form-ot-data', [FormOTMecaController::class, 'getData']);
 
 
 // Rutas para usuarios sin autenticados
-Route::get('/OrdenOT', [OrdenOTController::class, 'OrdenOT']);
+
 Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
 Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
 Route::get('/obtener-operarios', [FormGuestController::class, 'ObtenerOperarios']);
@@ -170,4 +170,20 @@ Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::post('/FollowOTV2/finalizarAtencion', 'finalizarAtencion');
     Route::post('/FollowOTV2/activarBahia', 'activarBahia');
     Route::post('/FollowOTV2/finalizarBahia', 'finalizarBahia');
+});
+
+Route::controller(OrdenOTController::class)->group(function () {
+    Route::get('/OrdenOT', 'index');
+    Route::get('/OrdenOT/obtenerAreaModulos', 'obtenerAreaModulos');
+    Route::get('/OrdenOT/obtenerResumen/{modulo}', 'obtenerResumen');
+    Route::get('/OrdenOT/obtenerRegistros/{modulo}', 'obtenerRegistros');
+    Route::get('/OrdenOT/obtenerCatalogoEstados', 'obtenerCatalogoEstados');
+    Route::get('/OrdenOT/obtenerClasesMaquina/{maquina}', 'obtenerClasesMaquina');
+    Route::post('/OrdenOT/iniciarAtencion', 'iniciarAtencion');
+    Route::get('/OrdenOT/obtenerFallas', 'obtenerFallas');
+    Route::get('/OrdenOT/obtenerCausas', 'obtenerCausas');
+    Route::get('/OrdenOT/obtenerAcciones', 'obtenerAcciones');
+    Route::post('/OrdenOT/finalizarAtencion', 'finalizarAtencion');
+    Route::post('/OrdenOT/activarBahia', 'activarBahia');
+    Route::post('/OrdenOT/finalizarBahia', 'finalizarBahia');
 });

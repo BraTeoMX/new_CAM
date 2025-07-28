@@ -34,6 +34,7 @@ export default defineConfig({
                 'resources/js/chat.js',
                 'resources/js/vinculacionV2.js',
                 'resources/js/dashboard/dashboardV2.js',
+                'resources/js/consultaOT.js',
             ],
             refresh: true,
         }),
