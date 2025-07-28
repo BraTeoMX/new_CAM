@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // 1. Seleccionamos los elementos del DOM.
-    const moduloSelect = document.getElementById('modulo-select');
     const container = document.getElementById('seguimiento-ot-container');
     const filtrosBar = document.getElementById('filtros-bar');
     const searchInput = document.getElementById('search-ot');
@@ -11,57 +10,21 @@ document.addEventListener('DOMContentLoaded', function() {
     let todosLosTicketsDelModulo = [];
     
 
-    function inicializar() {
-        // Inicializamos la librería Select2.
-        $(moduloSelect).select2({
-            placeholder: 'Selecciona tu módulo de atención',
-            allowClear: true
-        });
-
-        configurarEventListeners();
-        cargarModulos();
-        cargarFiltroDeEstados(); 
-    }
-
     async function inicializar() {
-        // Inicializamos la librería Select2.
-        $(moduloSelect).select2({
-            placeholder: 'Selecciona tu módulo de atención',
-            allowClear: true
-        });
+        // Mostramos la barra de filtros desde el inicio.
+        filtrosBar.classList.remove('hidden');
 
         configurarEventListeners();
         cargarFiltroDeEstados(); 
-
-        // 1. Esperamos a que la carga de módulos termine
-        await cargarModulos(); 
-
-        // 2. Una vez cargados, revisamos la URL y seleccionamos el módulo si existe
-        seleccionarModuloDesdeURL();
-    }
-
-    function seleccionarModuloDesdeURL() {
-        // Creamos un objeto para leer fácilmente los parámetros de la URL
-        const urlParams = new URLSearchParams(window.location.search);
         
-        // Obtenemos el valor del parámetro 'modulo'
-        const moduloDesdeURL = urlParams.get('modulo');
-
-        if (moduloDesdeURL) {
-            console.log(`Módulo encontrado en la URL: ${moduloDesdeURL}. Cargando datos...`);
-            
-            // Usamos jQuery para establecer el valor del select y
-            // disparamos el evento 'change' para que Select2 reaccione.
-            // Esto ejecutará el listener que tengas en 'configurarEventListeners'
-            // para cargar los tickets de ese módulo.
-            $(moduloSelect).val(moduloDesdeURL).trigger('change');
-        }
+        // Cargamos el resumen general y todas las tarjetas de OT al iniciar.
+        await actualizarResumen();
+        await cargarYRenderizarRegistros();
     }
 
     // --- CONFIGURACIÓN DE EVENTOS ---
     function configurarEventListeners() {
         // Evento 'change' para el selector de módulo principal.
-        $(moduloSelect).on('change', handleModuloChange);
 
         // Eventos para los filtros secundarios.
         searchInput.addEventListener('input', aplicarFiltros);
@@ -167,12 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb' })
             });
 
-            // Recargamos todo para que la tarjeta refleje el nuevo estado (botones de "Activar" y "Finalizar")
-            const moduloSeleccionado = moduloSelect.value;
-            if (moduloSeleccionado) {
-                actualizarResumen(moduloSeleccionado);
-                cargarYRenderizarRegistros(moduloSeleccionado);
-            }
 
         } catch (error) {
             console.error('Error al reanudar la bahía:', error);
@@ -502,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function actualizarResumen(modulo) {
         // ... (esta función se queda igual)
         try {
-            const response = await fetch(`/OrdenOT/obtenerResumen/${modulo}`);
+            const response = await fetch(`/OrdenOT/obtenerResumen`); 
             if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
             const resumen = await response.json();
             document.getElementById('ot-autonomas').textContent = resumen.AUTONOMO ?? 0;
@@ -535,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         filtrosBar.classList.remove('hidden'); // Mostramos la barra de filtros
 
         try {
-            const response = await fetch(`/OrdenOT/obtenerRegistros/${modulo}`);
+            const response = await fetch(`/OrdenOT/obtenerRegistros`);
             if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
             
             todosLosTicketsDelModulo = await response.json();

@@ -175,8 +175,8 @@ Route::controller(FollowAtentionV2Controller::class)->group(function () {
 Route::controller(OrdenOTController::class)->group(function () {
     Route::get('/OrdenOT', 'index');
     Route::get('/OrdenOT/obtenerAreaModulos', 'obtenerAreaModulos');
-    Route::get('/OrdenOT/obtenerResumen/{modulo}', 'obtenerResumen');
-    Route::get('/OrdenOT/obtenerRegistros/{modulo}', 'obtenerRegistros');
+    Route::get('/OrdenOT/obtenerResumen', 'obtenerResumen');
+    Route::get('/OrdenOT/obtenerRegistros', 'obtenerRegistros');
     Route::get('/OrdenOT/obtenerCatalogoEstados', 'obtenerCatalogoEstados');
     Route::get('/OrdenOT/obtenerClasesMaquina/{maquina}', 'obtenerClasesMaquina');
     Route::post('/OrdenOT/iniciarAtencion', 'iniciarAtencion');

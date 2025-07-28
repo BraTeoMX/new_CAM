@@ -51,7 +51,7 @@ class OrdenOTController extends Controller
             
             // 2. Hacemos la consulta para contar los tickets por estado para el módulo y fecha dados.
             $conteoPorEstado = TicketOt::with('catalogoEstado') // Precargamos la relación
-                ->where('modulo', $modulo)
+                //->where('modulo', $modulo)
                 ->where('created_at', '>=', now()->subDays(10))
                 ->select('estado', DB::raw('count(*) as total'))
                 ->groupBy('estado')
@@ -72,14 +72,14 @@ class OrdenOTController extends Controller
         }
     }
 
-    public function obtenerRegistros($modulo)
+    public function obtenerRegistros()
     {
         try {
             $tickets = TicketOt::with([
                     'catalogoEstado', 
                     'asignaciones.diagnostico.tiemposBahia'
                 ])
-                ->where('modulo', $modulo)
+                //->where('modulo', $modulo)
                 ->where('created_at', '>=', now()->subDays(10))
                 ->orderBy('created_at', 'desc')
                 ->get()
