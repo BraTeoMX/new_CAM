@@ -22,6 +22,7 @@ use App\Http\Controllers\FormGuestV2Controller;
 use App\Http\Controllers\VinculacionV2Controller;
 use App\Http\Controllers\FollowAtentionV2Controller;
 use App\Http\Controllers\DashboardV2Controller;
+use App\Http\Controllers\MenuController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +86,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     });
 });
 
+//ruta para menu
+Route::get('/1', [MenuController::class, 'index']);
 // Rutas para visitantes (no autenticados)
 Route::middleware(['guest'])->group(function () {});
 // Rutas para cualquier usuario autenticado
@@ -173,7 +176,7 @@ Route::controller(FollowAtentionV2Controller::class)->group(function () {
 });
 
 Route::controller(OrdenOTController::class)->group(function () {
-    Route::get('/OrdenOT', 'index');
+    Route::get('/OrdenOT', 'index')->name('OrdenOT.index');
     Route::get('/OrdenOT/obtenerAreaModulos', 'obtenerAreaModulos');
     Route::get('/OrdenOT/obtenerResumen', 'obtenerResumen');
     Route::get('/OrdenOT/obtenerRegistros', 'obtenerRegistros');
