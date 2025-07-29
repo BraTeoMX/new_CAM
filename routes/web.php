@@ -187,3 +187,8 @@ Route::controller(OrdenOTController::class)->group(function () {
     Route::post('/OrdenOT/activarBahia', 'activarBahia');
     Route::post('/OrdenOT/finalizarBahia', 'finalizarBahia');
 });
+
+
+//seccion para colocar rutas a redireccionar FollowOTV2
+Route::redirect('/FormGuest', '/FormGuestV2');
+Route::redirect('/FollowOT', '/FollowOTV2');
