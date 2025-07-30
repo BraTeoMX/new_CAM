@@ -3,14 +3,21 @@
         <div
             class="flex items-center mb-6 *:justify-between bg-white dark:bg-gray-900 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
             <img src="{{ asset('images/intimark.webp') }}" alt="Logo"
-                class="h-16 w-50 rounded mr-4 border-2 border-gray-300 object-cover dark:border-gray-700">
+                class="h-16 w-50 rounded mr-4">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">ORDEN DE TRABAJO PARA MECÁNICOS 1</h1>
-                <div class="mt-2 flex items-center flex-wrap">
-                    <span class="font-semibold text-gray-700 dark:text-gray-300 mr-2">FECHA:</span>
-                    <input type="date"
-                        class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">ORDEN DE TRABAJO PARA MECÁNICOS</h1>
+                <div class="mt-2 flex items-center flex-wrap gap-4">
+                <div>
+                    <span class="font-semibold text-gray-700 dark:text-gray-300 mr-2">FECHA INICIO:</span>
+                    <input type="date" id="fecha_inicio"
+                           class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
                 </div>
+                <div>
+                    <span class="font-semibold text-gray-700 dark:text-gray-300 mr-2">FECHA FIN:</span>
+                    <input type="date" id="fecha_fin"
+                           class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
+                </div>
+            </div>
             </div>
         </div>
         <div class="bg-gradient-to-br from-blue-100 via-white to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6">
@@ -37,6 +44,7 @@
                     class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900 rounded-xl shadow-lg ring-1 ring-gray-200 dark:ring-gray-700">
                     <thead class="bg-gradient-to-r from-blue-200 via-blue-100 to-blue-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800">
                         <tr>
+                            <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">PLANTA</th>
                             <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">FOLIO</th>
                             <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">MÓDULO</th>
                             <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">SUPERVISOR</th>
@@ -57,13 +65,18 @@
                                 ENCUESTA DE SATISFACCIÓN</th>
                         </tr>
                         <tr>
-                            <th colspan="15"></th>
+                            <th colspan="16"></th>
                             <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-green-700 dark:text-green-400">EXCELENTE</th>
                             <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-blue-700 dark:text-blue-400">BUENO</th>
                             <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-yellow-700 dark:text-yellow-400">REGULAR</th>
                             <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-red-700 dark:text-red-400">MALO</th>
                         </tr>
                         <tr>
+                            <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                                <input type="text" name="planta" id="planta"
+                                    placeholder="Planta"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
                                 <input type="text" name="folio" id="folio"
                                     placeholder="Folio"

@@ -22,8 +22,8 @@ class ReportesController extends Controller
     public function obtenerDetallesTickets(Request $request)
     {
         // 1. OBTENER PARÁMETROS
-        $month = $request->input('month', Carbon::now()->month);
-        $year = Carbon::now()->year;
+        $startDate = $request->input('startDate', Carbon::today()->toDateString());
+        $endDate = $request->input('endDate', Carbon::today()->toDateString());
 
         // 2. CONSULTA OPTIMIZADA (sin cambios aquí)
         $tickets = TicketOt::with([
@@ -31,8 +31,7 @@ class ReportesController extends Controller
                 $query->with('diagnostico.tiemposBahia');
             }
         ])
-        ->whereYear('created_at', $year)
-        ->whereMonth('created_at', $month)
+         ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
         ->select('id', 'planta', 'modulo', 'folio', 'nombre_supervisor', 'numero_empleado_operario')
         ->get();
 
