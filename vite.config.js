@@ -35,6 +35,7 @@ export default defineConfig({
                 'resources/js/vinculacionV2.js',
                 'resources/js/dashboard/dashboardV2.js',
                 'resources/js/consultaOT.js',
+                'resources/js/reporte/reporteMecanico.js',
             ],
             refresh: true,
         }),

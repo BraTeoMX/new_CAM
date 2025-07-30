@@ -158,7 +158,7 @@
             </div>
         </div>
     </div>
-    @vite(['resources/js/FormOTMeca.js'])
+    @vite(['resources/js/reporte/reporteMecanico.js'])
     {{-- Modal para elegir Excel o PDF --}}
     <div id="save-modal"
         tabindex="-1"
