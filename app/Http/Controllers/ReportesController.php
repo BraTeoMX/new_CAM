@@ -31,65 +31,76 @@ class ReportesController extends Controller
                 $query->with('diagnostico.tiemposBahia');
             }
         ])
-         ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-        ->select('id', 'planta', 'modulo', 'folio', 'nombre_supervisor', 'numero_empleado_operario')
-        ->get();
+        ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+        ->get(); // MODIFICADO: Eliminé el select() para traer todos los campos necesarios
 
-        // 3. INICIALIZAR LA ESTRUCTURA DE RESPUESTA AGRUPADA
+        // 3. INICIALIZAR LA ESTRUCTURA DE RESPUESTA (Sin cambios)
         $finalResponse = [
             'global'   => [],
             'planta_1' => [],
             'planta_2' => [],
         ];
 
-        // 4. PROCESAR Y AGREGAR DATOS A LOS GRUPOS CORRESPONDIENTES
+        // 4. PROCESAR Y AGREGAR DATOS
         foreach ($tickets as $ticket) {
             foreach ($ticket->asignaciones as $asignacion) {
                 if (!$asignacion->diagnostico) {
                     continue;
                 }
 
-                // --- Lógica de cálculo de tiempo por asignación ---
+                // --- Lógica de cálculo de tiempo (Sin cambios) ---
                 $tiempoEjecucionSeg = (int) $asignacion->diagnostico->tiempo_ejecucion;
                 $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
-                
                 $segundosNetos = $tiempoEjecucionSeg - $tiempoBahiaSeg;
-
-                // --- Formateo del tiempo (la doble solución recomendada) ---
-                // Versión numérica con decimales (para ordenar/calcular en el frontend)
                 $minutosDecimal = ($segundosNetos > 0) ? round($segundosNetos / 60, 2) : 0;
-                
-                // Versión de texto (para mostrar al usuario)
                 $minutosParaMostrar = floor($segundosNetos / 60);
                 $segundosParaMostrar = $segundosNetos % 60;
                 $tiempoFormateado = $minutosParaMostrar . ' min ' . $segundosParaMostrar . ' seg';
 
-                // Construimos la fila de detalle
+                // --- MODIFICADO: Construimos la fila de detalle con más información ---
                 $filaDetalle = [
                     'planta' => ($ticket->planta == 1) ? 'Ixtlahuaca' : 'San Bartolo',
                     'modulo' => $ticket->modulo,
                     'folio' => $ticket->folio,
                     'supervisor' => $ticket->nombre_supervisor,
                     'operario_num_empleado' => $ticket->numero_empleado_operario,
+                    'nombre_operario' => $ticket->nombre_operario,
+                    'tipo_problema' => $ticket->tipo_problema,
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
+                    
+                    // --- CAMPOS DE TIEMPO AÑADIDOS ---
+                    // NUEVO: Hora en que se creó el registro de diagnóstico (inicio).
+                    'hora_inicio_diagnostico' => $asignacion->diagnostico->created_at->toDateTimeString(),
+                    
+                    // NUEVO: Hora en que se actualizó por última vez (fin).
+                    'hora_final_diagnostico' => $asignacion->diagnostico->updated_at->toDateTimeString(),
+                    
                     'minutos_netos' => $minutosDecimal,
                     'tiempo_neto_formateado' => $tiempoFormateado,
+
+                    // NUEVO: Un array con la duración en segundos de cada parada en bahía.
+                    'tiempos_bahia_individuales_seg' => $asignacion->diagnostico->tiemposBahia->pluck('duracion_segundos'),
+
+                    'numero_maquina' => $asignacion->diagnostico->numero_maquina,
+                    'clase_maquina' => $asignacion->diagnostico->clase_maquina,
+                    // --- MEJORA: AÑADIR OTROS DETALLES ÚTILES ---
+                    'problema' => $ticket->problema_reportado, // Asumiendo que el campo se llama así
+                    'falla' => $asignacion->diagnostico->falla,
+                    'causa' => $asignacion->diagnostico->causa,
+                    'accion' => $asignacion->diagnostico->accion_correctiva,
+                    'encuesta' => $asignacion->diagnostico->encuesta,
                 ];
 
-                // --- Lógica de asignación a los grupos ---
-                
-                // Asignar a la lista de la planta específica
-                $ticketKey = 'planta_' . $ticket->planta; // Crea 'planta_1' o 'planta_2'
+                // --- Lógica de asignación a los grupos (Sin cambios) ---
+                $ticketKey = 'planta_' . $ticket->planta;
                 if (array_key_exists($ticketKey, $finalResponse)) {
                     $finalResponse[$ticketKey][] = $filaDetalle;
                 }
-
-                // Asignar siempre a la lista global
                 $finalResponse['global'][] = $filaDetalle;
             }
         }
         
-        // 4. DEVOLVER LA RESPUESTA
+        // 5. DEVOLVER LA RESPUESTA (Sin cambios)
         return response()->json($finalResponse);
     }
 

@@ -215,17 +215,17 @@ const displayDataInTable = (data) => {
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.modulo ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.supervisor ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.operario_num_empleado ?? ''}</td>
-            <td class="px-3 py-2"></td>
-            <td class="px-3 py-2"></td>
-            <td class="px-3 py-2"></td>
-            <td class="px-3 py-2"></td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.nombre_operario ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tipo_problema ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_inicio_diagnostico ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_final_diagnostico ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.tiempo_neto_formateado ?? ''}</td>
-            <td class="px-3 py-2"></td>
-            <td class="px-3 py-2"></td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.clase_maquina ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.numero_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.mecanico_nombre ?? ''}</td>
-            <td class="px-3 py-2"></td>
-            <td class="px-3 py-2"></td>
-            <td class="px-3 py-2"></td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.falla ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.causa ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.accion ?? ''}</td>
             <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="excelente"></td>
             <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="bueno"></td>
             <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="regular"></td>
