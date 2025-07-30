@@ -48,25 +48,29 @@ class ReportesController extends Controller
                     continue;
                 }
 
-                // --- Lógica de cálculo de tiempo ---
+                // --- LÓGICA DE CÁLCULO DE TIEMPOS ---
                 $tiempoEjecucionSeg = (int) $asignacion->diagnostico->tiempo_ejecucion;
                 $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
                 $segundosNetos = $tiempoEjecucionSeg - $tiempoBahiaSeg;
                 $minutosDecimal = ($segundosNetos > 0) ? round($segundosNetos / 60, 2) : 0;
                 
+                // Formateo para tiempo total de ejecución (NUEVO)
+                $minutosTotalesParaMostrar = floor($tiempoEjecucionSeg / 60);
+                $segundosTotalesParaMostrar = $tiempoEjecucionSeg % 60;
+                $tiempoTotalFormateado = $minutosTotalesParaMostrar . ' min ' . $segundosTotalesParaMostrar . ' seg';
+
                 // Formateo para tiempo neto
                 $minutosNetosParaMostrar = floor($segundosNetos / 60);
                 $segundosNetosParaMostrar = $segundosNetos % 60;
                 $tiempoNetoFormateado = $minutosNetosParaMostrar . ' min ' . $segundosNetosParaMostrar . ' seg';
 
-                // --- NUEVA LÓGICA: Formateo para el tiempo total en bahía ---
-                // Si no hay tiempos en bahía, $tiempoBahiaSeg será 0, cumpliendo con el requisito.
+                // Formateo para el tiempo total en bahía
                 $minutosBahiaParaMostrar = floor($tiempoBahiaSeg / 60);
                 $segundosBahiaParaMostrar = $tiempoBahiaSeg % 60;
                 $tiempoBahiaFormateado = $minutosBahiaParaMostrar . ' min ' . $segundosBahiaParaMostrar . ' seg';
 
 
-                // --- Construimos la fila de detalle con más información ---
+                // --- CONSTRUCCIÓN DE LA FILA DE DETALLE ---
                 $filaDetalle = [
                     'planta' => ($ticket->planta == 1) ? 'Ixtlahuaca' : 'San Bartolo',
                     'modulo' => $ticket->modulo,
@@ -77,18 +81,21 @@ class ReportesController extends Controller
                     'tipo_problema' => $ticket->tipo_problema,
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
                     
-                    // --- CAMPOS DE TIEMPO AÑADIDOS ---
+                    // --- CAMPOS DE TIEMPO ---
                     'hora_inicio_diagnostico' => $asignacion->diagnostico->created_at->toDateTimeString(),
                     'hora_final_diagnostico' => $asignacion->diagnostico->updated_at->toDateTimeString(),
                     
-                    'minutos_netos' => $minutosDecimal,
+                    // 1. TIEMPO TOTAL (bruto, sin restar paradas)
+                    'tiempo_total' => $tiempoTotalFormateado,
+                    
+                    // 2. TIEMPO NETO (real, restando paradas)
+                    'minutos_netos_decimal' => $minutosDecimal, // Tiempo neto en decimal para cálculos
                     'tiempo_neto_formateado' => $tiempoNetoFormateado,
 
-                    // --- MODIFICADO: Se muestra el tiempo total de bahía formateado ---
-                    // El método sum() ya maneja el caso de que no existan registros (devuelve 0).
+                    // 3. TIEMPO EN BAHÍAS (total de paradas)
                     'tiempo_total_bahia_formateado' => $tiempoBahiaFormateado,
-
-                    // Se mantiene el desglose individual por si es útil para el frontend
+                    
+                    // Desglose de paradas individuales (opcional)
                     'tiempos_bahia_individuales_seg' => $asignacion->diagnostico->tiemposBahia->pluck('duracion_segundos'),
 
                     'numero_maquina' => $asignacion->diagnostico->numero_maquina,

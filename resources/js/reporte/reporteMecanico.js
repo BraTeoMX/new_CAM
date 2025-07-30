@@ -256,8 +256,9 @@ const displayDataInTable = (data) => {
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tipo_problema ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_inicio_diagnostico ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-green-700 dark:text-green-400">${item.hora_final_diagnostico ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tiempo_neto_formateado ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tiempo_total_bahia_formateado ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-orange-100">${item.tiempo_total ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-orange-100">${item.tiempo_neto_formateado ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-orange-100">${item.tiempo_total_bahia_formateado ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.clase_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.numero_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.mecanico_nombre ?? ''}</td>
