@@ -84,6 +84,26 @@ const fetchData = async (startDate, endDate) => {
 };
 
 /**
+ * NUEVO: Devuelve las clases de color de Tailwind CSS según el valor de la encuesta.
+ * @param {number} valor - El valor numérico de la encuesta (1, 2, 3, 4).
+ * @returns {string} Las clases de CSS para el color del texto.
+ */
+const getColorForEncuesta = (valor) => {
+    switch (valor) {
+        case 4:
+            return 'text-green-700 dark:text-green-400'; // Excelente
+        case 3:
+            return 'text-blue-700 dark:text-blue-400';   // Bueno
+        case 2:
+            return 'text-yellow-700 dark:text-yellow-400';// Regular
+        case 1:
+            return 'text-red-700 dark:text-red-400';     // Malo
+        default:
+            return 'text-gray-500 dark:text-gray-300'; // No calificado
+    }
+};
+
+/**
  * NUEVO: Maneja los eventos de cambio en los inputs de fecha y aplica validaciones.
  */
 const handleDateChange = () => {
@@ -206,6 +226,7 @@ const displayDataInTable = (data) => {
     pageData.forEach((item) => {
         const row = document.createElement('tr');
         row.className = "bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors";
+        const encuestaColorClass = getColorForEncuesta(item.valor_encuesta);
 
         // MODIFICADO: El HTML se genera con los datos de 'item', no de 'item.follow_atention'.
         // Las celdas para datos que no vienen de la API se dejan vacías.
@@ -218,15 +239,17 @@ const displayDataInTable = (data) => {
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.nombre_operario ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tipo_problema ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_inicio_diagnostico ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_final_diagnostico ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.tiempo_neto_formateado ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-green-700 dark:text-green-400">${item.hora_final_diagnostico ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tiempo_neto_formateado ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.clase_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.numero_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.mecanico_nombre ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.falla ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.causa ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-red-700 dark:text-red-400">${item.falla ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-yellow-700 dark:text-yellow-400">${item.causa ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.accion ?? ''}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.encuesta ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-bold ${encuestaColorClass}">
+                ${item.encuesta ?? ''}
+            </td>
         `;
         tbody.appendChild(row);
     });
