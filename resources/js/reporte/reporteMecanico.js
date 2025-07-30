@@ -226,10 +226,7 @@ const displayDataInTable = (data) => {
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.falla ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.causa ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.accion ?? ''}</td>
-            <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="excelente"></td>
-            <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="bueno"></td>
-            <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="regular"></td>
-            <td class="px-2 py-1 text-center"><input type="radio" name="satisfaccion_${item.folio}" value="malo"></td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.encuesta ?? ''}</td>
         `;
         tbody.appendChild(row);
     });

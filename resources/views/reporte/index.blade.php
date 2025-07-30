@@ -60,16 +60,7 @@
                             <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">FALLA</th>
                             <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">CAUSA</th>
                             <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">ACCION</th>
-                            <th colspan="4"
-                                class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-center bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-200 uppercase tracking-wider rounded-tr-xl">
-                                ENCUESTA DE SATISFACCIÓN</th>
-                        </tr>
-                        <tr>
-                            <th colspan="16"></th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-green-700 dark:text-green-400">EXCELENTE</th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-blue-700 dark:text-blue-400">BUENO</th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-yellow-700 dark:text-yellow-400">REGULAR</th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center font-bold text-red-700 dark:text-red-400">MALO</th>
+                            <th class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">ENCUESTA</th>
                         </tr>
                         <tr>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
@@ -152,14 +143,11 @@
                                     placeholder="Acción"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center"><input
-                                    type="radio" name="satisfaccion" value="excelente"></th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center"><input
-                                    type="radio" name="satisfaccion" value="bueno"></th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center"><input
-                                    type="radio" name="satisfaccion" value="regular"></th>
-                            <th class="px-2 py-1 border-b border-gray-200 dark:border-gray-700 text-center"><input
-                                    type="radio" name="satisfaccion" value="malo"></th>
+                            <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                                <input type="text" name="encuesta" id="encuesta"
+                                    placeholder="Encuesta"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">

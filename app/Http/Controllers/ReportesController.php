@@ -88,7 +88,14 @@ class ReportesController extends Controller
                     'falla' => $asignacion->diagnostico->falla,
                     'causa' => $asignacion->diagnostico->causa,
                     'accion' => $asignacion->diagnostico->accion_correctiva,
-                    'encuesta' => $asignacion->diagnostico->encuesta,
+                    'valor_encuesta' => $asignacion->diagnostico->encuesta,
+                    'encuesta' => match ($asignacion->diagnostico->encuesta) {
+                        4 => 'Excelente',
+                        3 => 'Bueno',
+                        2 => 'Regular',
+                        1 => 'Malo',
+                        default => 'No calificado', // Valor por defecto si no es 1-4
+                    },
                 ];
 
                 // --- Lógica de asignación a los grupos (Sin cambios) ---
