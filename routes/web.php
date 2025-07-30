@@ -86,6 +86,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
         //segunda version de Reportes
         Route::get('/reportesMecanicos', [ReportesController::class, 'index'])->name('reportes.index');
+        Route::get('/reportesMecanicos/obtenerDetallesTickets', [ReportesController::class, 'obtenerDetallesTickets']);
 
     });
 });

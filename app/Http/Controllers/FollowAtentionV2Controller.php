@@ -29,7 +29,7 @@ class FollowAtentionV2Controller extends Controller
     public function obtenerAreaModulos()
     {
         try {
-            $modulos = TicketOt::where('created_at', '>=', now()->subDays(10)) // 1. Filtra por los últimos 30 días
+            $modulos = TicketOt::where('created_at', '>=', now()->subDays(4)) // 1. Filtra por los últimos 30 días
                               ->select('modulo')      // 2. Selecciona solo la columna 'modulo'
                               ->distinct()            // 3. Obtiene solo valores únicos
                               ->orderBy('modulo', 'asc') // 4. Ordena alfabéticamente
@@ -54,7 +54,7 @@ class FollowAtentionV2Controller extends Controller
             // 2. Hacemos la consulta para contar los tickets por estado para el módulo y fecha dados.
             $conteoPorEstado = TicketOt::with('catalogoEstado') // Precargamos la relación
                 ->where('modulo', $modulo)
-                ->where('created_at', '>=', now()->subDays(10))
+                ->where('created_at', '>=', now()->subDays(4))
                 ->select('estado', DB::raw('count(*) as total'))
                 ->groupBy('estado')
                 ->get()
@@ -82,7 +82,7 @@ class FollowAtentionV2Controller extends Controller
                     'asignaciones.diagnostico.tiemposBahia'
                 ])
                 ->where('modulo', $modulo)
-                ->where('created_at', '>=', now()->subDays(10))
+                ->where('created_at', '>=', now()->subDays(4))
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function ($ticket) {

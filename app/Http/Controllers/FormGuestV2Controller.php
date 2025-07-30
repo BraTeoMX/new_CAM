@@ -372,7 +372,7 @@ class FormGuestV2Controller extends Controller
     public function obtenerAreasModulosSeguimiento()
     {
         try {
-            $modulos = TicketOt::where('created_at', '>=', now()->subDays(10)) // 1. Filtra por los últimos 30 días
+            $modulos = TicketOt::where('created_at', '>=', now()->subDays(4)) // 1. Filtra por los últimos 30 días
                               ->select('modulo')      // 2. Selecciona solo la columna 'modulo'
                               ->distinct()            // 3. Obtiene solo valores únicos
                               ->orderBy('modulo', 'asc') // 4. Ordena alfabéticamente
