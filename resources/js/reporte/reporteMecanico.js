@@ -180,14 +180,30 @@ const getSortValue = (item, col) => {
  */
 const getFilteredSortedData = () => {
     let filtered = dataArray.filter(item => {
-        return (!filterValues.planta || (item.planta ?? '').toLowerCase().includes(filterValues.planta.toLowerCase()))
-            && (!filterValues.folio || (item.folio ?? '').toString().toLowerCase().includes(filterValues.folio.toLowerCase()))
-            && (!filterValues.modulo || (item.modulo ?? '').toLowerCase().includes(filterValues.modulo.toLowerCase()))
-            && (!filterValues.supervisor || (item.supervisor ?? '').toLowerCase().includes(filterValues.supervisor.toLowerCase()))
-            && (!filterValues.op || (item.operario_num_empleado ?? '').toLowerCase().includes(filterValues.op.toLowerCase()))
-            && (!filterValues.mecanico || (item.mecanico_nombre ?? '').toLowerCase().includes(filterValues.mecanico.toLowerCase()))
-            && (!filterValues.total_min || (item.minutos_netos ?? '').toString().includes(filterValues.total_min));
-            // Se han eliminado las condiciones de filtro para columnas sin datos.
+        // Mapeo de los valores de filtro a las propiedades del objeto 'item'
+        const matchesPlanta = !filterValues.planta || (item.planta ?? '').toLowerCase().includes(filterValues.planta.toLowerCase());
+        const matchesFolio = !filterValues.folio || (item.folio ?? '').toString().toLowerCase().includes(filterValues.folio.toLowerCase());
+        const matchesModulo = !filterValues.modulo || (item.modulo ?? '').toLowerCase().includes(filterValues.modulo.toLowerCase());
+        const matchesSupervisor = !filterValues.supervisor || (item.supervisor ?? '').toLowerCase().includes(filterValues.supervisor.toLowerCase());
+        const matchesOp = !filterValues.op || (item.operario_num_empleado ?? '').toLowerCase().includes(filterValues.op.toLowerCase());
+        const matchesNombre = !filterValues.nombre || (item.nombre_operario ?? '').toLowerCase().includes(filterValues.nombre.toLowerCase());
+        const matchesProblema = !filterValues.problema || (item.tipo_problema ?? '').toLowerCase().includes(filterValues.problema.toLowerCase());
+        const matchesHoraParo = !filterValues.hora_paro || (item.hora_inicio_diagnostico ?? '').toLowerCase().includes(filterValues.hora_paro.toLowerCase());
+        const matchesHoraTermino = !filterValues.hora_termino || (item.hora_final_diagnostico ?? '').toLowerCase().includes(filterValues.hora_termino.toLowerCase());
+        const matchesTotalMin = !filterValues.total_min || (item.tiempo_neto_formateado ?? '').toString().includes(filterValues.total_min);
+        const matchesIdMaquina = !filterValues.id_maquina || (item.numero_maquina ?? '').toLowerCase().includes(filterValues.id_maquina.toLowerCase());
+        const matchesTipoMaquina = !filterValues.tipo_maquina || (item.clase_maquina ?? '').toLowerCase().includes(filterValues.tipo_maquina.toLowerCase());
+        const matchesMecanico = !filterValues.mecanico || (item.mecanico_nombre ?? '').toLowerCase().includes(filterValues.mecanico.toLowerCase());
+        const matchesCodigoFalla = !filterValues.codigo_falla || (item.falla ?? '').toLowerCase().includes(filterValues.codigo_falla.toLowerCase());
+        const matchesCausa = !filterValues.causa || (item.causa ?? '').toLowerCase().includes(filterValues.causa.toLowerCase());
+        const matchesAccion = !filterValues.accion || (item.accion ?? '').toLowerCase().includes(filterValues.accion.toLowerCase());
+        const matchesEncuesta = !filterValues.encuesta || (item.encuesta ?? '').toLowerCase().includes(filterValues.encuesta.toLowerCase());
+
+        return matchesPlanta && matchesFolio && matchesModulo && matchesSupervisor &&
+               matchesOp && matchesNombre && matchesProblema && matchesHoraParo &&
+               matchesHoraTermino && matchesTotalMin && matchesIdMaquina &&
+               matchesTipoMaquina && matchesMecanico && matchesCodigoFalla &&
+               matchesCausa && matchesAccion && matchesEncuesta;
     });
 
     if (sortColumn) {
@@ -241,6 +257,7 @@ const displayDataInTable = (data) => {
             <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_inicio_diagnostico ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-green-700 dark:text-green-400">${item.hora_final_diagnostico ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tiempo_neto_formateado ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tiempo_total_bahia_formateado ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.clase_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.numero_maquina ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.mecanico_nombre ?? ''}</td>
@@ -277,8 +294,9 @@ if (downloadPdfBtn) { downloadPdfBtn.addEventListener('click', () => { saveTable
 
 // Eventos de los inputs de filtro
 const filterIds = [
-    'planta', 'folio', 'modulo', 'supervisor', 'op', 'mecanico', 'total_min'
-    // Se eliminaron IDs de filtros para columnas sin datos.
+    'planta', 'folio', 'modulo', 'supervisor', 'op', 'nombre', 'problema',
+    'hora_paro', 'hora_termino', 'total_min', 'id_maquina', 'tipo_maquina',
+    'mecanico', 'codigo_falla', 'causa', 'accion', 'encuesta'
 ];
 filterIds.forEach(id => {
     const input = document.getElementById(id);

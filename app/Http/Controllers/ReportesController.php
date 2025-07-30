@@ -25,16 +25,16 @@ class ReportesController extends Controller
         $startDate = $request->input('startDate', Carbon::today()->toDateString());
         $endDate = $request->input('endDate', Carbon::today()->toDateString());
 
-        // 2. CONSULTA OPTIMIZADA (sin cambios aquí)
+        // 2. CONSULTA OPTIMIZADA
         $tickets = TicketOt::with([
             'asignaciones' => function ($query) {
                 $query->with('diagnostico.tiemposBahia');
             }
         ])
         ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-        ->get(); // MODIFICADO: Eliminé el select() para traer todos los campos necesarios
+        ->get();
 
-        // 3. INICIALIZAR LA ESTRUCTURA DE RESPUESTA (Sin cambios)
+        // 3. INICIALIZAR LA ESTRUCTURA DE RESPUESTA
         $finalResponse = [
             'global'   => [],
             'planta_1' => [],
@@ -48,16 +48,25 @@ class ReportesController extends Controller
                     continue;
                 }
 
-                // --- Lógica de cálculo de tiempo (Sin cambios) ---
+                // --- Lógica de cálculo de tiempo ---
                 $tiempoEjecucionSeg = (int) $asignacion->diagnostico->tiempo_ejecucion;
                 $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
                 $segundosNetos = $tiempoEjecucionSeg - $tiempoBahiaSeg;
                 $minutosDecimal = ($segundosNetos > 0) ? round($segundosNetos / 60, 2) : 0;
-                $minutosParaMostrar = floor($segundosNetos / 60);
-                $segundosParaMostrar = $segundosNetos % 60;
-                $tiempoFormateado = $minutosParaMostrar . ' min ' . $segundosParaMostrar . ' seg';
+                
+                // Formateo para tiempo neto
+                $minutosNetosParaMostrar = floor($segundosNetos / 60);
+                $segundosNetosParaMostrar = $segundosNetos % 60;
+                $tiempoNetoFormateado = $minutosNetosParaMostrar . ' min ' . $segundosNetosParaMostrar . ' seg';
 
-                // --- MODIFICADO: Construimos la fila de detalle con más información ---
+                // --- NUEVA LÓGICA: Formateo para el tiempo total en bahía ---
+                // Si no hay tiempos en bahía, $tiempoBahiaSeg será 0, cumpliendo con el requisito.
+                $minutosBahiaParaMostrar = floor($tiempoBahiaSeg / 60);
+                $segundosBahiaParaMostrar = $tiempoBahiaSeg % 60;
+                $tiempoBahiaFormateado = $minutosBahiaParaMostrar . ' min ' . $segundosBahiaParaMostrar . ' seg';
+
+
+                // --- Construimos la fila de detalle con más información ---
                 $filaDetalle = [
                     'planta' => ($ticket->planta == 1) ? 'Ixtlahuaca' : 'San Bartolo',
                     'modulo' => $ticket->modulo,
@@ -69,36 +78,38 @@ class ReportesController extends Controller
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
                     
                     // --- CAMPOS DE TIEMPO AÑADIDOS ---
-                    // NUEVO: Hora en que se creó el registro de diagnóstico (inicio).
                     'hora_inicio_diagnostico' => $asignacion->diagnostico->created_at->toDateTimeString(),
-                    
-                    // NUEVO: Hora en que se actualizó por última vez (fin).
                     'hora_final_diagnostico' => $asignacion->diagnostico->updated_at->toDateTimeString(),
                     
                     'minutos_netos' => $minutosDecimal,
-                    'tiempo_neto_formateado' => $tiempoFormateado,
+                    'tiempo_neto_formateado' => $tiempoNetoFormateado,
 
-                    // NUEVO: Un array con la duración en segundos de cada parada en bahía.
+                    // --- MODIFICADO: Se muestra el tiempo total de bahía formateado ---
+                    // El método sum() ya maneja el caso de que no existan registros (devuelve 0).
+                    'tiempo_total_bahia_formateado' => $tiempoBahiaFormateado,
+
+                    // Se mantiene el desglose individual por si es útil para el frontend
                     'tiempos_bahia_individuales_seg' => $asignacion->diagnostico->tiemposBahia->pluck('duracion_segundos'),
 
                     'numero_maquina' => $asignacion->diagnostico->numero_maquina,
                     'clase_maquina' => $asignacion->diagnostico->clase_maquina,
-                    // --- MEJORA: AÑADIR OTROS DETALLES ÚTILES ---
-                    'problema' => $ticket->problema_reportado, // Asumiendo que el campo se llama así
+                    
+                    // --- DETALLES ADICIONALES ---
+                    'problema' => $ticket->problema_reportado,
                     'falla' => $asignacion->diagnostico->falla,
                     'causa' => $asignacion->diagnostico->causa,
                     'accion' => $asignacion->diagnostico->accion_correctiva,
                     'valor_encuesta' => $asignacion->diagnostico->encuesta,
-                    'encuesta' => match ($asignacion->diagnostico->encuesta) {
+                    'encuesta' => match ((int)$asignacion->diagnostico->encuesta) {
                         4 => 'Excelente',
                         3 => 'Bueno',
                         2 => 'Regular',
                         1 => 'Malo',
-                        default => 'No calificado', // Valor por defecto si no es 1-4
+                        default => 'No calificado',
                     },
                 ];
 
-                // --- Lógica de asignación a los grupos (Sin cambios) ---
+                // --- Lógica de asignación a los grupos ---
                 $ticketKey = 'planta_' . $ticket->planta;
                 if (array_key_exists($ticketKey, $finalResponse)) {
                     $finalResponse[$ticketKey][] = $filaDetalle;
@@ -107,7 +118,7 @@ class ReportesController extends Controller
             }
         }
         
-        // 5. DEVOLVER LA RESPUESTA (Sin cambios)
+        // 5. DEVOLVER LA RESPUESTA
         return response()->json($finalResponse);
     }
 
