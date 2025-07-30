@@ -18,7 +18,7 @@ const getDataFromLocalStorage = () => {
 // Function to fetch data from the server
 const fetchData = async () => {
     try {
-        const response = await fetch('/form-ot-data');
+        const response = await fetch('/reportesMecanicos/obtenerDetallesTickets');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
