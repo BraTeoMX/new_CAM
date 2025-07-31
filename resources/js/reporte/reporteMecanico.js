@@ -128,28 +128,6 @@ const handleDateChange = () => {
 };
 
 
-// =================================================================================
-// SECCIÓN 3: CÓDIGO ELIMINADO (SIMPLIFICACIÓN)
-// =================================================================================
-
-// ELIMINADO: Ya no se necesita 'localStorage' porque los datos se cargan dinámicamente.
-// const saveDataToLocalStorage = (data) => { ... };
-// const getDataFromLocalStorage = () => { ... };
-
-// ELIMINADO: El cálculo de minutos ahora viene del backend ('tiempo_neto_formateado').
-// const calculateTotalMinutes = (createdAt, updatedAt) => { ... };
-// const parseTimeEstimadoToMinutes = (timeEstimado) => { ... };
-// const calculateRealStopTime = (createdAt, timeAutReal) => { ... };
-
-
-// =================================================================================
-// SECCIÓN 4: MANEJO DE LA TABLA (FILTRAR, ORDENAR, MOSTRAR)
-// =================================================================================
-
-/**
- * MODIFICADO: Obtiene el valor para ordenar directamente del objeto 'item'.
- * Ya no necesita el objeto anidado 'follow_atention'.
- */
 const getSortValue = (item, col) => {
     switch (col) {
         case 'planta': return item.planta ?? '';
