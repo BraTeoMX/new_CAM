@@ -24,6 +24,7 @@ use App\Http\Controllers\FollowAtentionV2Controller;
 use App\Http\Controllers\DashboardV2Controller;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ReportesController;
+use App\Http\Controllers\ReasignacionManualController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +84,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/dashboardV2/calendarioTickets', [DashboardV2Controller::class, 'calendarioTickets']);
         Route::get('/dashboardV2/obtenerEstatus', [DashboardV2Controller::class, 'obtenerEstatus']);
         Route::get('/dashboardV2/obtenerCreadosCompletados', [DashboardV2Controller::class, 'obtenerCreadosCompletados']);
+
+        //Segunda versuin de reasignacion manual
+        Route::get('/reasignacionManual', [ReasignacionManualController::class, 'index'])->name('reasignacionManual.index');
 
         //segunda version de Reportes
         Route::get('/reportesMecanicos', [ReportesController::class, 'index'])->name('reportes.index');

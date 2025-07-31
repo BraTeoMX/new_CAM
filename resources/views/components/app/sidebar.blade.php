@@ -124,9 +124,9 @@
                             <!-- Atencion OT -->
                             <li>
                                 <a class="flex items-center pl-4 pr-3 py-2 rounded-lg
-                                @if (Request::segment(1) === 'AtencionOT') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif
+                                @if (Request::segment(1) === 'reasignacionManual') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif
                                 transition truncate text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white"
-                                    href="{{ route('AtencionOT') }}">
+                                    href="{{ route('reasignacionManual.index') }}">
                                     <span class="material-symbols-outlined">person_alert</span>
                                     <span
                                         class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Reasignación
