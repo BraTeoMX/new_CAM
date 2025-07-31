@@ -83,8 +83,8 @@ class ReportesController extends Controller
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
                     
                     // --- CAMPOS DE TIEMPO ---
-                    'hora_inicio_diagnostico' => $asignacion->diagnostico->created_at->toDateTimeString(),
-                    'hora_final_diagnostico' => $asignacion->diagnostico->updated_at->toDateTimeString(),
+                    'hora_inicio_diagnostico' => $asignacion->diagnostico->hora_inicio,
+                    'hora_final_diagnostico' => $asignacion->diagnostico->hora_final,
                     
                     // 1. TIEMPO TOTAL (bruto, sin restar paradas)
                     'tiempo_total' => $tiempoTotalFormateado,
