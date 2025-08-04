@@ -10,12 +10,12 @@
                 <div>
                     <span class="font-semibold text-gray-700 dark:text-gray-300 mr-2">FECHA INICIO:</span>
                     <input type="date" id="fecha_inicio"
-                           class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
+                            class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
                 </div>
                 <div>
                     <span class="font-semibold text-gray-700 dark:text-gray-300 mr-2">FECHA FIN:</span>
                     <input type="date" id="fecha_fin"
-                           class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
+                            class="border rounded px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 w-full md:w-auto" />
                 </div>
             </div>
             </div>
@@ -101,28 +101,28 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <input type="time" name="hora_paro" id="hora_paro"
-                                    placeholder="Hora Paro"
+                                <input type="text" name="hora_paro" id="hora_paro"
+                                    placeholder="HH:MM:SS"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <input type="time" name="hora_termino" id="hora_termino"
-                                    placeholder="Hora Término"
+                                <input type="text" name="hora_termino" id="hora_termino"
+                                    placeholder="HH:MM:SS"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <input type="number" name="total_min" id="total_min"
+                                <input type="text" name="total_min" id="total_min"
                                     placeholder="Minutos Totales"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <input type="number" name="total_min" id="total_min"
-                                    placeholder="Total Min"
+                                <input type="text" name="minutos_reales" id="minutos_reales"
+                                    placeholder="Minutos Reales"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                                <input type="number" name="tiempo_bahia" id="tiempo_bahia"
-                                    placeholder="Tiempo Bahía"
+                                <input type="text" name="minutos_bahia" id="minutos_bahia"
+                                    placeholder="Minutos Bahía"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
@@ -166,7 +166,6 @@
                         {{-- Aquí se insertan las filas dinámicamente con JS --}}
                     </tbody>
                 </table>
-                <!-- PAGINATION CONTAINER -->
                 <div id="pagination-container" class="mt-4 flex justify-center"></div>
             </div>
         </div>
