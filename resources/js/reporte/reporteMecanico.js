@@ -151,9 +151,14 @@ const getFilteredSortedData = () => {
 
         // SOLUCIÓN PUNTO 2: Filtro numérico para minutos
         // Compara el inicio del valor numérico, permitiendo buscar "1" y encontrar "10", "15", etc.
-        const matchesTotalMin = !filterValues.total_min || (item.minutos_totales ?? '').toString().startsWith(filterValues.total_min);
-        const matchesMinutosReales = !filterValues.minutos_reales || (item.minutos_netos ?? '').toString().startsWith(filterValues.minutos_reales);
-        const matchesMinutosBahia = !filterValues.minutos_bahia || (item.minutos_bahia ?? '').toString().startsWith(filterValues.minutos_bahia);
+        const matchesTotalMin = !filterValues.total_min ||
+            (item.tiempo_total ?? '').toLowerCase().includes(filterValues.total_min.toLowerCase());
+
+        const matchesMinutosReales = !filterValues.minutos_reales ||
+            (item.tiempo_neto_formateado ?? '').toLowerCase().includes(filterValues.minutos_reales.toLowerCase());
+
+        const matchesMinutosBahia = !filterValues.minutos_bahia ||
+            (item.tiempo_total_bahia_formateado ?? '').toLowerCase().includes(filterValues.minutos_bahia.toLowerCase());
 
         // SOLUCIÓN PUNTO 3: La lógica de filtro aquí siempre fue correcta. El problema estaba en el display.
         const matchesIdMaquina = !filterValues.id_maquina || (item.numero_maquina ?? '').toLowerCase().includes(filterValues.id_maquina.toLowerCase());
