@@ -142,9 +142,17 @@ const CreatCompletChartModule = (function() {
         }
 
         try {
+            const monthSelect = document.getElementById('month-select');
+            const params = {
+                year: new Date().getFullYear(), // O de donde obtengas el año
+                month: monthSelect ? parseInt(monthSelect.value, 10) : new Date().getMonth() + 1
+            };
+
             const urlParams = new URLSearchParams();
-            if (params.year) urlParams.append('year', params.year);
+            // Usar los parámetros que acabamos de obtener
+            if (params.year) urlParams.append('year', params.year); 
             if (params.month) urlParams.append('month', params.month);
+
 
             // CAMBIO: Apuntar a la nueva ruta
             const url = `/dashboardV2/obtenerCreadosCompletados?${urlParams.toString()}`;
