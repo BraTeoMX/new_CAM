@@ -163,10 +163,13 @@ const CreatCompletChartModule = (function() {
             
             const data = await response.json();
 
-            // Actualizar el estado del módulo con los nuevos datos
-            state.labels = data.map(d => d.date);
-            state.creadas = data.map(d => d.creadas);
-            state.completadas = data.map(d => d.completadas);
+            // CAMBIO: Filtrar los datos para excluir los días sin actividad
+            const filteredData = data.filter(d => d.creadas > 0 || d.completadas > 0);
+
+            // Ahora, mapear desde los datos YA filtrados
+            state.labels = filteredData.map(d => d.date);
+            state.creadas = filteredData.map(d => d.creadas);
+            state.completadas = filteredData.map(d => d.completadas);
 
             // Renderizar la gráfica con los nuevos datos
             renderChart();
