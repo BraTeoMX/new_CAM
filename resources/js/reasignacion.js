@@ -65,10 +65,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const mecanicos = await response.json();
 
             mecanicoSelect.innerHTML = '<option value="">Seleccione un mecánico...</option>'; // Opción por defecto
+            
             mecanicos.forEach(mecanico => {
                 const option = document.createElement('option');
-                option.value = mecanico.cvetra;
-                option.textContent = mecanico.nombre;
+                
+                // --- CAMBIOS CLAVE AQUÍ ---
+                // 1. El valor de la opción será el número de empleado, que es un identificador único.
+                option.value = mecanico.numero_empleado; 
+                
+                // 2. El texto visible para el usuario será el nombre.
+                option.textContent = mecanico.nombre; 
+                
+                // 3. Guardamos la planta en un atributo data-* para poder acceder a ella después.
+                option.setAttribute('data-planta', mecanico.planta); 
+                
                 mecanicoSelect.appendChild(option);
             });
         } catch (error) {
@@ -218,13 +228,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Enviar el formulario para asignar mecánico
     formAsignar.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const otId = otIdInput.value;
-        const mecanicoCvetra = mecanicoSelect.value;
         
-        if (!mecanicoCvetra) {
+        // --- CAMBIOS CLAVE AQUÍ ---
+        const otId = otIdInput.value;
+        
+        // Obtenemos la opción seleccionada completa, no solo su valor
+        const selectedOption = mecanicoSelect.options[mecanicoSelect.selectedIndex];
+
+        if (!selectedOption || !selectedOption.value) {
             Swal.fire('Error', 'Debes seleccionar un mecánico.', 'error');
             return;
         }
+
+        // Extraemos todos los datos de la opción seleccionada
+        const numeroEmpleado = selectedOption.value;
+        const nombreMecanico = selectedOption.textContent;
+        const plantaMecanico = selectedOption.dataset.planta; // Acceso fácil al atributo data-planta
 
         try {
             const response = await fetch(`/api/reasignacion/asignar/${otId}`, {
@@ -233,7 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({ mecanico_cvetra: mecanicoCvetra })
+                // Construimos el cuerpo de la petición con todos los datos
+                body: JSON.stringify({ 
+                    numero_empleado: numeroEmpleado,
+                    nombre_mecanico: nombreMecanico,
+                    planta: plantaMecanico
+                })
             });
 
             const result = await response.json();
@@ -245,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Swal.fire('¡Éxito!', 'Mecánico asignado correctamente.', 'success');
             modalAsignar.classList.add('hidden');
             modalAsignar.classList.remove('flex');
-            cargarOtsSinAsignar(); // ¡Actualizar la lista de OTs sin asignar!
+            cargarOtsSinAsignar(); // Actualizar la lista de OTs sin asignar
 
         } catch (error) {
             console.error('Error al asignar mecánico:', error);

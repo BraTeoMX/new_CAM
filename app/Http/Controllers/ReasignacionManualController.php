@@ -110,27 +110,30 @@ class ReasignacionManualController extends Controller
      */
     public function asignarMecanico(Request $request, $id)
     {
+        // 1. Actualizamos la validación para que coincida con los nuevos datos enviados
         $request->validate([
-            'mecanico_cvetra' => 'required',
+            'numero_empleado' => 'required',
+            'nombre_mecanico' => 'required|string|max:255',
+            //'planta'          => 'required|string|max:50',
         ]);
 
         try {
             DB::beginTransaction();
+            
             $ticket = TicketOt::findOrFail($id);
-            $ticket->estado = 1; // Asumiendo 1 = Asignado
+            $ticket->estado = 2; // Asumiendo 1 = Asignado
             $ticket->save();
 
-            // Aquí se necesitaría el nombre del mecánico. Lo obtenemos de la BBDD de SQL Server.
-            $mecanicoData = DB::connection('sqlsrv_dev')
-                ->table('cat_empleados')
-                ->where('cvetra', $request->mecanico_cvetra)
-                ->first();
+            // 2. ¡ELIMINAMOS LA CONSULTA EXTRA! Ya no es necesaria.
+            //    Los datos del mecánico vienen directamente desde la petición.
 
+            // 3. Usamos updateOrCreate con los datos recibidos del request.
             AsignacionOt::updateOrCreate(
                 ['ticket_ot_id' => $ticket->id],
                 [
-                    'numero_empleado_mecanico' => $request->mecanico_cvetra,
-                    'nombre_mecanico' => $mecanicoData ? $mecanicoData->nombre : 'Nombre no encontrado', // Guardamos el nombre
+                    'numero_empleado_mecanico' => $request->numero_empleado,
+                    'nombre_mecanico'          => $request->nombre_mecanico,
+                    //'planta_mecanico'          => $request->planta, 
                 ]
             );
 
