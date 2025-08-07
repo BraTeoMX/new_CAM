@@ -114,14 +114,13 @@ class ReasignacionManualController extends Controller
         $request->validate([
             'numero_empleado' => 'required',
             'nombre_mecanico' => 'required|string|max:255',
-            //'planta'          => 'required|string|max:50',
         ]);
 
         try {
             DB::beginTransaction();
             
             $ticket = TicketOt::findOrFail($id);
-            $ticket->estado = 2; // Asumiendo 1 = Asignado
+            $ticket->estado = 2; // Cambiamos el estado a "Asignada"
             $ticket->save();
 
             // 2. ¡ELIMINAMOS LA CONSULTA EXTRA! Ya no es necesaria.
@@ -133,7 +132,6 @@ class ReasignacionManualController extends Controller
                 [
                     'numero_empleado_mecanico' => $request->numero_empleado,
                     'nombre_mecanico'          => $request->nombre_mecanico,
-                    //'planta_mecanico'          => $request->planta, 
                 ]
             );
 
