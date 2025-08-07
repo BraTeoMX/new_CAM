@@ -2,132 +2,136 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\TicketOt;
 use App\Models\AsignacionOt;
 
 class ReasignacionManualController extends Controller
 {
-    public function index() // SUGERENCIA: Renombrar 'Admin' a 'index' es una convención RESTful.
+    public function index()
     {
-        return view('reasignacion.index'); // SUGERENCIA: Nombres de vistas en minúscula.
+        return view('reasignacion.index');
     }
 
-    public function obtenerDetallesTickets(Request $request)
+    public function getOtsSinAsignar()
     {
-        // 1. OBTENER PARÁMETROS
-        $startDate = $request->input('startDate', Carbon::today()->toDateString());
-        $endDate = $request->input('endDate', Carbon::today()->toDateString());
+        return $this->obtenerRegistros(6, null); // Estado 6 = Sin Asignar
+    }
 
-        // 2. CONSULTA OPTIMIZADA
-        $tickets = TicketOt::with([
-            'asignaciones' => function ($query) {
-                $query->with('diagnostico.tiemposBahia');
+    public function buscarOts(Request $request)
+    {
+        return $this->obtenerRegistros(null, $request);
+    }
+
+    private function obtenerRegistros($estado = null, Request $request = null)
+    {
+        try {
+            // Cargamos únicamente las relaciones que SÍ existen y necesitamos.
+            // 'maquina' ya no está aquí porque es un atributo, no una relación.
+            $query = TicketOt::with(['catalogoEstado', 'asignaciones']);
+
+            if ($estado !== null) {
+                $query->where('estado', $estado);
             }
-        ])
-        ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-        ->whereIn('estado', [5, 8])
-        ->get();
 
-        // 3. INICIALIZAR LA ESTRUCTURA DE RESPUESTA
-        $finalResponse = [
-            'global'   => [],
-            'planta_1' => [],
-            'planta_2' => [],
-        ];
-
-        // 4. PROCESAR Y AGREGAR DATOS
-        foreach ($tickets as $ticket) {
-            foreach ($ticket->asignaciones as $asignacion) {
-                if (!$asignacion->diagnostico) {
-                    continue;
+            if ($request) {
+                if ($request->filled('folio')) {
+                    $query->where('folio', 'like', '%' . $request->folio . '%');
                 }
+                if ($request->filled('fecha_inicio') && $request->filled('fecha_fin')) {
+                    $startDate = Carbon::parse($request->fecha_inicio)->startOfDay();
+                    $endDate = Carbon::parse($request->fecha_fin)->endOfDay();
+                    $query->whereBetween('created_at', [$startDate, $endDate]);
+                }
+            }
 
-                // --- LÓGICA DE CÁLCULO DE TIEMPOS ---
-                $tiempoEjecucionSeg = (int) $asignacion->diagnostico->tiempo_ejecucion;
-                $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
-                $segundosNetos = $tiempoEjecucionSeg - $tiempoBahiaSeg;
-                $minutosDecimal = ($segundosNetos > 0) ? round($segundosNetos / 60, 2) : 0;
-                
-                // Formateo para tiempo total de ejecución (NUEVO)
-                $minutosTotalesParaMostrar = floor($tiempoEjecucionSeg / 60);
-                $segundosTotalesParaMostrar = $tiempoEjecucionSeg % 60;
-                $tiempoTotalFormateado = $minutosTotalesParaMostrar . ' min ' . $segundosTotalesParaMostrar . ' seg';
+            $tickets = $query->orderBy('created_at', 'desc')->get();
 
-                // Formateo para tiempo neto
-                $minutosNetosParaMostrar = floor($segundosNetos / 60);
-                $segundosNetosParaMostrar = $segundosNetos % 60;
-                $tiempoNetoFormateado = $minutosNetosParaMostrar . ' min ' . $segundosNetosParaMostrar . ' seg';
+            // Mapeamos los resultados accediendo directamente a los atributos del modelo.
+            $resultados = $tickets->map(function ($ticket) {
+                $asignacion = $ticket->asignaciones->first();
 
-                // Formateo para el tiempo total en bahía
-                $minutosBahiaParaMostrar = floor($tiempoBahiaSeg / 60);
-                $segundosBahiaParaMostrar = $tiempoBahiaSeg % 60;
-                $tiempoBahiaFormateado = $minutosBahiaParaMostrar . ' min ' . $segundosBahiaParaMostrar . ' seg';
-
-
-                // --- CONSTRUCCIÓN DE LA FILA DE DETALLE ---
-                $filaDetalle = [
-                    'planta' => ($ticket->planta == 1) ? 'Ixtlahuaca' : 'San Bartolo',
-                    'modulo' => $ticket->modulo,
-                    'folio' => $ticket->folio,
-                    'supervisor' => $ticket->nombre_supervisor,
-                    'operario_num_empleado' => $ticket->numero_empleado_operario,
-                    'nombre_operario' => $ticket->nombre_operario,
-                    'tipo_problema' => $ticket->tipo_problema,
-                    'mecanico_nombre' => $asignacion->nombre_mecanico,
-                    
-                    // --- CAMPOS DE TIEMPO ---
-                    'hora_inicio_diagnostico' => $asignacion->diagnostico->hora_inicio,
-                    'hora_final_diagnostico' => $asignacion->diagnostico->hora_final,
-                    
-                    // 1. TIEMPO TOTAL (bruto, sin restar paradas)
-                    'tiempo_total' => $tiempoTotalFormateado,
-                    
-                    // 2. TIEMPO NETO (real, restando paradas)
-                    'minutos_netos_decimal' => $minutosDecimal, // Tiempo neto en decimal para cálculos
-                    'tiempo_neto_formateado' => $tiempoNetoFormateado,
-
-                    // 3. TIEMPO EN BAHÍAS (total de paradas)
-                    'tiempo_total_bahia_formateado' => $tiempoBahiaFormateado,
-                    
-                    // Desglose de paradas individuales (opcional)
-                    'tiempos_bahia_individuales_seg' => $asignacion->diagnostico->tiemposBahia->pluck('duracion_segundos'),
-
-                    'numero_maquina' => $asignacion->diagnostico->numero_maquina,
-                    'clase_maquina' => $asignacion->diagnostico->clase_maquina,
-                    
-                    // --- DETALLES ADICIONALES ---
-                    'problema' => $ticket->problema_reportado,
-                    'falla' => $asignacion->diagnostico->falla,
-                    'causa' => $asignacion->diagnostico->causa,
-                    'accion' => $asignacion->diagnostico->accion_correctiva,
-                    'valor_encuesta' => $asignacion->diagnostico->encuesta,
-                    'encuesta' => match ((int)$asignacion->diagnostico->encuesta) {
-                        4 => 'Excelente',
-                        3 => 'Bueno',
-                        2 => 'Regular',
-                        1 => 'Malo',
-                        default => 'No calificado',
-                    },
+                return [
+                    'id' => $ticket->id,
+                    'Folio' => $ticket->folio, // Usamos 'folio' como en el modelo
+                    'Modulo' => $ticket->modulo,
+                    'Maquina' => $ticket->maquina, // ¡Se accede directamente al atributo!
+                    'Problema' => $ticket->descripcion_problema, // Usando el campo correcto de tu modelo
+                    'Status' => $ticket->catalogoEstado->nombre ?? 'N/A',
+                    'estado_id' => $ticket->estado,
+                    'Mecanico' => $asignacion->nombre_mecanico ?? 'Sin Asignar', // ¡Se accede al nombre directamente!
+                    'Supervisor' => $ticket->nombre_supervisor ?? 'N/A', // El supervisor está en el ticket principal
+                    'fecha_creacion' => Carbon::parse($ticket->created_at)->format('d/m/Y H:i'),
                 ];
+            });
 
-                // --- Lógica de asignación a los grupos ---
-                $ticketKey = 'planta_' . $ticket->planta;
-                if (array_key_exists($ticketKey, $finalResponse)) {
-                    $finalResponse[$ticketKey][] = $filaDetalle;
-                }
-                $finalResponse['global'][] = $filaDetalle;
-            }
+            return response()->json($resultados);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener los registros de OT: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['error' => 'No se pudieron cargar los registros'], 500);
         }
-        
-        // 5. DEVOLVER LA RESPUESTA
-        return response()->json($finalResponse);
     }
 
+    /**
+     * Obtiene la lista de mecánicos para el MODAL.
+     * Esta función está perfecta y no necesita cambios.
+     */
+    public function getMecanicos()
+    {
+        try {
+            $mecanicos = DB::connection('sqlsrv_dev')
+                ->table('cat_empleados')
+                ->select('nombre', 'cvetra')
+                ->where('despue', 'LIKE', '%MECANICO%')
+                ->orderBy('nombre')
+                ->get();
+            return response()->json($mecanicos);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener mecánicos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener los datos de mecánicos.'], 500);
+        }
+    }
+
+    /**
+     * Asigna un mecánico a una OT.
+     * Esta función también está correcta.
+     */
+    public function asignarMecanico(Request $request, $id)
+    {
+        $request->validate([
+            'mecanico_cvetra' => 'required',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $ticket = TicketOt::findOrFail($id);
+            $ticket->estado = 1; // Asumiendo 1 = Asignado
+            $ticket->save();
+
+            // Aquí se necesitaría el nombre del mecánico. Lo obtenemos de la BBDD de SQL Server.
+            $mecanicoData = DB::connection('sqlsrv_dev')
+                ->table('cat_empleados')
+                ->where('cvetra', $request->mecanico_cvetra)
+                ->first();
+
+            AsignacionOt::updateOrCreate(
+                ['ticket_ot_id' => $ticket->id],
+                [
+                    'numero_empleado_mecanico' => $request->mecanico_cvetra,
+                    'nombre_mecanico' => $mecanicoData ? $mecanicoData->nombre : 'Nombre no encontrado', // Guardamos el nombre
+                ]
+            );
+
+            DB::commit();
+            return response()->json(['success' => 'Mecánico asignado correctamente.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al asignar mecánico: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo asignar el mecánico.'], 500);
+        }
+    }
 }

@@ -87,6 +87,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
         //Segunda versuin de reasignacion manual
         Route::get('/reasignacionManual', [ReasignacionManualController::class, 'index'])->name('reasignacionManual.index');
+        // Grupo de rutas para la API interna de la sección
+        Route::prefix('api/reasignacion')->name('reasignacion.api.')->group(function () {
+            // Obtener OTs sin asignar (estado = 6)
+            Route::get('/sin-asignar', [ReasignacionManualController::class, 'getOtsSinAsignar'])->name('getOtsSinAsignar');
+            // Ruta para el buscador
+            Route::get('/buscar', [ReasignacionManualController::class, 'buscarOts'])->name('buscarOts');
+            // Obtener el catálogo de mecánicos
+            Route::get('/mecanicos', [ReasignacionManualController::class, 'getMecanicos'])->name('getMecanicos');
+            // Asignar un mecánico a una OT
+            Route::post('/asignar/{id}', [ReasignacionManualController::class, 'asignarMecanico'])->name('asignarMecanico');
+        });
 
         //segunda version de Reportes
         Route::get('/reportesMecanicos', [ReportesController::class, 'index'])->name('reportes.index');
