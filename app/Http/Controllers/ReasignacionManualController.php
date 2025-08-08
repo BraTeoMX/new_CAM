@@ -110,8 +110,8 @@ class ReasignacionManualController extends Controller
      */
     public function asignarMecanico(Request $request, $id)
     {
-        // 1. Actualizamos la validación para que coincida con los nuevos datos enviados
-        $request->validate([
+        // Mantenemos la validación. Asegúrate de incluir 'planta' si la estás enviando.
+        $validatedData = $request->validate([
             'numero_empleado' => 'required',
             'nombre_mecanico' => 'required|string|max:255',
         ]);
@@ -119,28 +119,40 @@ class ReasignacionManualController extends Controller
         try {
             DB::beginTransaction();
             
+            // ---- CAMBIO CLAVE ----
+            // 1. Buscamos la asignación existente. Si no existe, fallará y saltará al bloque CATCH.
+            $asignacion = AsignacionOt::where('ticket_ot_id', $id)->firstOrFail();
+
+            // 2. Si llegamos aquí, la asignación SÍ existe. La actualizamos con los nuevos datos.
+            $asignacion->update([
+                'numero_empleado_mecanico' => $validatedData['numero_empleado'],
+                'nombre_mecanico'          => $validatedData['nombre_mecanico'],
+            ]);
+
+            // 3. También actualizamos el estado del ticket principal (si es necesario).
             $ticket = TicketOt::findOrFail($id);
-            $ticket->estado = 2; // Cambiamos el estado a "Asignada"
+            $ticket->estado = 2; // Estado "Asignada" o "Reasignada"
             $ticket->save();
 
-            // 2. ¡ELIMINAMOS LA CONSULTA EXTRA! Ya no es necesaria.
-            //    Los datos del mecánico vienen directamente desde la petición.
-
-            // 3. Usamos updateOrCreate con los datos recibidos del request.
-            AsignacionOt::updateOrCreate(
-                ['ticket_ot_id' => $ticket->id],
-                [
-                    'numero_empleado_mecanico' => $request->numero_empleado,
-                    'nombre_mecanico'          => $request->nombre_mecanico,
-                ]
-            );
-
             DB::commit();
-            return response()->json(['success' => 'Mecánico asignado correctamente.']);
-        } catch (\Exception $e) {
+            // Cambiamos el mensaje para reflejar que fue una reasignación exitosa.
+            return response()->json(['success' => 'Mecánico reasignado correctamente.']);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // --- ESTE ES EL MANEJO DE ERROR ESPECÍFICO ---
+            // Este bloque se ejecuta SOLAMENTE si firstOrFail() no encontró el registro.
             DB::rollBack();
-            Log::error('Error al asignar mecánico: ' . $e->getMessage());
-            return response()->json(['error' => 'No se pudo asignar el mecánico.'], 500);
+            Log::warning("Intento de reasignar una OT sin asignación previa. Ticket ID: {$id}");
+            // Devolvemos un error 404 (No Encontrado) con un mensaje claro.
+            return response()->json([
+                'error' => 'Error de lógica: No se encontró una asignación previa para esta OT. No se puede reasignar.'
+            ], 404);
+
+        } catch (\Exception $e) {
+            // Este bloque captura cualquier otro error inesperado.
+            DB::rollBack();
+            Log::error('Error al reasignar mecánico: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo reasignar el mecánico debido a un error inesperado.'], 500);
         }
     }
 }
