@@ -1,9 +1,9 @@
-// resources/js/reasignacion.js
+// resources/js/reasignacion/reasignacion.js
 
 // Importamos las funciones principales de nuestros módulos
-import { cargarOtsSinAsignar } from './reasignacion/unassigned.js';
-import { initializeSearch } from './reasignacion/search.js';
-import { initializeModals } from './reasignacion/modals.js';
+import { cargarOtsSinAsignar } from './unassigned.js';
+import { initializeSearch } from './search.js';
+import { initializeModals } from './modals.js';
 
 // Espera a que el DOM esté completamente cargado para ejecutar nuestro código
 document.addEventListener('DOMContentLoaded', () => {
