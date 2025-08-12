@@ -31,12 +31,13 @@
 
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Resultados de Búsqueda</h2>
                 <div id="search-results-container" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                     <p class="text-gray-500 dark:text-gray-400 col-span-full">Realiza una búsqueda para ver los resultados.</p>
+                        <p class="text-gray-500 dark:text-gray-400 col-span-full">Realiza una búsqueda para ver los resultados.</p>
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- Modales --}}
     <div id="modalAsignar" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900 bg-opacity-75">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Asignar Mecánico</h2>
@@ -45,7 +46,7 @@
                 <div>
                     <label for="mecanico-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Selecciona un mecánico</label>
                     <select id="mecanico-select" name="mecanico_cvetra" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                        </select>
+                    </select>
                 </div>
                 <div class="flex justify-end space-x-4 mt-6">
                     <button type="button" id="cancelar-asignacion" class="px-4 py-2 text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-md">Cancelar</button>
@@ -63,7 +64,7 @@
             </div>
             <div id="modal-detalles-content" class="mt-4">
                 <p class="dark:text-gray-300">Aquí se mostrarán los detalles de la OT seleccionada.</p>
-                </div>
+            </div>
         </div>
     </div>
     
