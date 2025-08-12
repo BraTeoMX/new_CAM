@@ -71,5 +71,5 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @vite(['resources/js/reasignacion.js'])
+    @vite(['resources/js/reasignacion/reasignacion.js'])
 </x-app-layout>
