@@ -8,8 +8,8 @@ import Carousel from 'flowbite/lib/esm/components/carousel';
 const DashboardTopsModule = (function () {
 
     // --- ESTADO Y CONSTANTES PRIVADAS ---
-    const API_ENDPOINT = '/dashboardV2/tops'; // Asegúrate que el endpoint es el correcto
-    const CAROUSEL_INTERVAL = 5000; // Intervalo de 5 segundos
+    const API_ENDPOINT = '/dashboardV2/tops';
+    const CAROUSEL_INTERVAL = 5000;
 
     const state = {
         isInitialized: false,
@@ -25,8 +25,7 @@ const DashboardTopsModule = (function () {
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
     
-    // --- LÓGICA DE RENDERIZADO (CORREGIDA) ---
-    // CAMBIO 2: Se ajusta la lógica de renderizado para mostrar el nombre y debajo el total.
+    // --- LÓGICA DE RENDERIZADO ---
     function renderTopCard(title, items, iconSvg, cardColor) {
         let content;
         if (!items || items.length === 0) {
@@ -35,7 +34,7 @@ const DashboardTopsModule = (function () {
             content = items.map(item => `
                 <div class="flex flex-col items-center justify-center bg-transparent rounded hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition text-sm py-1 px-1 h-full">
                     <span class="text-xs text-gray-600 dark:text-gray-300 text-center w-full" title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span>
-                    <span class="font-bold text-base text-gray-800 dark:text-gray-100">${escapeHtml(item.total)}</span>
+                    <span class="font-bold text-base text-gray-800 dark:text-gray-100">${escapeHtml(String(item.total))}</span>
                 </div>
             `).join('');
         }
@@ -52,19 +51,16 @@ const DashboardTopsModule = (function () {
         </div>`;
     }
 
-    // --- FUNCIÓN DE INICIALIZACIÓN (LAZY) ---
+    // --- FUNCIÓN DE CARGA DE DATOS Y RENDERIZADO ---
     async function fetchAndRenderTops(params = {}) {
         if (!state.container) return;
 
-        // Muestra el estado de carga cada vez que se actualiza
         state.container.innerHTML = `<div class="flex justify-center items-center min-h-[120px] text-gray-400 animate-pulse">Actualizando Ranking...</div>`;
 
-        // Limpia el intervalo anterior para evitar múltiples ciclos corriendo a la vez
         if (state.carouselIntervalId) clearInterval(state.carouselIntervalId);
 
         let topsData;
         try {
-            // --- CAMBIO 2: Se añaden los parámetros a la URL de la API ---
             const urlParams = new URLSearchParams();
             if (params.month) {
                 urlParams.append('month', params.month);
@@ -84,7 +80,6 @@ const DashboardTopsModule = (function () {
             return;
         }
 
-        // --- El resto de esta función es la lógica de renderizado que ya tenías ---
         const maquinasIcon = `<svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 16v-2m8-8h2M4 12H2m15.364 6.364l1.414 1.414M4.222 4.222l1.414 1.414m12.728 0l-1.414 1.414M5.636 18.364l-1.414 1.414M12 18a6 6 0 100-12 6 6 0 000 12z" /></svg>`;
         const maquinas = (topsData.top_maquinas || []).slice(0, 5).map(m => ({ label: m.maquina, total: m.total }));
 
@@ -116,53 +111,66 @@ const DashboardTopsModule = (function () {
             const carouselElement = document.getElementById(carouselId);
             if (!carouselElement) return;
             const items = tops.map((_, idx) => ({ position: idx, el: document.getElementById(`${itemIdPrefix}${idx}`) }));
-            state.carouselInstance = new Carousel(carouselElement, items, { interval: CAROUSEL_INTERVAL }, { id: carouselId, override: true });
+            const options = { interval: CAROUSEL_INTERVAL };
+            const instanceOptions = { id: carouselId, override: true };
+            state.carouselInstance = new Carousel(carouselElement, items, options, instanceOptions);
+            
             const startAutoCycle = () => {
                 clearInterval(state.carouselIntervalId);
-                state.carouselIntervalId = setInterval(() => { if (state.carouselInstance) state.carouselInstance.next(); }, CAROUSEL_INTERVAL);
+                state.carouselIntervalId = setInterval(() => { 
+                    if (state.carouselInstance && !state.isPaused) state.carouselInstance.next(); 
+                }, CAROUSEL_INTERVAL);
             };
+
             startAutoCycle();
             const pauseBtn = document.getElementById('carousel-pause-btn');
             const pauseIcon = document.getElementById('carousel-pause-icon');
             if (pauseBtn && pauseIcon) {
                 pauseBtn.addEventListener('click', () => {
                     state.isPaused = !state.isPaused;
-                    if (state.isPaused) {
-                        clearInterval(state.carouselIntervalId);
-                        pauseIcon.textContent = 'play_arrow';
-                    } else {
-                        startAutoCycle();
-                        pauseIcon.textContent = 'pause';
-                    }
+                    pauseIcon.textContent = state.isPaused ? 'play_arrow' : 'pause';
                 });
             }
-        }, 0);
+        }, 100); // Pequeño delay para asegurar que el DOM está listo para Flowbite
     }
 
+    // --- LÓGICA DE INICIALIZACIÓN ---
     async function initializeComponent() {
         if (state.isInitialized) return;
         state.isInitialized = true;
-
-        // --- CAMBIO 3: La función de inicialización ahora solo prepara y escucha ---
         
-        // 1. Muestra un mensaje de carga inicial.
-        state.container.innerHTML = `<div class="flex justify-center items-center min-h-[120px] text-gray-400 animate-pulse">Cargando Ranking...</div>`;
+        // --- INICIO DE LA LÓGICA CORREGIDA ---
 
-        // 2. Se suscribe al evento 'monthChanged'.
+        // 1. Nos suscribimos a futuros cambios de mes.
         window.addEventListener('monthChanged', (e) => {
             const selectedMonth = e.detail.month; // Mes en formato 1-12
-            console.log(`TopsCarousel 👂: Recibido mes ${selectedMonth}`);
+            console.log(`TopsCarousel 👂: Recibido evento de mes ${selectedMonth}`);
             fetchAndRenderTops({ month: selectedMonth });
         });
 
-        // La carga inicial se disparará automáticamente cuando 'calendarSelects.js'
-        // emita el primer evento al cargar la página.
+        // 2. Buscamos el <select> para obtener el valor inicial directamente.
+        const monthSelect = document.getElementById('month-select');
+        let initialMonth;
+
+        if (monthSelect) {
+            initialMonth = monthSelect.value;
+            console.log(`TopsCarousel 🧐: Leído valor inicial del select. Mes: ${initialMonth}`);
+        } else {
+            initialMonth = new Date().getMonth() + 1;
+            console.warn(`TopsCarousel ⚠️: No se encontró el select. Usando mes del sistema: ${initialMonth}`);
+        }
+
+        // 3. Realizamos la primera carga de datos con el valor obtenido.
+        fetchAndRenderTops({ month: initialMonth });
+        
+        // --- FIN DE LA LÓGICA CORREGIDA ---
     }
 
     // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---
     function init() {
         state.container = document.getElementById('dashboard-topsmeca');
         if (!state.container) return;
+        
         const observer = new IntersectionObserver((entries, observerInstance) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
