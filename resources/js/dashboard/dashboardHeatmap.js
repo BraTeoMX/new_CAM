@@ -6,25 +6,22 @@ const HeatmapModule = (function () {
     const state = {
         isInitialized: false,
         container: null,
-        // rawData ya no se necesita, los datos se pedirán por mes.
     };
     
-    // --- CAMBIO 1: Nueva función para obtener datos del nuevo endpoint ---
+    // --- LÓGICA DE DATOS Y RENDERIZADO ---
+    
     async function fetchDataForMonth(year, month) {
-        // El mes en JS es 0-11, pero nuestro selector y API usan 1-12.
-        const monthForAPI = month + 1; 
-        const url = `/dashboardV2/calendarioTickets?year=${year}&month=${monthForAPI}`;
+        // La API espera el mes como 1-12
+        const url = `/dashboardV2/calendarioTickets?year=${year}&month=${month}`;
         console.log(`HeatmapModule 🚀: Pidiendo datos a ${url}`);
 
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Error del servidor: ${response.status}`);
         }
-        return response.json(); // Devuelve ej: [{day: 1, total: 5}, ...]
+        return response.json();
     }
     
-    // --- CAMBIO 2: Simplificar el procesamiento de datos ---
-    // Ahora solo convierte el array de la API en un mapa de {día: total}.
     function processApiData(apiData) {
         const dayMap = {};
         apiData.forEach(item => {
@@ -34,30 +31,20 @@ const HeatmapModule = (function () {
     }
 
     function getCellColor(value) {
-        // Escala de color consistente: más tickets = número más alto en la escala de Tailwind
-        
-        // 15+ tickets: El verde más oscuro y saturado
         if (value > 14) return 'bg-emerald-600 dark:bg-emerald-800 text-white dark:text-white';
-        
-        // 10-14 tickets
         if (value > 9)  return 'bg-emerald-500 dark:bg-emerald-500 text-white dark:text-white';
-        
-        // 5-9 tickets
         if (value > 4)  return 'bg-emerald-300 dark:bg-emerald-300 text-emerald-800 dark:text-emerald-800';
-        
-        // 1-4 tickets: El verde más claro y sutil
         if (value > 0)  return 'bg-emerald-200 dark:bg-emerald-200 text-emerald-700 dark:text-emerald-700';
-        
-        // 0 tickets: Sin color
         return 'bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300';
     }
 
-    function renderCalendarHeatmap(year, month, dayMap, daysInMonth) {
-        // 1. Crea el contenedor principal del componente
+    function renderCalendarHeatmap(year, month, dayMap) {
+        // El mes en JS Date es 0-11
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
         const componentContainer = document.createElement('div');
         componentContainer.className = "group py-4 px-2 sm:px-4 md:px-6 lg:px-8 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 rounded-lg relative overflow-hidden flex flex-col w-full";
         
-        // Se ha eliminado el div de la leyenda del siguiente bloque de HTML
         componentContainer.innerHTML = `
             <div class="flex flex-col w-full">
                 <div class="flex items-center gap-4 mb-4">
@@ -66,13 +53,11 @@ const HeatmapModule = (function () {
                 <div class="overflow-x-auto w-full">
                     <div id="calendar-grid" class="grid grid-cols-7 gap-2 min-w-[340px] w-max mx-auto"></div>
                 </div>
-            </div>
-            `;
+            </div>`;
 
         const grid = componentContainer.querySelector('#calendar-grid');
         const daysOfWeek = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-        // Dibuja las etiquetas de los días de la semana
         daysOfWeek.forEach(day => {
             const label = document.createElement('div');
             label.textContent = day;
@@ -80,78 +65,77 @@ const HeatmapModule = (function () {
             grid.appendChild(label);
         });
 
-        // Calcula el día de inicio para alinear el calendario (Lunes=0)
-        const firstDayOfMonth = new Date(year, month, 1).getDay(); // Domingo=0, Lunes=1
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
         const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
-        // Añade celdas vacías al inicio para la alineación
         for (let i = 0; i < startOffset; i++) {
             grid.appendChild(document.createElement('div'));
         }
 
-        // Dibuja una celda para cada día del mes
         for (let d = 1; d <= daysInMonth; d++) {
             const value = dayMap[d] || 0;
             const cell = document.createElement('div');
-            
             cell.className = `flex flex-col items-center justify-center text-sm font-medium ${getCellColor(value)} rounded-lg transition-transform hover:scale-110 cursor-pointer w-[44px] h-[44px]`;
-            cell.title = `${d}/${month + 1}/${year}: ${value} tickets`; // El tooltip se mantiene
+            cell.title = `${d}/${month + 1}/${year}: ${value} tickets`;
             cell.textContent = d;
-
             grid.appendChild(cell);
         }
 
-        // Limpia el contenedor principal y dibuja el nuevo calendario
         state.container.innerHTML = '';
         state.container.appendChild(componentContainer);
     }
 
-    // --- CAMBIO 3: Refactorizar la función principal de renderizado ---
-    async function fetchAndRender() {
-        if (!state.container) return;
+    /**
+     * Función principal que orquesta la carga y renderizado para un mes dado.
+     */
+    async function updateHeatmap(year, month) { // month es 1-12
+        if (!state.isInitialized) return;
         
         state.container.innerHTML = `<div class="w-full min-h-[400px] flex items-center justify-center text-gray-400 animate-pulse">Actualizando Actividad...</div>`;
 
         try {
-            // Obtener mes y año actual de los selectores (si existieran) o usar la fecha actual
-            const monthSelect = document.getElementById('month-select'); // Usamos el selector de los otros módulos
-            const currentYear = new Date().getFullYear();
-            
-            // El selector de mes devuelve 1-12, pero en JS se maneja como 0-11
-            const currentMonth = monthSelect ? parseInt(monthSelect.value, 10) - 1 : new Date().getMonth();
+            // El mes en JS para cálculos de fechas es 0-11
+            const monthJS = month - 1;
 
-            // 1. Pedir los datos ya procesados para el mes actual
-            const apiData = await fetchDataForMonth(currentYear, currentMonth);
-
-            // 2. Convertir los datos de la API al formato que necesita el renderizador
+            const apiData = await fetchDataForMonth(year, month);
             const dayMap = processApiData(apiData);
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-            // 3. Renderizar el calendario
-            renderCalendarHeatmap(currentYear, currentMonth, dayMap, daysInMonth);
+            
+            renderCalendarHeatmap(year, monthJS, dayMap);
 
         } catch (e) {
-            console.error('Heatmap: Error en fetchAndRender:', e);
+            console.error('Heatmap: Error al actualizar:', e);
             state.container.innerHTML = '<div class="p-4 text-center text-red-500">Error al cargar datos de actividad.</div>';
         }
     }
 
-    // --- CAMBIO 4: Simplificar la inicialización y usar el listener correcto ---
+    // --- LÓGICA DE INICIALIZACIÓN ---
+
     async function initializeComponent() {
         if (state.isInitialized) return;
         state.isInitialized = true;
-
-        console.log("HeatmapModule: Component is visible, initializing...");
+        console.log("HeatmapModule: Componente visible, inicializando...");
         
-        // Se suscribe al evento 'monthChanged' que disparan los otros componentes
-        window.addEventListener('monthChanged', fetchAndRender);
+        // 1. Nos suscribimos a futuros cambios de mes.
+        window.addEventListener('monthChanged', (e) => {
+            const newMonth = e.detail.month; // Mes en formato 1-12
+            updateHeatmap(new Date().getFullYear(), newMonth);
+        });
 
-        // Dispara la primera carga. El evento 'monthChanged' de la carga inicial de la página
-        // se encargará de las actualizaciones posteriores.
-        await fetchAndRender();
+        // 2. Buscamos el <select> para obtener el valor inicial de forma segura.
+        const monthSelect = document.getElementById('month-select');
+        let initialMonth;
+
+        if (monthSelect) {
+            initialMonth = monthSelect.value;
+        } else {
+            // Fallback por si el selector no existe al momento de la inicialización.
+            initialMonth = new Date().getMonth() + 1; 
+        }
+
+        // 3. Realizamos la primera carga de datos con el valor obtenido.
+        await updateHeatmap(new Date().getFullYear(), initialMonth);
     }
     
-    // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---
     function init() {
         state.container = document.getElementById('dashboard-heatmap');
         if (!state.container) return;
@@ -163,8 +147,7 @@ const HeatmapModule = (function () {
                     observerInstance.unobserve(state.container);
                 }
             });
-        }, { threshold: 0.05 }); // Activa cuando un 5% del componente sea visible
-
+        }, { threshold: 0.05 });
         observer.observe(state.container);
     }
 
