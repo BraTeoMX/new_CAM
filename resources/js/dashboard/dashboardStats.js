@@ -222,14 +222,51 @@ function createDataGridHTML() {
  */
 function initializeDataTable(tableId) {
     const table = new DataTable(`#${tableId}`, {
-        data: [], // Inicia vacía, `updateUI` la llenará
+        data: [], 
         columns: [
-            { data: 'planta' }, { data: 'folio' }, { data: 'modulo' },
-            { data: 'supervisor' }, { data: 'mecanico_nombre' },
-            { data: 'tiempo_neto_formateado', title: 'Tiempo Neto' } // Usamos directamente el campo formateado
+            { data: 'planta' },
+            { data: 'folio' },
+            { data: 'modulo' },
+            { data: 'supervisor' },
+            { data: 'mecanico_nombre' },
+            { 
+                data: 'tiempo_neto_formateado', 
+                title: 'Tiempo Neto',
+                // La función render se mantiene exactamente igual.
+                // Proporciona el número de segundos cuando se le pregunta.
+                render: function (data, type, row) {
+                    if (type === 'sort') {
+                        if (!data) return 0; // Seguridad por si el dato es nulo
+                        const match = data.match(/(\d+)\s*min\s*(\d+)\s*seg/);
+                        if (match) {
+                            const minutos = parseInt(match[1], 10);
+                            const segundos = parseInt(match[2], 10);
+                            return (minutos * 60) + segundos;
+                        }
+                        return 0;
+                    }
+                    // Para cualquier otro caso (display, filter, etc.) muestra el texto original
+                    return data;
+                }
+            }
         ],
+        
+        // --- INICIO DE LA NUEVA INSTRUCCIÓN ---
+        // Aquí le decimos a DataTables cómo tratar específicamente a nuestras columnas.
+        columnDefs: [
+            {
+                // `targets: 5` se refiere a la sexta columna (el índice empieza en 0).
+                targets: 5, 
+                // `type: 'num'` FUERZA a DataTables a usar el ordenamiento numérico
+                // para esta columna, activando así nuestra lógica en `render`.
+                type: 'num' 
+            }
+        ],
+        // --- FIN DE LA NUEVA INSTRUCCIÓN ---
+
         responsive: true,
         lengthChange: false,
+        pageLength: 10,
         language: {
             "processing": "Procesando...",
             "lengthMenu": "Mostrar _MENU_ registros",
