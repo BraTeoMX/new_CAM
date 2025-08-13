@@ -1,25 +1,31 @@
 // Archivo: resources/js/dashboard/dashboardStats.js
 
-// Objeto para almacenar el estado y las instancias de DataTable
+// Objeto para almacenar el estado del componente.
 const state = {
-    isInitialized: false,
+    isInitialized: false, // ¿Se ha ejecutado init()?
+    tabsAreBuilt: false,  // ¿Se ha construido el HTML de las pestañas?
     container: null,
-    dataTables: {} // Guardaremos las instancias de las tablas aquí
+    dataTables: {}        // Almacenará las instancias de DataTable.
 };
 
 // ================================================================
-// SECCIÓN 1: LÓGICA DE DATOS Y ACTUALIZACIÓN DE UI
+// SECCIÓN 1: LÓGICA DE DATOS Y RENDERIZADO
 // ================================================================
 
 /**
- * Carga los datos de AMBAS APIs y luego llama a la función para actualizar la UI.
+ * Orquesta la carga de datos desde las APIs. Es el único punto de entrada
+ * para obtener nuevos datos del servidor.
  */
 async function loadDashboardData(month) {
     if (!state.isInitialized) return;
     console.log(`📊 DashboardStats: Cargando datos para el mes ${month}.`);
 
-    // Podríamos añadir una clase de "cargando" al contenedor para dar feedback visual
-    state.container.classList.add('opacity-50', 'pointer-events-none');
+    // Proporciona feedback visual de carga.
+    if (!state.tabsAreBuilt) {
+        state.container.innerHTML = `<div class="relative w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 min-h-[300px] flex items-center justify-center"><div class="animate-pulse text-gray-400">Cargando estadísticas...</div></div>`;
+    } else {
+        state.container.classList.add('opacity-50', 'pointer-events-none');
+    }
 
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -40,45 +46,56 @@ async function loadDashboardData(month) {
 
         const resumenData = await resumenResponse.json();
         const detallesData = await detallesResponse.json();
+        
+        const combinedData = { resumen: resumenData, detalles: detallesData };
 
-        updateUI({ resumen: resumenData, detalles: detallesData });
+        // Lógica principal: si las pestañas no existen, las crea.
+        // Después, siempre actualiza la UI con los nuevos datos.
+        if (!state.tabsAreBuilt) {
+            createDynamicShell(combinedData);
+            state.tabsAreBuilt = true;
+        }
+        
+        updateUI(combinedData);
 
     } catch (error) {
-        // En caso de error, podríamos mostrar un toast o un mensaje más elegante
+        state.container.innerHTML = '<div class="text-red-500 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">Error al cargar las estadísticas. Por favor, intente de nuevo.</div>';
         console.error('Error en dashboardStats.js:', error);
-        alert('Error al cargar las estadísticas.');
     } finally {
-        // Quita la clase de "cargando" sin importar si hubo éxito o error
         state.container.classList.remove('opacity-50', 'pointer-events-none');
     }
 }
 
 /**
  * TOMA los nuevos datos y ACTUALIZA los elementos del DOM existentes.
- * No reconstruye nada, solo cambia el contenido de texto y los datos de las tablas.
+ * No reconstruye el HTML, solo cambia el contenido de texto y los datos de las tablas.
  */
 function updateUI(data) {
     console.log("🔄 Actualizando UI con nuevos datos.");
 
-    // 1. Actualizar tarjetas de resumen para cada pestaña
-    const tabs = ['global', ...data.resumen.plantas.map((p, i) => `planta_${i+1}`)];
+    // 1. Crear la lista de pestañas a partir de los datos recibidos.
+    const tabsConfig = [
+        { id: 'global' },
+        ...data.resumen.plantas.map((p, i) => ({ id: `planta_${i+1}` }))
+    ];
 
-    tabs.forEach((tabKey, index) => {
-        const stats = (tabKey === 'global') 
+    // 2. Actualizar las tarjetas de resumen para cada pestaña.
+    tabsConfig.forEach((tab, index) => {
+        const stats = (tab.id === 'global') 
             ? data.resumen.global 
             : data.resumen.plantas[index - 1];
         
-        const contentContainer = document.getElementById(`tab-content-${tabKey}`);
-        if (contentContainer) {
+        const contentContainer = document.getElementById(`tab-content-${tab.id}`);
+        if (contentContainer && stats) {
             contentContainer.querySelector('.stat-minutos').textContent = Math.round(stats.minutos).toLocaleString('es-MX');
             contentContainer.querySelector('.stat-tickets').textContent = stats.tickets.toLocaleString('es-MX');
             contentContainer.querySelector('.stat-promedio').textContent = stats.promedio_min.toFixed(2);
         }
     });
 
-    // 2. Actualizar las DataTables con los nuevos datos
+    // 3. Actualizar todas las DataTables con los nuevos datos.
     Object.keys(state.dataTables).forEach(tableId => {
-        const dataKey = tableId.replace('table-', '');
+        const dataKey = tableId.replace('table-', ''); // 'global', 'planta_1', etc.
         const newData = data.detalles[dataKey] || [];
         const table = state.dataTables[tableId];
         
@@ -86,57 +103,98 @@ function updateUI(data) {
         table.rows.add(newData);
         table.draw();
     });
-
-    // Guardamos los nuevos datos de detalles para las tablas que se inicializarán más tarde
-    state.detallesData = data.detalles; 
 }
 
-
 // ================================================================
-// SECCIÓN 2: CREACIÓN INICIAL DEL "ESQUELETO" DE LA UI
+// SECCIÓN 2: CONSTRUCCIÓN INICIAL DE LA UI (EL "ESQUELETO")
 // ================================================================
 
 /**
- * CONSTRUYE el HTML estático del componente UNA SOLA VEZ.
+ * CONSTRUYE el HTML dinámico del componente UNA SOLA VEZ, usando los datos
+ * de la primera carga.
  */
-function createDashboardShell() {
-    // La data para las cabeceras se puede "falsear" o cargar con una llamada inicial mínima,
-    // pero para simplicidad, asumimos que siempre hay una pestaña "Global".
-    // Una mejora futura sería cargar solo las plantas y luego construir las pestañas.
-    const initialTabsConfig = [{ id: 'global', name: 'Global', icon: 'dashboard' }];
+function createDynamicShell(data) {
+    console.log("🏗️ Construyendo el esqueleto dinámico de la UI por primera vez.");
+    state.container.innerHTML = ''; // Limpiar el "Cargando..."
 
+    // Configuración de pestañas basada en los datos reales.
+    const tabsConfig = [
+        { id: 'global', name: 'Global', icon: 'dashboard' },
+        ...data.resumen.plantas.map((p, i) => ({
+            id: `planta_${i+1}`,
+            name: p.planta,
+            icon: p.planta === 'Ixtlahuaca' ? 'factory' : 'apartment'
+        }))
+    ];
+    
     const baseButtonClasses = 'inline-block w-full p-4 focus:outline-none font-medium transition';
     const activeClasses = 'bg-indigo-800 text-white font-bold';
     const inactiveClasses = 'bg-indigo-600 text-white hover:bg-indigo-700';
 
+    // 1. Crear las cabeceras de las pestañas (botones)
     const tabHeaders = `
         <ul class="text-sm font-medium text-center divide-x divide-gray-200 rounded-lg shadow-lg sm:flex">
-            <li class="w-full">
-                <button id="tab-btn-global" data-tab-content-id="tab-content-global"
-                        class="tab-btn ${baseButtonClasses} ${activeClasses}">
-                    <span class="material-symbols-rounded align-middle text-lg mr-1">dashboard</span>
-                    Global
-                </button>
-            </li>
-        </ul>`;
+            ${tabsConfig.map((tab, index) => `
+                <li class="w-full">
+                    <button id="tab-btn-${tab.id}" data-tab-content-id="tab-content-${tab.id}"
+                            class="tab-btn ${baseButtonClasses} ${index === 0 ? activeClasses : inactiveClasses} rounded-t-lg sm:rounded-none ${index === 0 ? 'sm:rounded-l-lg' : ''} ${index === tabsConfig.length - 1 ? 'sm:rounded-r-lg' : ''}">
+                        <span class="material-symbols-rounded align-middle text-lg mr-1">${tab.icon}</span>
+                        ${tab.name}
+                    </button>
+                </li>
+            `).join('')}
+        </ul>
+    `;
 
+    // 2. Crear los paneles de contenido para cada pestaña
     const tabContents = `
         <div class="mt-1">
-            <div id="tab-content-global" class="tab-content bg-white dark:bg-gray-800 p-6 rounded-b-lg shadow-lg">
-                ${createDataGridHTML()} <hr class="my-6 border-gray-200 dark:border-gray-700">
-                <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Detalle de Tickets</h3>
-                <table id="table-global" class="display" style="width:100%">
-                    <thead><tr><th>Planta</th><th>Folio</th><th>Módulo</th><th>Supervisor</th><th>Mecánico</th><th>Tiempo Neto</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            </div>`;
-    
+            ${tabsConfig.map((tab, index) => `
+                <div id="tab-content-${tab.id}" class="tab-content bg-white dark:bg-gray-800 p-6 rounded-b-lg shadow-lg ${index > 0 ? 'hidden' : ''}">
+                    ${createDataGridHTML()}
+                    <hr class="my-6 border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Detalle de Tickets</h3>
+                    <table id="table-${tab.id}" class="display responsive" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Planta</th><th>Folio</th><th>Módulo</th><th>Supervisor</th><th>Mecánico</th><th>Tiempo Neto</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
     state.container.innerHTML = tabHeaders + tabContents;
+
+    // 3. Inicializar TODAS las DataTables (estarán vacías hasta que updateUI las llene)
+    tabsConfig.forEach(tab => {
+        initializeDataTable(`table-${tab.id}`);
+    });
+
+    // 4. Configurar los listeners para los botones de las pestañas UNA SOLA VEZ
+    state.container.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Oculta/muestra los paneles de contenido
+            state.container.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(button.dataset.tabContentId).classList.remove('hidden');
+
+            // Actualiza los estilos de los botones
+            state.container.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove(...activeClasses.split(' '));
+                btn.classList.add(...inactiveClasses.split(' '));
+            });
+            button.classList.add(...activeClasses.split(' '));
+            button.classList.remove(...inactiveClasses.split(' '));
+        });
+    });
 }
 
 /**
- * Crea el HTML para las tarjetas de resumen con valores por defecto o "placeholders".
+ * Crea el HTML para las tarjetas de resumen con valores "placeholder".
+ * La función updateUI se encargará de llenarlos después.
  */
 function createDataGridHTML() {
     return `
@@ -160,63 +218,74 @@ function createDataGridHTML() {
 }
 
 /**
- * Inicializa una DataTable y la guarda en el estado.
+ * Inicializa una DataTable y la guarda en el estado para futuras actualizaciones.
  */
-function initializeDataTable(tableId, tableData = []) {
-    const table = $(`#${tableId}`).DataTable({
-        data: tableData,
+function initializeDataTable(tableId) {
+    const table = new DataTable(`#${tableId}`, {
+        data: [], // Inicia vacía, `updateUI` la llenará
         columns: [
-            { data: 'planta' }, { data: 'folio' }, { data: 'modulo' }, 
+            { data: 'planta' }, { data: 'folio' }, { data: 'modulo' },
             { data: 'supervisor' }, { data: 'mecanico_nombre' },
-            { data: 'minutos_netos', render: (data, type, row) => row.tiempo_neto_formateado }
+            { data: 'tiempo_neto_formateado', title: 'Tiempo Neto' } // Usamos directamente el campo formateado
         ],
         responsive: true,
         lengthChange: false,
-        language: { "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json" },
+        language: {
+            "processing": "Procesando...",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "zeroRecords": "No se encontraron resultados",
+            "emptyTable": "Ningún dato disponible en esta tabla",
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "search": "Buscar:",
+            "loadingRecords": "Cargando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            },
+            "aria": {
+                "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                "sortDescending": ": Activar para ordenar la columna de manera descendente"
+            }
+        },
         destroy: true
     });
     state.dataTables[tableId] = table;
+    console.log(`✅ DataTable inicializada para: #${tableId}`);
 }
 
 // ================================================================
-// SECCIÓN 3: PUNTO DE ENTRADA Y LÓGICA DE INICIALIZACIÓN
+// SECCIÓN 3: PUNTO DE ENTRADA Y EVENT LISTENERS
 // ================================================================
 
 /**
- * Se ejecuta UNA SOLA VEZ en la carga de la página.
+ * Función principal que se ejecuta UNA SOLA VEZ en la carga de la página.
+ * Prepara el componente para la primera carga de datos.
  */
 function init() {
     state.container = document.getElementById('dashboard-stats-container');
-    if (!state.container || state.isInitialized) return;
-
+    if (!state.container || state.isInitialized) {
+        return;
+    }
     console.log("🚀 DashboardStats: Inicializando componente...");
-    
-    // 1. Dibuja el esqueleto de la UI
-    createDashboardShell();
-
-    // 2. Inicializa la primera tabla (estará vacía hasta que lleguen los datos)
-    initializeDataTable('table-global');
-
-    // 3. Configura los listeners para los botones de las pestañas
-    // Esta parte ahora es más compleja porque las pestañas pueden ser dinámicas.
-    // Una implementación completa requeriría re-escribir la lógica de pestañas para que sea actualizable.
-    // Por simplicidad, este ejemplo se enfoca en la carga de datos.
-    
-    // 4. Se marca como inicializado para evitar dobles ejecuciones
     state.isInitialized = true;
     
-    // 5. Carga proactiva: lee el mes inicial y pide los datos.
+    // Carga proactiva: lee el mes del selector y pide los datos por primera vez.
     const monthSelect = document.getElementById('month-select');
+    // Si el selector no existe o no tiene valor, usa el mes actual como fallback.
     const initialMonth = monthSelect ? monthSelect.value : new Date().getMonth() + 1;
     loadDashboardData(initialMonth);
 }
 
-// Suscriptor que escucha el cambio de mes
+// Suscriptor que escucha el evento global 'monthChanged'.
 window.addEventListener('monthChanged', (event) => {
-    if (!state.isInitialized) return; // No hacer nada si el componente no está listo
+    if (!state.isInitialized) return;
     const newMonth = event.detail.month;
     loadDashboardData(newMonth);
 });
 
-// Punto de entrada principal
+// Punto de entrada principal del script.
 document.addEventListener('DOMContentLoaded', init);
