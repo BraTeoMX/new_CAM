@@ -27,14 +27,15 @@ const StatusChartModule = (function () {
         totalTicketsSpan: null,
     };
 
+    // --- CAMBIO 1: Añadir la propiedad 'iconColor' a la configuración ---
     const STATUS_CONFIG = {
-        'PENDIENTE': { icon: 'pending_actions', color: "from-red-300 to-red-400" },
-        'ASIGNADO': { icon: 'assignment_ind', color: "from-blue-300 to-blue-400" },
-        'EN PROCESO': { icon: 'av_timer', color: "from-yellow-300 to-yellow-400" },
-        'ATENDIDO': { icon: 'preliminary', color: "from-green-300 to-green-400" },
-        'AUTONOMO': { icon: 'smart_toy', color: "from-violet-300 to-violet-400" },
-        'CANCELADO': { icon: 'dangerous', color: "from-orange-300 to-orange-400" },
-        'SIN ASIGNACION': { icon: 'fact_check', color: "from-blue-300 to-blue-400" },
+        'PENDIENTE': { icon: 'pending_actions', color: "from-red-300 to-red-400", iconColor: "text-red-800" },
+        'ASIGNADO': { icon: 'assignment_ind', color: "from-blue-300 to-blue-400", iconColor: "text-blue-400" },
+        'EN PROCESO': { icon: 'av_timer', color: "from-yellow-300 to-yellow-400", iconColor: "text-yellow-800" },
+        'ATENDIDO': { icon: 'preliminary', color: "from-green-300 to-green-400", iconColor: "text-green-800" },
+        'AUTONOMO': { icon: 'smart_toy', color: "from-violet-300 to-violet-400", iconColor: "text-violet-800" },
+        'CANCELADO': { icon: 'dangerous', color: "from-orange-300 to-orange-400", iconColor: "text-orange-800" },
+        'SIN ASIGNACION': { icon: 'fact_check', color: "from-blue-300 to-blue-400", iconColor: "text-blue-800" },
     };
 
     // --- LÓGICA DE DATOS ---
@@ -88,6 +89,7 @@ const StatusChartModule = (function () {
         
         const t = d3.transition().duration(750);
 
+        // --- ACTUALIZAR EJE Y (ETIQUETAS) ---
         state.yAxisArea.selectAll("div.y-axis-label")
             .data(chartData, d => d.key)
             .join(
@@ -95,9 +97,12 @@ const StatusChartModule = (function () {
                     .attr("class", "y-axis-label absolute flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 text-right w-[92px]")
                     .style("top", d => `${yScale(d.key) + yScale.bandwidth() / 2 - 12}px`)
                     .style("opacity", 0)
-                    .html(d => `<span class="material-symbols-outlined text-xl">${d.icon}</span><span class="font-semibold">${d.key}</span>`)
+                    // --- CAMBIO 2: Usar la nueva propiedad 'iconColor' aquí ---
+                    .html(d => `<span class="material-symbols-outlined text-xl ${d.iconColor}">${d.icon}</span><span class="font-semibold">${d.key}</span>`)
                     .call(enter => enter.transition(t).style("opacity", 1)),
                 update => update
+                    // También actualizamos el html en la actualización por si la configuración cambiara dinámicamente
+                    .html(d => `<span class="material-symbols-outlined text-xl ${d.iconColor}">${d.icon}</span><span class="font-semibold">${d.key}</span>`)
                     .call(update => update.transition(t)
                         .style("top", d => `${yScale(d.key) + yScale.bandwidth() / 2 - 12}px`)),
                 exit => exit
@@ -106,6 +111,7 @@ const StatusChartModule = (function () {
                         .remove())
             );
             
+        // --- ACTUALIZAR BARRAS ---
         state.chartArea.selectAll("div.bar")
             .data(chartData, d => d.key)
             .join(
@@ -127,25 +133,23 @@ const StatusChartModule = (function () {
                         .remove())
             );
 
-        // =======================================================================
-        // --- INICIO: CÓDIGO AÑADIDO PARA LAS ETIQUETAS DE VALOR ---
-        // =======================================================================
+        // --- ACTUALIZAR ETIQUETAS DE VALOR (SOBRE LAS BARRAS) ---
         state.chartArea.selectAll("span.bar-value-label")
             .data(chartData, d => d.key)
             .join(
                 enter => enter.append("span")
                     .attr("class", "bar-value-label absolute text-xs font-bold text-white pointer-events-none")
                     .style("top", d => `${yScale(d.key) + yScale.bandwidth() / 2}px`)
-                    .style("left", "5px") // Inicia a la izquierda
+                    .style("left", "5px")
                     .style("transform", "translateY(-50%)")
                     .style("opacity", 0)
                     .text(d => d.value)
                     .call(enter => enter.transition(t)
-                        .style("left", d => `calc(${xScale(d.value)}% - 25px)`) // Se mueve con la barra
+                        .style("left", d => `calc(${xScale(d.value)}% - 25px)`)
                         .style("opacity", 1)
                     ),
                 update => update
-                    .text(d => d.value) // Actualiza el texto por si cambia
+                    .text(d => d.value)
                     .call(update => update.transition(t)
                         .style("top", d => `${yScale(d.key) + yScale.bandwidth() / 2}px`)
                         .style("left", d => `calc(${xScale(d.value)}% - 25px)`)
@@ -155,9 +159,6 @@ const StatusChartModule = (function () {
                         .style("opacity", 0)
                         .remove())
             );
-        // =======================================================================
-        // --- FIN: CÓDIGO AÑADIDO PARA LAS ETIQUETAS DE VALOR ---
-        // =======================================================================
     }
     
     async function updateDataAndRender(params) {
