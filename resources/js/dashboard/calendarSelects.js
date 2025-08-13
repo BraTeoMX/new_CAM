@@ -5,11 +5,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!container) return;
 
     function dispatchMonthChangeEvent(month) {
+        // La "nota" que dejamos en el DOM para que otros la lean
+        container.dataset.currentMonth = month; 
+
         const event = new CustomEvent('monthChanged', {
             detail: { month: month }
         });
         window.dispatchEvent(event);
-        console.log(`📢 Anuncio: El mes cambió a ${month}`);
+        console.log(`📢 Anuncio: El mes cambió a ${month}. Nota dejada en el DOM.`);
     }
 
     try {

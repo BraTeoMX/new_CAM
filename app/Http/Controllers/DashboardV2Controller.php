@@ -319,15 +319,14 @@ class DashboardV2Controller extends Controller
 
         // 2. CONSULTA CON ELOQUENT
         // Usamos 'whereHas' para asegurarnos de que solo traemos tickets que tienen asignaciones con diagnóstico.
+        $estadosValidos = [2, 3, 5, 8]; // Estados a considerar
+
         $tickets = TicketOt::with([
                 'asignaciones.diagnostico' // Carga ansiosa de las relaciones necesarias
             ])
+            ->whereIn('estado', $estadosValidos) // <-- NUEVO: Filtra solo los estados válidos
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $queryMonth)
-            // Si el día es un parámetro, también lo filtramos
-            ->when($request->has('day'), function ($query) use ($request) {
-                return $query->whereDay('created_at', $request->input('day'));
-            })
             ->get();
 
         // 3. INICIALIZAR CONTADORES
@@ -336,6 +335,7 @@ class DashboardV2Controller extends Controller
 
         // 4. PROCESAR LOS RESULTADOS
         foreach ($tickets as $ticket) {
+            $totalAsignaciones++;
             foreach ($ticket->asignaciones as $asignacion) {
                 // Omitir si una asignación no tiene un diagnóstico registrado
                 if (!$diagnostico = $asignacion->diagnostico) {
@@ -343,7 +343,7 @@ class DashboardV2Controller extends Controller
                 }
 
                 // Contamos esta asignación para el total
-                $totalAsignaciones++;
+                
 
                 // --- LÓGICA DE NEGOCIO PRINCIPAL ---
                 $tiempoRealSeg = (int) $diagnostico->tiempo_ejecucion;

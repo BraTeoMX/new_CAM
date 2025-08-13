@@ -1,6 +1,6 @@
 /**
  * Módulo para el Gauge de Efectividad del Dashboard.
- * Implementa Lazy Loading para no cargar hasta que el componente sea visible.
+ * Implementa Lazy Loading y una inicialización robusta anti-condiciones de carrera.
  */
 const EfectividadGaugeModule = (function () {
 
@@ -16,11 +16,6 @@ const EfectividadGaugeModule = (function () {
     };
 
     // --- FUNCIONES DE UTILIDAD Y RENDERIZADO (PRIVADAS) ---
-
-    /**
-     * Prepara los contenedores del DOM donde se renderizará el gauge y la info.
-     * Se llama una sola vez durante la inicialización.
-     */
     function prepareContainers() {
         if (!state.container) return false;
 
@@ -39,9 +34,6 @@ const EfectividadGaugeModule = (function () {
         return true;
     }
 
-    /**
-     * Renderiza el gauge y la información de efectividad.
-     */
     function renderGauge() {
         if (typeof Highcharts === 'undefined') {
             if (state.container) {
@@ -82,22 +74,15 @@ const EfectividadGaugeModule = (function () {
             credits: { enabled: false }
         });
 
-        // Actualiza la información de texto
         state.infoDiv.innerHTML = `
-            <span class="text-gray-600 dark:text-gray-300">Tickets efectivos:</span>
+            <span class="text-gray-600 dark:text-gray-300">Asignaciones efectivas:</span>
             <b class="text-emerald-600 dark:text-emerald-400">${state.efectivos}</b>
             <span class="text-gray-400 dark:text-gray-500">/</span>
             <b class="text-blue-600 dark:text-blue-400">${state.total}</b>`;
     }
 
-    /**
-     * Obtiene y actualiza la efectividad desde el backend.
-     */
     async function fetchAndUpdateEfectividad(params) {
-        // Muestra el gauge en 0 mientras carga
-        state.efectividad = 0;
-        state.total = 0;
-        state.efectivos = 0;
+        state.efectividad = 0; state.total = 0; state.efectivos = 0;
         renderGauge();
 
         try {
@@ -114,12 +99,10 @@ const EfectividadGaugeModule = (function () {
             if (!res.ok) throw new Error('Respuesta de red no fue exitosa');
             const data = await res.json();
 
-            // Actualiza el estado del módulo
             state.efectividad = Number(data.efectividad) || 0;
             state.total = Number(data.total) || 0;
             state.efectivos = Number(data.efectivos) || 0;
 
-            // Vuelve a renderizar con los datos actualizados
             renderGauge();
         } catch (err) {
             console.error("Efectividad Gauge: Failed to fetch data", err);
@@ -130,69 +113,72 @@ const EfectividadGaugeModule = (function () {
     }
 
     // --- LÓGICA DE INICIALIZACIÓN (LAZY) ---
-
-    /**
-     * Esta función se ejecuta solo una vez, cuando el componente se hace visible.
-     */
     async function initializeComponent() {
         if (state.isInitialized) return;
         state.isInitialized = true;
 
-        // 1. Prepara los divs internos para el gauge y la info
         if (!prepareContainers()) return;
+        
+        // --- INICIO DE LA LÓGICA CORREGIDA ---
 
-        // --- CAMBIOS PRINCIPALES AQUÍ ---
-
-        // 2. Escucha el NUEVO evento 'monthChanged' que dispara calendarSelects.js
+        // 1. Nos suscribimos a futuros cambios de mes, por si el usuario interactúa.
         window.addEventListener('monthChanged', (e) => {
             const detail = e.detail || {};
-            const selectedMonth = detail.month; // Este es el mes (valor 1-12)
-
-            // Como el controlador necesita el mes en formato 0-11, lo ajustamos aquí
-            const monthForQuery = Number(selectedMonth) - 1;
-
-            console.log(`EfectividadGaugeModule 👂: Recibido mes ${selectedMonth}, consultando con ${monthForQuery}`);
-
+            const selectedMonth = detail.month; // mes 1-12
+            const monthForQuery = Number(selectedMonth) - 1; // mes 0-11
+            
             fetchAndUpdateEfectividad({
-                year: new Date().getFullYear(), // Asumimos el año actual
+                year: new Date().getFullYear(),
                 month: monthForQuery,
-                day: null
             });
         });
 
-        // 3. El listener para el cambio de tema (dark/light) se mantiene igual
+        // 2. Buscamos el <select> para obtener el valor inicial directamente.
+        //    Esto resuelve la condición de carrera.
+        const monthSelect = document.getElementById('month-select');
+        let initialMonth;
+
+        if (monthSelect) {
+            // Si encontramos el <select>, usamos su valor actual.
+            initialMonth = monthSelect.value;
+        } else {
+            // Si no, como fallback, usamos el mes actual del sistema.
+            initialMonth = new Date().getMonth() + 1; 
+        }
+
+        // 3. Realizamos la primera carga de datos con el valor obtenido.
+        fetchAndUpdateEfectividad({
+            year: new Date().getFullYear(),
+            month: Number(initialMonth) - 1 // Convertir a 0-11 para la consulta
+        });
+
+        // 4. El listener para el cambio de tema (dark/light) se mantiene igual.
         new MutationObserver(() => {
             if (state.isInitialized) {
                 renderGauge();
             }
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
-        // 4. Se ELIMINA la primera carga de datos de aquí.
-        // La carga inicial ahora se dispara automáticamente cuando calendarSelects.js
-        // emite el primer evento 'monthChanged' al cargar la página.
+        
+        // --- FIN DE LA LÓGICA CORREGIDA ---
     }
 
     // --- FUNCIÓN PÚBLICA DE INICIALIZACIÓN ---
     function init() {
+        // Asegúrate que este es el ID del div que contiene tu gauge
         state.container = document.getElementById('dashboard-tops');
         if (!state.container) return;
 
         const observer = new IntersectionObserver((entries, observerInstance) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    // El componente es visible, ¡inicialízalo!
                     initializeComponent();
-                    // Ya no necesitamos vigilarlo, ahorramos recursos
                     observerInstance.unobserve(state.container);
                 }
             });
-        }, { threshold: 0.1 }); // Activa cuando el 10% sea visible
-
-        // Inicia la vigilancia
+        }, { threshold: 0.1 });
         observer.observe(state.container);
     }
 
-    // Exponer el método público `init`
     return {
         init: init
     };
