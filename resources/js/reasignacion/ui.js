@@ -34,6 +34,7 @@ export function createOTCard(ot, actionType) {
     card.innerHTML = `
         <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">Folio: ${ot.Folio}</h5>
         <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Máquina: ${ot.Maquina}</p>
+        <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Mecánico: ${ot.Numero_Mecanico}</p>
         <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Mecánico: ${ot.Mecanico}</p>
         <p class="mb-3 text-sm font-normal text-gray-600 dark:text-gray-300">Problema: ${ot.Problema}</p>
         <div class="flex justify-between items-center">
