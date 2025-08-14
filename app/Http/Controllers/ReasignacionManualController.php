@@ -63,6 +63,7 @@ class ReasignacionManualController extends Controller
                     'Problema' => $ticket->descripcion_problema, // Usando el campo correcto de tu modelo
                     'Status' => $ticket->catalogoEstado->nombre ?? 'N/A',
                     'estado_id' => $ticket->estado,
+                    'Numero_Mecanico' => $asignacion->numero_empleado_mecanico ?? 'Sin Asignar', // ¡Se accede al numero empleado mecanico directamente!
                     'Mecanico' => $asignacion->nombre_mecanico ?? 'Sin Asignar', // ¡Se accede al nombre directamente!
                     'Supervisor' => $ticket->nombre_supervisor ?? 'N/A', // El supervisor está en el ticket principal
                     'fecha_creacion' => Carbon::parse($ticket->created_at)->format('d/m/Y H:i'),

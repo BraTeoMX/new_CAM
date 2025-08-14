@@ -13,12 +13,13 @@ const searchForm = document.getElementById('search-form');
 function mostrarResultadosBusqueda(ots) {
     searchResultsContainer.innerHTML = ''; // Limpiar
 
-    if (ots.length === 0) {
-        searchResultsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 col-span-full">No se encontraron resultados.</p>';
+    const otsFiltradas = ots.filter(ot => ot.Status !== 'SIN ASIGNACION');
+    if (otsFiltradas.length === 0) {
+        searchResultsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 col-span-full">No se encontraron resultados (excluyendo "Sin Asignar").</p>';
         return;
     }
 
-    const otsPorEstado = ots.reduce((acc, ot) => {
+    const otsPorEstado = otsFiltradas.reduce((acc, ot) => {
         const status = ot.Status || 'INDEFINIDO';
         if (!acc[status]) {
             acc[status] = [];
