@@ -4,16 +4,16 @@
             <h1 class="text-xl sm:text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Reasignación Manual de OT</h1>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="flex flex-col lg:flex-row gap-6">
 
-            <div class="lg:col-span-1">
+            <div class="lg:w-1/4">
                 <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">OT's Sin Asignación</h2>
                 <div id="ots-sin-asignar-container" class="space-y-4 bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg shadow-md min-h-[200px]">
                     <p class="text-gray-500 dark:text-gray-400">Cargando OTs...</p>
                 </div>
             </div>
 
-            <div class="lg:col-span-2">
+            <div class="flex-1">
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
                     <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Búsqueda Específica</h2>
                     <form id="search-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
