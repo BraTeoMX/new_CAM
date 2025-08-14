@@ -37,16 +37,23 @@ function mostrarResultadosBusqueda(ots) {
         const columnContent = columnWrapper.querySelector('.space-y-4');
         
         otsPorEstado[estado].forEach(ot => {
-            const card = createOTCard(ot, 'detalles');
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // 1. Determina la acción basada en el estado de la OT.
+            //    Si el estado es 'ASIGNADO' (que corresponde al ID 2), la acción será 'asignar'.
+            //    En cualquier otro caso, será 'detalles'.
+            const actionType = ot.Status === 'ASIGNADO' ? 'asignar' : 'detalles';
+
+            // 2. Pasamos el tipo de acción dinámico al crear la tarjeta.
+            const card = createOTCard(ot, actionType);
+            // --- FIN DE LA MODIFICACIÓN ---
+            
             columnContent.appendChild(card);
         });
         searchResultsContainer.appendChild(columnWrapper);
     }
 }
 
-/**
- * Inicializa el formulario de búsqueda y el selector de fechas.
- */
+// ... (El resto del archivo 'initializeSearch' no cambia)
 export function initializeSearch() {
     // Inicializar calendario para búsqueda
     flatpickr("#date-range-search", {

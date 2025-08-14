@@ -35,12 +35,20 @@ async function cargarMecanicos() {
  * Abre el modal para asignar un mecánico.
  * @param {number} otId - El ID de la OT a asignar.
  */
-export function openAssignModal(otId) {
-    otIdInput.value = otId;
+export function openAssignModal(ot) {
+    // 1. Asignamos el ID de la OT al campo oculto del formulario.
+    otIdInput.value = ot.id;
+    
+    // 2. Lógica de preselección.
+    //    Establecemos el valor del 'select' para que coincida con el número de empleado
+    //    del mecánico ya asignado a la OT.
+    //    El `|| ''` asegura que si `ot.Numero_Mecanico` es nulo, se seleccione la opción por defecto.
+    mecanicoSelect.value = ot.Numero_Mecanico || '';
+
+    // 3. Mostramos el modal.
     modalAsignar.classList.remove('hidden');
     modalAsignar.classList.add('flex');
 }
-
 /**
  * Abre el modal para ver los detalles de una OT.
  * @param {object} ot - El objeto de datos de la OT.
