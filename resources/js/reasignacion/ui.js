@@ -35,7 +35,7 @@ export function createOTCard(ot, actionType) {
         <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">Folio: ${ot.Folio}</h5>
         <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Máquina: ${ot.Maquina}</p>
         <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Mecánico: ${ot.Numero_Mecanico}</p>
-        <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Mecánico: ${ot.Mecanico}</p>
+        <p class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-400">Num. Emp. Mecánico: ${ot.Mecanico}</p>
         <p class="mb-3 text-sm font-normal text-gray-600 dark:text-gray-300">Problema: ${ot.Problema}</p>
         <div class="flex justify-between items-center">
             <span class="inline-block px-3 py-1 text-xs font-medium rounded ${statusColor}">${ot.Status}</span>
