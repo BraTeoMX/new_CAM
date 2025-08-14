@@ -67,6 +67,63 @@ export function openDetailsModal(ot) {
 }
 
 /**
+ * Abre un modal de confirmación para revertir el estado de una OT a "Asignado".
+ * @param {object} ot - El objeto de datos de la OT.
+ */
+export function openRevertModal(ot) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Deseas revertir el estado de la OT Folio: ${ot.Folio} a "ASIGNADO"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, revertir estado',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario confirma, llamamos a la función que hace la petición a la API
+            ejecutarReversion(ot.id);
+        }
+    });
+}
+
+/**
+ * Ejecuta la petición fetch para revertir el estado en el backend.
+ * @param {number} otId - El ID de la OT a revertir.
+ */
+async function ejecutarReversion(otId) {
+    try {
+        const response = await fetch(`/api/reasignacion/revertir-a-asignado/${otId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'Ocurrió un error desconocido.');
+        }
+
+        await Swal.fire(
+            '¡Revertido!',
+            'El estado de la OT ha sido actualizado.',
+            'success'
+        );
+        
+        // ¡Importante! Recargamos la búsqueda para reflejar los cambios en la UI.
+        // Esto moverá la tarjeta de la columna "PROCESO" a "ASIGNADO".
+        document.getElementById('search-form').dispatchEvent(new Event('submit'));
+
+    } catch (error) {
+        console.error('Error al revertir estado:', error);
+        Swal.fire('Error', error.message, 'error');
+    }
+}
+
+/**
  * Inicializa todos los listeners y la lógica de los modales.
  * @param {function} onAssignSuccess - Callback a ejecutar cuando una asignación es exitosa.
  */

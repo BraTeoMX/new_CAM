@@ -38,12 +38,14 @@ function mostrarResultadosBusqueda(ots) {
         
         otsPorEstado[estado].forEach(ot => {
             // --- INICIO DE LA MODIFICACIÓN ---
-            // 1. Determina la acción basada en el estado de la OT.
-            //    Si el estado es 'ASIGNADO' (que corresponde al ID 2), la acción será 'asignar'.
-            //    En cualquier otro caso, será 'detalles'.
-            const actionType = ot.Status === 'ASIGNADO' ? 'asignar' : 'detalles';
+            let actionType = 'detalles'; // Por defecto, abrir detalles
 
-            // 2. Pasamos el tipo de acción dinámico al crear la tarjeta.
+            if (ot.Status === 'ASIGNADO') {
+                actionType = 'asignar'; // Para re-asignar
+            } else if (ot.Status === 'EN PROCESO') { // Asumiendo que el alias es 'PROCESO' para el estado 3
+                actionType = 'revertir'; // Nuestra nueva acción
+            }
+
             const card = createOTCard(ot, actionType);
             // --- FIN DE LA MODIFICACIÓN ---
             

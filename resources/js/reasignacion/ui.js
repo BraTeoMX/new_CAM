@@ -1,7 +1,7 @@
 // resources/js/reasignacion/ui.js
 
 // ... (la función getStatusColor no cambia)
-import { openAssignModal, openDetailsModal } from './modals.js';
+import { openAssignModal, openDetailsModal, openRevertModal } from './modals.js';
 
 function getStatusColor(status) {
     switch (status) {
@@ -40,8 +40,10 @@ export function createOTCard(ot, actionType) {
     // Añadir el listener apropiado según el tipo de acción
     card.addEventListener('click', () => {
         if (actionType === 'asignar') {
-            // Ahora pasamos el objeto 'ot' COMPLETO. Esto es clave.
             openAssignModal(ot); 
+        } else if (actionType === 'revertir') {
+            // Llamamos a nuestra nueva función de modal
+            openRevertModal(ot);
         } else if (actionType === 'detalles') {
             openDetailsModal(ot);
         }

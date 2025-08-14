@@ -156,4 +156,30 @@ class ReasignacionManualController extends Controller
             return response()->json(['error' => 'No se pudo reasignar el mecánico debido a un error inesperado.'], 500);
         }
     }
+
+    public function revertirAAsignado(Request $request, $id)
+    {
+        try {
+            $ticket = TicketOt::findOrFail($id);
+
+            // Opcional: Podrías añadir una validación para asegurarte
+            // de que solo se pueden revertir OTs que están en estado 3 ("En Proceso").
+            // if ($ticket->estado != 3) {
+            //     return response()->json(['error' => 'Esta OT no está "En Proceso" y no puede ser revertida.'], 409); // 409 Conflict
+            // }
+
+            $ticket->estado = 2; // Estado "Asignado"
+            $ticket->save();
+
+            return response()->json(['success' => 'El estado de la OT ha sido revertido a ASIGNADO.']);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::warning("Intento de revertir una OT inexistente. Ticket ID: {$id}");
+            return response()->json(['error' => 'La OT que intentas revertir no fue encontrada.'], 404);
+        } catch (\Exception $e) {
+            Log::error('Error al revertir estado de la OT: ' . $e->getMessage());
+            return response()->json(['error' => 'Ocurrió un error inesperado al revertir el estado.'], 500);
+        }
+    }
+
 }

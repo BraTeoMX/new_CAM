@@ -97,6 +97,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::get('/mecanicos', [ReasignacionManualController::class, 'getMecanicos'])->name('getMecanicos');
             // Asignar un mecánico a una OT
             Route::post('/asignar/{id}', [ReasignacionManualController::class, 'asignarMecanico'])->name('asignarMecanico');
+            // Revertir el estado de una OT de 'En Proceso' a 'Asignado'
+            Route::post('/revertir-a-asignado/{id}', [ReasignacionManualController::class, 'revertirAAsignado'])->name('revertirAAsignado');
+
         });
 
         //segunda version de Reportes
