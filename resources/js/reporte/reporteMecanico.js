@@ -8,7 +8,7 @@ let dataArray = []; // Almacenará los datos de la API (del array 'global')
 const tableId = 'ordenTrabajoTable';
 
 // --- PAGINACIÓN ---
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 100;
 let currentPage = 1;
 let paginatedData = [];
 

@@ -38,11 +38,13 @@ export function copyTableToClipboard(tableId) {
 
 // Usa ExcelJS para exportar con estilos avanzados
 // Instala primero: npm install exceljs
-import ExcelJS from 'exceljs';
+//import ExcelJS from 'exceljs';
 
 export async function saveTableAsExcel(tableId) {
     const table = document.getElementById(tableId);
     if (!table) return;
+
+    const ExcelJS = (await import('exceljs')).default;
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('OT Mecánicos');
