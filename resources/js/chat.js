@@ -84,12 +84,50 @@ class ChatManager {
 
             this.setupEventListeners();
             this.startConversation(this.elements.chatMessages);
+            this.startSessionKeepAlive(); // Inicia el mecanismo
         } catch (error) {
             console.error('Initialization error:', error);
             this.showError('Error al inicializar el chat');
         }
     }
 
+    startSessionKeepAlive() {
+        if (this.sessionKeepAliveInterval) {
+            clearInterval(this.sessionKeepAliveInterval);
+        }
+
+        // Lo ponemos en un intervalo más corto para desarrollo y pruebas (ej. cada 2 minutos)
+        // Para producción, puedes dejarlo en 15 minutos.
+        this.sessionKeepAliveInterval = setInterval(() => {
+            console.log('Refrescando token CSRF para evitar conflictos...');
+            fetch('/refresh-csrf')
+                .then(response => {
+                    if (response.ok) return response.json();
+                    // Si la respuesta es 419, significa que la sesión ya murió. Recargamos.
+                    if (response.status === 419) {
+                        window.location.reload();
+                    }
+                    throw new Error('Falló la respuesta de red.');
+                })
+                .then(data => {
+                    if (data.csrf_token) {
+                        const metaTag = document.querySelector('meta[name="csrf-token"]');
+                        if (metaTag) {
+                            metaTag.content = data.csrf_token;
+                            console.log('Token CSRF actualizado con éxito.');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error al refrescar sesión:', error));
+        }, 120000); // Cada 2 minutos
+    }
+
+    cleanup() {
+        // ... tu código
+        if (this.sessionKeepAliveInterval) {
+            clearInterval(this.sessionKeepAliveInterval);
+        }
+    }
     /**
      * Manejo centralizado de errores
      */
@@ -140,14 +178,14 @@ class ChatManager {
 
         // Listeners para los botones
         setTimeout(() => {
-            document.getElementById('btn-crear-ticket').onclick = async() => {
+            document.getElementById('btn-crear-ticket').onclick = async () => {
                 // Limpia el chat y sigue el flujo normal
                 chatMessages.innerHTML = '';
                 const greeting = this.getTimeBasedGreeting();
                 await this.appendChatMessage(`${greeting}`, chatMessages);
                 await this.askModule(chatMessages);
             };
-            document.getElementById('btn-seguimiento-ticket').onclick = async() => {
+            document.getElementById('btn-seguimiento-ticket').onclick = async () => {
                 // Limpia el chat y muestra el select de módulos
                 chatMessages.innerHTML = '';
                 await this.askModuloSeguimiento(chatMessages);
@@ -175,11 +213,11 @@ class ChatManager {
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
-                        data: function(params) {
+                        data: function (params) {
                             return { search: params.term || '' };
                         },
-                        processResults: function(data, params) {
-                            let results = $.map(data, function(item) {
+                        processResults: function (data, params) {
+                            let results = $.map(data, function (item) {
                                 return { id: item.modulo, text: item.modulo };
                             });
                             if (params.term && params.term.length > 0) {
@@ -332,13 +370,13 @@ class ChatManager {
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
-                        data: function(params) {
+                        data: function (params) {
                             return {
                                 search: params.term || ''
                             };
                         },
-                        processResults: function(data, params) {
-                            let results = $.map(data, function(item) {
+                        processResults: function (data, params) {
+                            let results = $.map(data, function (item) {
                                 return {
                                     id: item.modulo,      // Usar 'modulo' como ID
                                     text: item.modulo,    // Usar 'modulo' como texto a mostrar
@@ -361,7 +399,7 @@ class ChatManager {
                 });
 
                 // Abrir el dropdown automáticamente al hacer focus
-                $('#modul').on('select2:open', function() {
+                $('#modul').on('select2:open', function () {
                     $('.select2-search__field').focus();
                 });
 
@@ -370,7 +408,7 @@ class ChatManager {
                     const selectedData = e.params.data; // Acceder a todos los datos del elemento seleccionado
                     const newModule = selectedData.text; // El nombre del módulo
                     const moduleType = selectedData.type; // El tipo de módulo (catalogo o supervisor)
-                    
+
                     this.state.userModule = newModule;
                     this.state.moduleType = moduleType;
                     this.state.modulePlanta = selectedData.planta;
@@ -390,7 +428,7 @@ class ChatManager {
                         if (moduleType === 'supervisor') {
                             // Si es un módulo de supervisor, proceder con la selección de operarios
                             // Aquí podrías necesitar pasar 'modulePlanta' si showOperarioSelect lo usa
-                            this.showOperarioSelect(newModule); 
+                            this.showOperarioSelect(newModule);
                         } else if (moduleType === 'catalogo') {
                             // Si es un módulo de catálogo, ir a la nueva instrucción (ej. seleccionar máquina)
                             // Llama a la función que debería seguir para módulos de catálogo
@@ -435,7 +473,7 @@ class ChatManager {
 
         this.state.userProblem = "Envío directo a mecatrónico para área general.";
         window.GLOBAL_CHAT_PROBLEM = this.state.userProblem;
-        this.state.selectedMachineIndex = "N/A"; 
+        this.state.selectedMachineIndex = "N/A";
         window.GLOBAL_CHAT_MACHINE_INDEX = this.state.selectedMachineIndex;
         window.GLOBAL_CHAT_PROBLEM_ID = this.state.selectedProblemId;
 
@@ -463,15 +501,15 @@ class ChatManager {
                         type: 'GET',
                         dataType: 'json',
                         delay: 250,
-                        data: function(params) {
+                        data: function (params) {
                             // Enviar el término de búsqueda y el módulo
                             return {
                                 modulo: modulo,
                                 search: params.term || ''
                             };
                         },
-                        processResults: function(data, params) {
-                            let results = $.map(data, function(item) {
+                        processResults: function (data, params) {
+                            let results = $.map(data, function (item) {
                                 return {
                                     id: item.NumOperario,
                                     text: `${item.Nombre} - ${item.NumOperario}`
@@ -489,7 +527,7 @@ class ChatManager {
                 });
 
                 // Abrir el dropdown automáticamente al hacer focus
-                $('#operario-select').on('select2:open', function() {
+                $('#operario-select').on('select2:open', function () {
                     $('.select2-search__field').focus();
                 });
 
@@ -534,7 +572,7 @@ class ChatManager {
         this.setupMachineSelectListener();
     }
 
-    setupMachineSelectListener() { 
+    setupMachineSelectListener() {
         const select = document.getElementById('machine-select');
         if (!select) return;
 
@@ -568,13 +606,13 @@ class ChatManager {
         problemDiv.className = 'text-left mb-4';
         const problemSpan = document.createElement('span');
         problemSpan.className = 'bg-gray-200 dark:bg-gray-700 dark:text-white p-3 rounded-lg inline-block max-w-[70%]';
-        
+
         // ---- CAMBIO 1: Añadir una opción vacía en el HTML del select ----
         problemSpan.innerHTML = `Excelente. Ahora, por favor, selecciona el problema:<br>
                             <select id="problema-select" style="width:100%; margin-top: 8px;">
                                     <option></option>
                             </select>`;
-        
+
         problemDiv.appendChild(problemSpan);
         chatMessages.appendChild(problemDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -588,7 +626,7 @@ class ChatManager {
             }
             const catalogoCompleto = await response.json();
 
-            const datosParaSelect2 = $.map(catalogoCompleto, function(item) {
+            const datosParaSelect2 = $.map(catalogoCompleto, function (item) {
                 return {
                     id: item.id,
                     text: item.nombre,
@@ -599,10 +637,10 @@ class ChatManager {
             $('#problema-select').select2({
                 placeholder: 'Busca o selecciona un problema',
                 data: datosParaSelect2,
-                
+
                 // ---- CAMBIO 2: Añadir esta línea ----
                 allowClear: true,
-                
+
                 minimumResultsForSearch: 0
             });
 
@@ -616,13 +654,13 @@ class ChatManager {
                 this.state.userProblem = selectedProblem.text;
                 window.GLOBAL_CHAT_PROBLEM_ID = selectedProblem.id;
                 window.GLOBAL_CHAT_PROBLEM = selectedProblem.text;
-                
+
                 await this.showSummary(chatMessages);
 
                 if (selectedProblem.pasos == '0') {
                     console.log('Problema sin pasos de ayuda. Generando ticket directamente.');
                     setTimeout(() => {
-                        this.handleResponse(false);  
+                        this.handleResponse(false);
                     }, 1500);
 
                 } else {
@@ -868,8 +906,8 @@ class ChatManager {
             const numero_empleado_supervisor = this.state.numeroSupervisor || window.GLOBAL_SUPERVISOR_NUMERO;
             const selectedMachineIndex =
                 (typeof this.state.selectedMachineIndex === 'number' && !isNaN(this.state.selectedMachineIndex)) ?
-                this.state.selectedMachineIndex :
-                window.GLOBAL_CHAT_MACHINE_INDEX;
+                    this.state.selectedMachineIndex :
+                    window.GLOBAL_CHAT_MACHINE_INDEX;
 
             console.log('Valores antes de enviar:', {
                 modulo,
@@ -908,7 +946,7 @@ class ChatManager {
                     totalActualTimeSeconds += this.state.actualStepTimes[stepKey];
                 }
             }
-            const tiempo_estimado_ia = this.state.totalEstimatedIATime; 
+            const tiempo_estimado_ia = this.state.totalEstimatedIATime;
             const minutos = Math.floor(totalActualTimeSeconds / 60);
             const segundos = totalActualTimeSeconds % 60;
 
@@ -1071,8 +1109,8 @@ class ChatManager {
                 } else if (statusToSend === '3') {
                     await this.appendChatMessage(
                         triggeredByTimeout ?
-                        'Por inactividad se ha cancelado tu ticket.<br>Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte' :
-                        'Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte',
+                            'Por inactividad se ha cancelado tu ticket.<br>Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte' :
+                            'Que lastima que hayas cancelado 😥 , recuerda que estoy para ayudarte',
                         chatMessages
                     );
                 }
@@ -1088,7 +1126,7 @@ class ChatManager {
                 if (data.errors) {
                     errorTitle = 'Error de Validación';
                     errorMessage = 'Por favor, revisa los datos enviados.';
-                    
+
                     // Formatear los errores para mostrarlos en el footer del Swal
                     const errorList = Object.values(data.errors).flat().join('<br>');
                     errorFooter = `<div style="text-align:left; font-family:monospace; font-size:12px;">${errorList}</div>`;
@@ -1102,7 +1140,7 @@ class ChatManager {
                     footer: errorFooter,
                     confirmButtonText: 'Entendido'
                 });
-                
+
                 // No es necesario lanzar un error aquí si ya lo estás manejando con Swal
                 // throw new Error(errorMessage); 
             }
@@ -1119,7 +1157,7 @@ class ChatManager {
                 text: 'Hubo un error al procesar la solicitud'
             });
         }
-    } 
+    }
 
     // Mostrar pregunta final con ambos botones y flujos correctos
     async showFinalResetQuestion(chatMessages) {
@@ -1152,7 +1190,7 @@ class ChatManager {
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         // Botón "Crear ticket"
-        messageDiv.querySelector('#btn-crear-ticket-final').onclick = async() => {
+        messageDiv.querySelector('#btn-crear-ticket-final').onclick = async () => {
             // Limpiar el chat y reiniciar el flujo
             chatMessages.innerHTML = '';
             this.selectedModulo = null;
@@ -1169,7 +1207,7 @@ class ChatManager {
         };
 
         // Botón "Dar seguimiento a un ticket"
-        messageDiv.querySelector('#btn-seguimiento-ticket-final').onclick = async() => {
+        messageDiv.querySelector('#btn-seguimiento-ticket-final').onclick = async () => {
             // Preguntar el módulo y redirigir
             await this.askModuloForSeguimiento(chatMessages);
         };

@@ -215,6 +215,12 @@ Route::controller(OrdenOTController::class)->group(function () {
 });
 
 
+// ===================== RUTA A AÑADIR =====================
+// ESTA RUTA MANTIENE LA SESIÓN ACTIVA Y DEVUELVE UN TOKEN FRESCO
+Route::get('/refresh-csrf', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+// =========================================================
 //seccion para colocar rutas a redireccionar FollowOTV2
 Route::redirect('/FormGuest', '/FormGuestV2');
 Route::redirect('/FollowOT', '/FollowOTV2');
