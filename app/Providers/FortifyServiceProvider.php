@@ -40,12 +40,12 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::authenticateUsing(function (Request $request) {
             $login = $request->input(Fortify::username());
-            $user = User::where(function ($query) use ($login) {
-                $query->where('email', $login)
-                      ->orWhere('num_empleado', $login);
-            })->first();
-            // --- TERMINA LA MODIFICACIÓN ---
 
+            // Determina si el campo de entrada es un email o no.
+            $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'num_empleado';
+
+            // Construye la consulta usando el campo correcto.
+            $user = User::where($field, $login)->first();
 
             if (
                 $user &&
