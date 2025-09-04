@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
     // 1. Seleccionamos los elementos del DOM.
     const container = document.getElementById('seguimiento-ot-container');
@@ -8,14 +8,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Variable para guardar los datos y poder filtrarlos después sin llamar a la API
     let todosLosTicketsDelModulo = [];
-    
+
     async function inicializar() {
         // Mostramos la barra de filtros desde el inicio.
         filtrosBar.classList.remove('hidden');
 
         configurarEventListeners();
-        cargarFiltroDeEstados(); 
-        
+        cargarFiltroDeEstados();
+
         // Cargamos el resumen general y todas las tarjetas de OT al iniciar.
         await actualizarResumen();
         await cargarYRenderizarRegistros();
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // El event listener de click en el contenedor se ha vaciado
         // ya que no hay acciones en las tarjetas.
-        container.addEventListener('click', function(e) {
+        container.addEventListener('click', function (e) {
             // No hay acciones que manejar aquí por el momento.
         });
     }
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function actualizarResumen(modulo) {
         try {
-            const response = await fetch(`/OrdenOT/obtenerResumen`); 
+            const response = await fetch(`/OrdenOT/obtenerResumen`);
             if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
             const resumen = await response.json();
             document.getElementById('ot-autonomas').textContent = resumen.AUTONOMO ?? 0;
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`/OrdenOT/obtenerRegistros`);
             if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
-            
+
             todosLosTicketsDelModulo = await response.json();
             renderizarTarjetas(todosLosTicketsDelModulo);
 
@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderizarTarjetas(tickets) {
-        clearActiveTimers(); 
-        container.innerHTML = ''; 
+        clearActiveTimers();
+        container.innerHTML = '';
 
         if (tickets.length === 0) {
             container.innerHTML = '<p class="text-center text-gray-500 col-span-full">No hay solicitudes para este módulo.</p>';
@@ -161,23 +161,23 @@ document.addEventListener('DOMContentLoaded', function() {
         let ringClass = 'ring-gray-400';
 
         switch (estado) {
-            case 'ASIGNADO': 
+            case 'ASIGNADO':
                 colorTexto = 'text-blue-800 bg-blue-100';
                 ringClass = 'ring-blue-500';
                 break;
-            case 'EN PROCESO': 
+            case 'EN PROCESO':
                 colorTexto = 'text-yellow-800 bg-yellow-100';
                 ringClass = 'ring-yellow-500';
                 break;
-            case 'ATENDIDO': 
+            case 'ATENDIDO':
                 colorTexto = 'text-green-800 bg-green-100';
                 ringClass = 'ring-green-500';
                 break;
-            case 'PENDIENTE': 
+            case 'PENDIENTE':
                 colorTexto = 'text-red-500 bg-red-100';
                 ringClass = 'ring-red-500';
                 break;
-            case 'AUTONOMO': 
+            case 'AUTONOMO':
                 colorTexto = 'text-violet-800 bg-violet-100';
                 ringClass = 'ring-violet-500';
                 break;
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 (asignacion && asignacion.nombre_mecanico.toLowerCase().includes(textoBusqueda));
             return coincideEstado && coincideBusqueda;
         });
-        
+
         renderizarTarjetas(ticketsFiltrados);
     }
 
@@ -285,14 +285,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
-        
+
         // Para cualquier otro estado (ASIGNADO, PENDIENTE, etc.), no se muestra nada.
         return '';
     }
-    
+
     function iniciarTemporizadores() {
         const timerElements = document.querySelectorAll('.timer-display');
-        
+
         timerElements.forEach(timerEl => {
             const startTimeStr = timerEl.dataset.startTime;
             const durationMinutes = parseInt(timerEl.dataset.durationMinutes, 10);
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const remainingSeconds = totalDurationInSeconds - elapsedSeconds;
 
         element.classList.remove('text-yellow-500', 'dark:text-yellow-400', 'text-red-600', 'dark:text-red-500', 'text-gray-800', 'dark:text-gray-100');
-        
+
         if (remainingSeconds < 0) {
             element.classList.add('text-red-600', 'dark:text-red-500');
         } else if (remainingSeconds < 300) {
@@ -338,19 +338,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const displaySeconds = absRemainingSeconds % 60;
 
         const formattedTime = `${isNegative ? '-' : ''}${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`;
-        
+
         element.textContent = formattedTime;
     }
-    
-    // Todas las funciones relacionadas con modales y envío de acciones han sido eliminadas:
-    // - mostrarModalIniciarAtencion
-    // - enviarInicioAtencion
-    // - mostrarModalFinalizarAtencion
-    // - mostrarModalEncuesta
-    // - enviarFinalizacionAtencion
-    // - handleActivarBahia
-    // - enviarActivacionBahia
-    // - enviarFinalizacionBahia
 
     inicializar();
 });
