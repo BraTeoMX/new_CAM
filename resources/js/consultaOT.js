@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Cargamos el resumen general y todas las tarjetas de OT al iniciar.
         await actualizarResumen();
         await cargarYRenderizarRegistros();
+
+        // --- NUEVO: Iniciar la actualización automática cada minuto ---
+        setInterval(actualizarDatosPeriodicamente, 60000); // 60000 ms = 1 minuto
     }
 
     // --- CONFIGURACIÓN DE EVENTOS ---
@@ -34,7 +37,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- NUEVA FUNCIÓN: Se ejecuta cada minuto para refrescar los datos ---
+    async function actualizarDatosPeriodicamente() {
+        console.log("Actualizando datos automáticamente...");
+        try {
+            // Actualiza los contadores del resumen
+            await actualizarResumen();
+
+            // Vuelve a solicitar todos los registros del backend
+            const response = await fetch(`/OrdenOT/obtenerRegistros`);
+            if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
+
+            // Actualiza la variable global con los nuevos datos
+            todosLosTicketsDelModulo = await response.json();
+
+            // Vuelve a aplicar los filtros actuales para refrescar la vista sin perder la selección del usuario
+            aplicarFiltros();
+        } catch (error) {
+            console.error("Error durante la actualización automática:", error);
+        }
+    }
+
+
     // --- MANEJADORES DE EVENTOS ---
+    // (Esta sección no necesita cambios)
     function handleModuloChange() {
         const moduloSeleccionado = this.value;
         if (moduloSeleccionado) {
@@ -52,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- FUNCIONES ---
-
+    // (Esta sección no necesita cambios)
     async function cargarModulos() {
         try {
             const response = await fetch('/OrdenOT/obtenerAreaModulos');
@@ -84,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- FUNCIONES DE MANEJO DE DATOS Y RENDERIZADO ---
+    // (El resto del archivo permanece sin cambios)
 
     async function actualizarResumen(modulo) {
         try {
@@ -249,10 +276,6 @@ document.addEventListener('DOMContentLoaded', function () {
         renderizarTarjetas(ticketsFiltrados);
     }
 
-    /**
-     * MODIFICADO: Esta función ahora genera la sección de información del temporizador
-     * o un mensaje simple, pero ya no crea botones de acción.
-     */
     function generarBotonesAccion(ticket) {
         const estado = ticket.catalogo_estado?.nombre;
 
