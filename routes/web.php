@@ -79,6 +79,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/dashboardV2/obtenerMeses', [DashboardV2Controller::class, 'obtenerMeses']);
         Route::get('/dashboardV2/calcularMinutos', [DashboardV2Controller::class, 'calcularMinutos']);
         Route::get('/dashboardV2/obtenerDetallesTickets', [DashboardV2Controller::class, 'obtenerDetallesTickets']);
+        Route::get('/dashboardV2/obtenerDetallesAutonomosCancelados', [DashboardV2Controller::class, 'obtenerDetallesAutonomosCancelados']);
         Route::get('/dashboardV2/tops', [DashboardV2Controller::class, 'tops']);
         Route::get('/dashboardV2/efectividad', [DashboardV2Controller::class, 'efectividad']);
         Route::get('/dashboardV2/calendarioTickets', [DashboardV2Controller::class, 'calendarioTickets']);

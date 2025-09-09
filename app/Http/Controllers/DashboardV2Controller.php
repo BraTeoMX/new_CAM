@@ -254,6 +254,78 @@ class DashboardV2Controller extends Controller
         return response()->json($finalResponse);
     }
 
+    public function obtenerDetallesAutonomosCancelados(Request $request)
+    {
+        // 1. OBTENER PARÁMETROS (sin cambios)
+        $month = $request->input('month', now()->month);
+        $year = now()->year;
+
+        // 2. CONSULTA (sin cambios)
+        $tickets = TicketOt::with(['asignaciones', 'catalogoEstado'])
+            ->whereIn('estado', [1, 7])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->get();
+
+        // 3. INICIALIZAR CONTADORES Y LISTAS
+        $stats = [
+            'autonomos' => 0,
+            'cancelados' => 0,
+        ];
+        $details = [];
+        $totalSegundosReales = 0; // <-- NUEVO: Para calcular el total de minutos
+
+        // 4. PROCESAR LOS DATOS (lógica de cálculo añadida)
+        foreach ($tickets as $ticket) {
+            if ($ticket->estado == 1) $stats['autonomos']++;
+            if ($ticket->estado == 7) $stats['cancelados']++;
+
+            $asignacion = $ticket->asignaciones->first();
+            if ($asignacion) {
+                $segundosReales = (int) $asignacion->tiempo_real_minutos;
+                $totalSegundosReales += $segundosReales; // <-- NUEVO: Acumulamos los segundos
+
+                // ... (lógica de formateo de tiempo, sin cambios)
+                $segundosEstimados = (int) $asignacion->tiempo_estimado_minutos;
+                $minutosEstimados = floor($segundosEstimados / 60);
+                $segundosEstimadosRestantes = $segundosEstimados % 60;
+                $tiempoEstimadoFormateado = $minutosEstimados . ' min ' . $segundosEstimadosRestantes . ' seg';
+
+                $minutosReales = floor($segundosReales / 60);
+                $segundosRealesRestantes = $segundosReales % 60;
+                $tiempoUsoFormateado = $minutosReales . ' min ' . $segundosRealesRestantes . ' seg';
+
+                $details[] = [
+                    'planta' => ($ticket->planta == 1) ? 'Ixtlahuaca' : 'San Bartolo',
+                    'folio' => $ticket->folio,
+                    'estado' => optional($ticket->catalogoEstado)->nombre ?? 'Desconocido',
+                    'supervisor' => $ticket->nombre_supervisor,
+                    'tiempo_estimado' => $tiempoEstimadoFormateado,
+                    'tiempo_de_uso' => $tiempoUsoFormateado,
+                ];
+            }
+        }
+
+        // --- INICIO: NUEVO BLOQUE DE CÁLCULO DE RESUMEN ---
+        $totalTickets = count($details);
+        $totalMinutos = $totalSegundosReales / 60;
+        $promedioMin = ($totalTickets > 0) ? ($totalMinutos / $totalTickets) : 0;
+
+        $resumen = [
+            'nombre' => 'Autónomos y Cancelados',
+            'minutos' => $totalMinutos,
+            'tickets' => $totalTickets,
+            'promedio_min' => $promedioMin,
+        ];
+        // --- FIN: NUEVO BLOQUE DE CÁLCULO DE RESUMEN ---
+
+        // 5. DEVOLVER LA RESPUESTA COMPLETA Y ESTRUCTURADA
+        return response()->json([
+            'resumen' => $resumen, // Resumen para las tarjetas de stats
+            'details' => $details,   // Detalles para la tabla
+        ]);
+    }
+
     /**
      * Calcula y devuelve los rankings "Top 5" de problemas, módulos y máquinas
      * para un mes y año específicos.

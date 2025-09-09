@@ -35,17 +35,25 @@ async function loadDashboardData(month) {
             'X-CSRF-TOKEN': csrfToken
         };
 
-        const [resumenResponse, detallesResponse] = await Promise.all([
+        const [resumenResponse, detallesResponse, autonomosResponse] = await Promise.all([
             fetch(`/dashboardV2/calcularMinutos?month=${month}`, { headers }),
-            fetch(`/dashboardV2/obtenerDetallesTickets?month=${month}`, { headers })
+            fetch(`/dashboardV2/obtenerDetallesTickets?month=${month}`, { headers }),
+            fetch(`/dashboardV2/obtenerDetallesAutonomosCancelados?month=${month}`, { headers })
         ]);
 
-        if (!resumenResponse.ok || !detallesResponse.ok) {
+        if (!resumenResponse.ok || !detallesResponse.ok || !autonomosResponse.ok) {
             throw new Error('Una de las peticiones a la API falló.');
         }
 
         const resumenData = await resumenResponse.json();
         const detallesData = await detallesResponse.json();
+        const autonomosData = await autonomosResponse.json();
+
+        // Añadimos el resumen de autónomos a la lista de resúmenes.
+        resumenData.autonomos = autonomosData.resumen;
+
+        // Añadimos los detalles de autónomos a la lista de detalles.
+        detallesData.autonomos = autonomosData.details;
 
         const combinedData = { resumen: resumenData, detalles: detallesData };
 
@@ -75,15 +83,21 @@ function updateUI(data) {
 
     // 1. Crear la lista de pestañas a partir de los datos recibidos.
     const tabsConfig = [
-        { id: 'global' },
-        ...data.resumen.plantas.map((p, i) => ({ id: `planta_${i + 1}` }))
+        { id: 'global', dataKey: 'global' },
+        ...data.resumen.plantas.map((p, i) => ({ id: `planta_${i + 1}`, dataKey: `plantas[${i}]` })),
+        { id: 'autonomos', dataKey: 'autonomos' }
     ];
 
     // 2. Actualizar las tarjetas de resumen para cada pestaña.
-    tabsConfig.forEach((tab, index) => {
-        const stats = (tab.id === 'global')
-            ? data.resumen.global
-            : data.resumen.plantas[index - 1];
+    tabsConfig.forEach(tab => {
+        // Obtenemos los datos de resumen de la ruta correcta
+        let stats;
+        if (tab.dataKey.includes('plantas')) {
+            const index = parseInt(tab.dataKey.match(/\[(\d+)\]/)[1]);
+            stats = data.resumen.plantas[index];
+        } else {
+            stats = data.resumen[tab.dataKey];
+        }
 
         const contentContainer = document.getElementById(`tab-content-${tab.id}`);
         if (contentContainer && stats) {
@@ -95,7 +109,7 @@ function updateUI(data) {
 
     // 3. Actualizar todas las DataTables con los nuevos datos.
     Object.keys(state.dataTables).forEach(tableId => {
-        const dataKey = tableId.replace('table-', ''); // 'global', 'planta_1', etc.
+        const dataKey = tableId.replace('table-', ''); // 'global', 'planta_1', 'autonomos'
         const newData = data.detalles[dataKey] || [];
         const table = state.dataTables[tableId];
 
@@ -119,13 +133,21 @@ function createDynamicShell(data) {
 
     // Configuración de pestañas basada en los datos reales.
     const tabsConfig = [
-        { id: 'global', name: 'Global', icon: 'dashboard' },
+        { id: 'global', name: 'Global', icon: 'public' },
         ...data.resumen.plantas.map((p, i) => ({
             id: `planta_${i + 1}`,
             name: p.planta,
             icon: p.planta === 'Ixtlahuaca' ? 'factory' : 'apartment'
         }))
     ];
+
+    if (data.resumen.autonomos) {
+        tabsConfig.push({
+            id: 'autonomos',
+            name: 'Autónomos',
+            icon: 'task_alt' // Un ícono representativo
+        });
+    }
 
     const baseButtonClasses = 'inline-block w-full p-4 focus:outline-none font-medium transition';
     const activeClasses = 'bg-indigo-800 text-white font-bold';
@@ -154,14 +176,26 @@ function createDynamicShell(data) {
                     ${createDataGridHTML()}
                     <hr class="my-6 border-gray-200 dark:border-gray-700">
                     <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Detalle de Tickets</h3>
-                    <table id="table-${tab.id}" class="display responsive" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Planta</th><th>Folio</th><th>Módulo</th><th>Supervisor</th><th>Mecánico</th><th>Tiempo Bruto</th><th>Tiempo Neto</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    
+                    ${tab.id === 'autonomos' ? `
+                        <table id="table-${tab.id}" class="display responsive" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Planta</th><th>Folio</th><th>Estado</th><th>Supervisor</th><th>Tiempo Estimado</th><th>Tiempo de Uso</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    ` : `
+                        <table id="table-${tab.id}" class="display responsive" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Planta</th><th>Folio</th><th>Módulo</th><th>Supervisor</th><th>Mecánico</th><th>Tiempo Bruto</th><th>Tiempo Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    `}
                 </div>
             `).join('')}
         </div>
@@ -171,7 +205,13 @@ function createDynamicShell(data) {
 
     // 3. Inicializar TODAS las DataTables (estarán vacías hasta que updateUI las llene)
     tabsConfig.forEach(tab => {
-        initializeDataTable(`table-${tab.id}`);
+        if (tab.id === 'autonomos') {
+            // Usamos una función de inicialización específica para esta tabla
+            initializeAutonomosDataTable(`table-${tab.id}`);
+        } else {
+            // Reutilizamos la función original para las otras tablas
+            initializeDataTable(`table-${tab.id}`);
+        }
     });
 
     // 4. Configurar los listeners para los botones de las pestañas UNA SOLA VEZ
@@ -297,6 +337,49 @@ function initializeDataTable(tableId) {
     });
     state.dataTables[tableId] = table;
     console.log(`✅ DataTable inicializada para: #${tableId}`);
+}
+
+// Coloca esta función junto a initializeDataTable
+function initializeAutonomosDataTable(tableId) {
+    const table = new DataTable(`#${tableId}`, {
+        data: [],
+        columns: [
+            { data: 'planta' },
+            { data: 'folio' },
+            { data: 'estado' },
+            { data: 'supervisor' },
+            { data: 'tiempo_estimado', render: renderTimeForSorting },
+            { data: 'tiempo_de_uso', render: renderTimeForSorting }
+        ],
+        columnDefs: [{ targets: [4, 5], type: 'num' }],
+        responsive: true,
+        lengthChange: false,
+        pageLength: 10,
+        language: {
+            "processing": "Procesando...",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "zeroRecords": "No se encontraron resultados",
+            "emptyTable": "Ningún dato disponible en esta tabla",
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "search": "Buscar:",
+            "loadingRecords": "Cargando...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            },
+            "aria": {
+                "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                "sortDescending": ": Activar para ordenar la columna de manera descendente"
+            }
+        },
+        destroy: true
+    });
+    state.dataTables[tableId] = table;
+    console.log(`✅ DataTable de Autónomos inicializada para: #${tableId}`);
 }
 
 // ================================================================
