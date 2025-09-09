@@ -180,7 +180,7 @@ class DashboardV2Controller extends Controller
         ])
         ->whereYear('created_at', $year)
         ->whereMonth('created_at', $month)
-        ->select('id', 'planta', 'modulo', 'folio', 'nombre_supervisor', 'numero_empleado_operario')
+        ->select('id', 'planta', 'modulo', 'folio', 'nombre_supervisor', 'numero_empleado_operario', 'created_at')
         ->get();
 
         // 3. INICIALIZAR LA ESTRUCTURA DE RESPUESTA AGRUPADA
@@ -212,6 +212,18 @@ class DashboardV2Controller extends Controller
                 $segundosParaMostrar = $segundosNetos % 60;
                 $tiempoFormateado = $minutosParaMostrar . ' min ' . $segundosParaMostrar . ' seg';
 
+                // Usamos las fechas como objetos Carbon para calcular la diferencia fácilmente.
+                $fechaCreacionTicket = $ticket->created_at;
+                $fechaFinalizacionDiagnostico = $asignacion->diagnostico->updated_at; // O created_at si es más preciso para ti
+
+                // Calculamos la diferencia total en segundos
+                $segundosBrutos = $fechaFinalizacionDiagnostico->diffInSeconds($fechaCreacionTicket);
+
+                // Formateamos el tiempo bruto de la misma manera que el neto
+                $minutosBrutos = floor($segundosBrutos / 60);
+                $segundosBrutosRestantes = $segundosBrutos % 60;
+                $tiempoBrutoFormateado = $minutosBrutos . ' min ' . $segundosBrutosRestantes . ' seg';
+
                 // Construimos la fila de detalle
                 $filaDetalle = [
                     'planta' => ($ticket->planta == 1) ? 'Ixtlahuaca' : 'San Bartolo',
@@ -222,6 +234,7 @@ class DashboardV2Controller extends Controller
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
                     'minutos_netos' => $minutosDecimal,
                     'tiempo_neto_formateado' => $tiempoFormateado,
+                    'tiempo_bruto_formateado' => $tiempoBrutoFormateado,
                 ];
 
                 // --- Lógica de asignación a los grupos ---

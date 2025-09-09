@@ -46,7 +46,7 @@ async function loadDashboardData(month) {
 
         const resumenData = await resumenResponse.json();
         const detallesData = await detallesResponse.json();
-        
+
         const combinedData = { resumen: resumenData, detalles: detallesData };
 
         // Lógica principal: si las pestañas no existen, las crea.
@@ -55,7 +55,7 @@ async function loadDashboardData(month) {
             createDynamicShell(combinedData);
             state.tabsAreBuilt = true;
         }
-        
+
         updateUI(combinedData);
 
     } catch (error) {
@@ -76,15 +76,15 @@ function updateUI(data) {
     // 1. Crear la lista de pestañas a partir de los datos recibidos.
     const tabsConfig = [
         { id: 'global' },
-        ...data.resumen.plantas.map((p, i) => ({ id: `planta_${i+1}` }))
+        ...data.resumen.plantas.map((p, i) => ({ id: `planta_${i + 1}` }))
     ];
 
     // 2. Actualizar las tarjetas de resumen para cada pestaña.
     tabsConfig.forEach((tab, index) => {
-        const stats = (tab.id === 'global') 
-            ? data.resumen.global 
+        const stats = (tab.id === 'global')
+            ? data.resumen.global
             : data.resumen.plantas[index - 1];
-        
+
         const contentContainer = document.getElementById(`tab-content-${tab.id}`);
         if (contentContainer && stats) {
             contentContainer.querySelector('.stat-minutos').textContent = Math.round(stats.minutos).toLocaleString('es-MX');
@@ -98,7 +98,7 @@ function updateUI(data) {
         const dataKey = tableId.replace('table-', ''); // 'global', 'planta_1', etc.
         const newData = data.detalles[dataKey] || [];
         const table = state.dataTables[tableId];
-        
+
         table.clear();
         table.rows.add(newData);
         table.draw();
@@ -121,12 +121,12 @@ function createDynamicShell(data) {
     const tabsConfig = [
         { id: 'global', name: 'Global', icon: 'dashboard' },
         ...data.resumen.plantas.map((p, i) => ({
-            id: `planta_${i+1}`,
+            id: `planta_${i + 1}`,
             name: p.planta,
             icon: p.planta === 'Ixtlahuaca' ? 'factory' : 'apartment'
         }))
     ];
-    
+
     const baseButtonClasses = 'inline-block w-full p-4 focus:outline-none font-medium transition';
     const activeClasses = 'bg-indigo-800 text-white font-bold';
     const inactiveClasses = 'bg-indigo-600 text-white hover:bg-indigo-700';
@@ -157,7 +157,7 @@ function createDynamicShell(data) {
                     <table id="table-${tab.id}" class="display responsive" style="width:100%">
                         <thead>
                             <tr>
-                                <th>Planta</th><th>Folio</th><th>Módulo</th><th>Supervisor</th><th>Mecánico</th><th>Tiempo Neto</th>
+                                <th>Planta</th><th>Folio</th><th>Módulo</th><th>Supervisor</th><th>Mecánico</th><th>Tiempo Bruto</th><th>Tiempo Neto</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -217,49 +217,54 @@ function createDataGridHTML() {
     </div>`;
 }
 
+function renderTimeForSorting(data, type, row) {
+    if (type === 'sort') {
+        if (!data) return 0; // Seguridad por si el dato es nulo o vacío
+        const match = data.match(/(\d+)\s*min\s*(\d+)\s*seg/);
+        if (match) {
+            const minutos = parseInt(match[1], 10);
+            const segundos = parseInt(match[2], 10);
+            return (minutos * 60) + segundos;
+        }
+        return 0; // Si el formato no coincide, no se puede ordenar
+    }
+    // Para 'display' y otros, simplemente muestra el texto original.
+    return data;
+}
+
 /**
  * Inicializa una DataTable y la guarda en el estado para futuras actualizaciones.
  */
 function initializeDataTable(tableId) {
     const table = new DataTable(`#${tableId}`, {
-        data: [], 
+        data: [],
         columns: [
             { data: 'planta' },
             { data: 'folio' },
             { data: 'modulo' },
             { data: 'supervisor' },
             { data: 'mecanico_nombre' },
-            { 
-                data: 'tiempo_neto_formateado', 
+            {
+                data: 'tiempo_bruto_formateado',
+                title: 'Tiempo Bruto',
+                render: renderTimeForSorting // Usamos nuestro nuevo helper
+            },
+            {
+                data: 'tiempo_neto_formateado',
                 title: 'Tiempo Neto',
-                // La función render se mantiene exactamente igual.
-                // Proporciona el número de segundos cuando se le pregunta.
-                render: function (data, type, row) {
-                    if (type === 'sort') {
-                        if (!data) return 0; // Seguridad por si el dato es nulo
-                        const match = data.match(/(\d+)\s*min\s*(\d+)\s*seg/);
-                        if (match) {
-                            const minutos = parseInt(match[1], 10);
-                            const segundos = parseInt(match[2], 10);
-                            return (minutos * 60) + segundos;
-                        }
-                        return 0;
-                    }
-                    // Para cualquier otro caso (display, filter, etc.) muestra el texto original
-                    return data;
-                }
+                render: renderTimeForSorting // Reutilizamos el helper aquí también
             }
         ],
-        
+
         // --- INICIO DE LA NUEVA INSTRUCCIÓN ---
         // Aquí le decimos a DataTables cómo tratar específicamente a nuestras columnas.
         columnDefs: [
             {
                 // `targets: 5` se refiere a la sexta columna (el índice empieza en 0).
-                targets: 5, 
+                targets: 5,
                 // `type: 'num'` FUERZA a DataTables a usar el ordenamiento numérico
                 // para esta columna, activando así nuestra lógica en `render`.
-                type: 'num' 
+                type: 'num'
             }
         ],
         // --- FIN DE LA NUEVA INSTRUCCIÓN ---
@@ -309,7 +314,7 @@ function init() {
     }
     console.log("🚀 DashboardStats: Inicializando componente...");
     state.isInitialized = true;
-    
+
     // Carga proactiva: lee el mes del selector y pide los datos por primera vez.
     const monthSelect = document.getElementById('month-select');
     // Si el selector no existe o no tiene valor, usa el mes actual como fallback.
