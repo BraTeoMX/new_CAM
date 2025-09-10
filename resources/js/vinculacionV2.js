@@ -1,5 +1,5 @@
-$(document).ready(function() {
-    
+$(document).ready(function () {
+
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -11,7 +11,7 @@ $(document).ready(function() {
 
     // 1. Inicializar los Select2 (inicialmente vacíos y deshabilitados)
     const $selectSupervisor = $('#select-supervisor').select2({
-        placeholder: 'Seleccione un supervisor/módulo',
+        placeholder: 'Seleccione un area/módulo',
         allowClear: true
     });
 
@@ -23,7 +23,7 @@ $(document).ready(function() {
     // Función para poblar el select de supervisores
     function poblarSupervisores(data) {
         // Transformar los datos para Select2
-        const supervisoresParaSelect = $.map(data, function(item) {
+        const supervisoresParaSelect = $.map(data, function (item) {
             return {
                 // El texto que se muestra en la opción
                 text: `${item.modulo} - ${item.nombre}`,
@@ -38,7 +38,7 @@ $(document).ready(function() {
             allowClear: true,
             data: supervisoresParaSelect // Usar los datos locales
         });
-        
+
         // Limpiar cualquier selección previa al cargar
         $selectSupervisor.val(null).trigger('change');
     }
@@ -48,7 +48,7 @@ $(document).ready(function() {
     $.when(
         $.ajax({ url: '/vinculacion/obtenerSupervisores', dataType: 'json' }),
         $.ajax({ url: '/vinculacion/obtenerMecanicos', dataType: 'json' })
-    ).done(function(supervisoresResponse, mecanicosResponse) {
+    ).done(function (supervisoresResponse, mecanicosResponse) {
         // $.when devuelve un arreglo [data, statusText, jqXHR] para cada petición
         todosLosSupervisores = supervisoresResponse[0];
         todosLosMecanicos = mecanicosResponse[0];
@@ -56,13 +56,13 @@ $(document).ready(function() {
         // Una vez que tenemos los datos, poblamos el primer select
         poblarSupervisores(todosLosSupervisores);
 
-    }).fail(function() {
+    }).fail(function () {
         console.error("Error: No se pudieron cargar los datos iniciales de supervisores o mecánicos.");
         // Aquí podrías mostrar un mensaje de error al usuario
     });
 
     // 3. Lógica de dependencia y filtro local
-    $selectSupervisor.on('change', function() {
+    $selectSupervisor.on('change', function () {
         const supervisorSeleccionadoJSON = $(this).val();
 
         // Limpiar y deshabilitar mecánico si no hay supervisor
@@ -82,7 +82,7 @@ $(document).ready(function() {
         const mecanicosFiltrados = todosLosMecanicos.filter(mecanico => mecanico.planta === plantaSeleccionada);
 
         // Transformar los mecánicos filtrados al formato de Select2
-        const mecanicosParaSelect = $.map(mecanicosFiltrados, function(item) {
+        const mecanicosParaSelect = $.map(mecanicosFiltrados, function (item) {
             return {
                 text: `${item.nombre} - ${item.numero_empleado}`,
                 id: JSON.stringify(item)
@@ -101,7 +101,7 @@ $(document).ready(function() {
     });
 
     // 4. Habilitar el botón "Añadir" (misma lógica que ya tenías)
-    $('#select-supervisor, #select-mecanico').on('change', function() {
+    $('#select-supervisor, #select-mecanico').on('change', function () {
         const supervisorOk = $('#select-supervisor').val();
         const mecanicoOk = $('#select-mecanico').val();
 
@@ -109,7 +109,7 @@ $(document).ready(function() {
     });
 
     // 5. Lógica para el clic en el botón "Añadir" (sin cambios, ya era correcta)
-    $('#btn-anadir-vinculacion').on('click', function() {
+    $('#btn-anadir-vinculacion').on('click', function () {
         const supervisorData = JSON.parse($selectSupervisor.val());
         const mecanicoData = JSON.parse($selectMecanico.val());
 
@@ -126,7 +126,7 @@ $(document).ready(function() {
             url: '/vinculacion/guardar',
             type: 'POST',
             data: datosParaEnviar,
-            success: function(response) {
+            success: function (response) {
                 // ✅ Notificación de éxito
                 Swal.fire({
                     icon: 'success',
@@ -141,7 +141,7 @@ $(document).ready(function() {
                 $selectSupervisor.val(null).trigger('change');
                 cargarTablaVinculaciones();
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 const error = xhr.responseJSON;
 
                 if (xhr.status === 422 && error?.errors) {
@@ -241,11 +241,11 @@ $(document).ready(function() {
             url: '/vinculacion/mostrarRegistros',
             type: 'GET',
             dataType: 'json',
-            success: function(response) {
+            success: function (response) {
                 const tbody = $('#vinculacion-tbody');
                 tbody.empty(); // Limpiar tabla
 
-                response.forEach(function(vinculacion) {
+                response.forEach(function (vinculacion) {
                     // 1. Generar las opciones para cada select con el valor correcto seleccionado
                     const opcionesComida = generarOpcionesDeTiempo("08:00", "22:00", 30, vinculacion.hora_comida_inicio);
                     const opcionesBreakLJ = generarOpcionesDeTiempo("08:00", "19:00", 15, vinculacion.break_lunes_jueves_inicio);
@@ -298,7 +298,7 @@ $(document).ready(function() {
                     tbody.append(fila);
                 });
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 console.error("Error al obtener los registros:", xhr.responseText);
                 $('#vinculacion-tbody').html('<tr><td colspan="7" class="text-center text-red-500 py-4">Error al cargar los datos.</td></tr>');
             }
@@ -306,26 +306,26 @@ $(document).ready(function() {
     }
 
     // --- MANEJADOR DE EVENTOS PARA ACTUALIZACIÓN AUTOMÁTICA ---
-    
+
     // Se usa delegación de eventos: un solo listener en el tbody para todos los selects.
-    $('#vinculacion-tbody').on('change', '.vinculacion-select', function() {
+    $('#vinculacion-tbody').on('change', '.vinculacion-select', function () {
         const select = $(this);
         const selectedTime = select.val();
         const duration = parseInt(select.data('duration'), 10);
-        
+
         // Encuentra el input de 'fin' que está justo al lado
         const finInput = select.siblings('input[type="text"]');
-        
+
         // Calcula la nueva hora de fin y actualiza el input
         const endTime = calcularHoraFin(selectedTime, duration);
         finInput.val(endTime);
     });
 
-    $('#guardar-vinculacion').on('click', function() {
+    $('#guardar-vinculacion').on('click', function () {
         const vinculacionesAActualizar = [];
 
         // 1. Recorrer cada fila <tr> de la tabla
-        $('#vinculacion-tbody tr').each(function() {
+        $('#vinculacion-tbody tr').each(function () {
             const fila = $(this);
             const id = fila.data('id'); // Obtener el ID de la vinculación
 
@@ -359,7 +359,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ vinculaciones: vinculacionesAActualizar }),
 
-            success: function(response) {
+            success: function (response) {
                 Swal.fire({
                     icon: 'success',
                     title: '¡Actualización completada!',
@@ -373,7 +373,7 @@ $(document).ready(function() {
                 cargarTablaVinculaciones();
             },
 
-            error: function(xhr) {
+            error: function (xhr) {
                 const error = xhr.responseJSON;
 
                 if (xhr.status === 422 && error?.errors) {
