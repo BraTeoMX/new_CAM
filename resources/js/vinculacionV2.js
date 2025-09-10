@@ -271,7 +271,7 @@ $(document).ready(function () {
                     // 3. Construir la fila con los datos y las opciones generadas
                     const fila = `
                         <tr data-id="${vinculacion.id}" class="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-                            <td class="px-4 py-2 border-b ...">${vinculacion.modulo} - ${vinculacion.nombre_supervisor}</td>
+                            <td class="px-4 py-2 border-b ...">${vinculacion.modulo}</td>
                             <td class="px-4 py-2 border-b ...">${vinculacion.nombre_mecanico}</td>
                             <td class="px-4 py-2 border-b ...">${vinculacion.planta}</td>
                             
