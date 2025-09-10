@@ -6,8 +6,10 @@ $(document).ready(function () {
         }
     });
     // Variables para almacenar todos los datos cargados inicialmente
+    // Variables globales para almacenar datos y la instancia de la tabla
     let todosLosSupervisores = [];
     let todosLosMecanicos = [];
+    let tablaVinculaciones = null; // Variable para la instancia de DataTables
 
     // 1. Inicializar los Select2 (inicialmente vacíos y deshabilitados)
     const $selectSupervisor = $('#select-supervisor').select2({
@@ -243,6 +245,12 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (response) {
                 const tbody = $('#vinculacion-tbody');
+
+                // Si DataTables ya está inicializada, la destruimos para poder recargarla
+                if ($.fn.DataTable.isDataTable('#tabla-vinculacion')) {
+                    tablaVinculaciones.destroy();
+                }
+
                 tbody.empty(); // Limpiar tabla
 
                 response.forEach(function (vinculacion) {
@@ -255,6 +263,10 @@ $(document).ready(function () {
                     const horaComidaFin = calcularHoraFin(vinculacion.hora_comida_inicio, 30);
                     const breakLJFin = calcularHoraFin(vinculacion.break_lunes_jueves_inicio, 15);
                     const breakVFin = calcularHoraFin(vinculacion.break_viernes_inicio, 15);
+
+                    // Convertimos los datos originales a un string JSON para el atributo data-*
+                    const supervisorDataString = JSON.stringify(vinculacion.supervisor_original);
+                    const mecanicoDataString = JSON.stringify(vinculacion.mecanico_original);
 
                     // 3. Construir la fila con los datos y las opciones generadas
                     const fila = `
@@ -292,10 +304,58 @@ $(document).ready(function () {
                                     <input name="break_viernes_fin" type="text" class="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-700 w-[40%] " value="${breakVFin || ''}" readonly />
                                 </div>
                             </td>
-                            <td></td>
-                        </tr>
-                    `;
+                            <td class="text-center">
+                                <button 
+                                    class="btn-editar bg-orange-700 hover:bg-orange-900 text-white font-bold py-1 px-3 rounded shadow-lg"
+                                    data-id="${vinculacion.id}"
+                                    data-supervisor='${supervisorDataString}'
+                                    data-mecanico='${mecanicoDataString}'>
+                                    Editar
+                                </button>
+                            </td>
+                        </tr>`;
                     tbody.append(fila);
+                });
+
+                // Inicializamos DataTables DESPUÉS de haber agregado todas las filas
+                tablaVinculaciones = $('#tabla-vinculacion').DataTable({
+                    "language": {
+                        "processing": "Procesando...",
+                        "lengthMenu": "Mostrar _MENU_ registros",
+                        "zeroRecords": "No se encontraron resultados",
+                        "emptyTable": "Ningún dato disponible en esta tabla",
+                        "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                        "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+                        "search": "Buscar:",
+                        "loadingRecords": "Cargando...",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
+                        },
+                        "aria": {
+                            "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+                            "sortDescending": ": Activar para ordenar la columna de manera descendente"
+                        }
+                    },
+                    "destroy": true, // Asegura que se pueda reinicializar
+                    "lengthChange": false, // ✅ Oculta el selector "Mostrar X registros"
+                    "pageLength": 50,
+                    initComplete: function () {
+                        this.api().columns([0, 1, 2]).every(function () {
+                            var column = this;
+                            var title = $(column.footer()).text();
+                            var input = $('<input type="text" placeholder="Buscar..." class="w-full border-gray-300 rounded-md shadow-sm text-sm" />')
+                                .appendTo($(column.footer()).empty())
+                                .on('keyup change clear', function () {
+                                    if (column.search() !== this.value) {
+                                        column.search(this.value).draw();
+                                    }
+                                });
+                        });
+                    }
                 });
             },
             error: function (xhr) {
@@ -391,7 +451,6 @@ $(document).ready(function () {
                         html: listaErrores,
                         confirmButtonText: 'Corregir'
                     });
-
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -400,14 +459,127 @@ $(document).ready(function () {
                         confirmButtonText: 'Entendido'
                     });
                 }
-
                 console.error("Error al guardar:", error || xhr);
             }
         });
-
     });
+
+    $('#tabla-vinculacion tbody').on('click', '.btn-editar', function () {
+        const vinculacionId = $(this).data('id');
+        const supervisorActual = $(this).data('supervisor');
+
+        Swal.fire({
+            title: 'Editar Vinculación',
+            html: `
+                <div class="space-y-4 text-left p-4">
+                    <div>
+                        <label for="swal-select-supervisor" class="block font-medium mb-1">Nuevo Area/Modulo</label>
+                        <select id="swal-select-supervisor" class="swal2-select w-full"></select>
+                    </div>
+                    <div>
+                        <label for="swal-select-mecanico" class="block font-medium mb-1">Nuevo Mecánico</label>
+                        <select id="swal-select-mecanico" class="swal2-select w-full" disabled></select>
+                    </div>
+                </div>`,
+            confirmButtonText: 'Guardar Cambios',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            didOpen: () => {
+                const $swalSupervisor = $('#swal-select-supervisor').select2({
+                    placeholder: 'Seleccione un area/módulo',
+                    dropdownParent: $('.swal2-popup'), // MUY IMPORTANTE
+                    allowClear: true
+                });
+                const $swalMecanico = $('#swal-select-mecanico').select2({
+                    placeholder: 'Seleccione un mecánico',
+                    dropdownParent: $('.swal2-popup'), // MUY IMPORTANTE
+                    allowClear: true
+                });
+
+                const supervisoresParaSelect = todosLosSupervisores.map(item => ({
+                    text: `${item.modulo} - ${item.nombre}`,
+                    id: JSON.stringify(item)
+                }));
+
+                $swalSupervisor.select2({
+                    placeholder: 'Seleccione un supervisor/módulo',
+                    allowClear: true,
+                    dropdownParent: $('.swal2-popup'),
+                    data: supervisoresParaSelect
+                }).val(JSON.stringify(supervisorActual)).trigger('change');
+
+                $swalSupervisor.on('change', function () {
+                    const supervisorJSON = $(this).val();
+                    $swalMecanico.val(null).trigger('change').empty();
+
+                    if (!supervisorJSON) {
+                        $swalMecanico.prop('disabled', true);
+                        return;
+                    }
+
+                    const supervisorData = JSON.parse(supervisorJSON);
+                    const mecanicosFiltrados = todosLosMecanicos.filter(m => m.planta === supervisorData.planta);
+                    const mecanicosParaSelect = mecanicosFiltrados.map(item => ({
+                        text: `${item.nombre} - ${item.numero_empleado}`,
+                        id: JSON.stringify(item)
+                    }));
+
+                    $swalMecanico.select2({
+                        placeholder: 'Seleccione un mecánico',
+                        allowClear: true,
+                        dropdownParent: $('.swal2-popup'),
+                        data: mecanicosParaSelect
+                    });
+                    $swalMecanico.prop('disabled', false).val(null).trigger('change');
+                });
+
+                // Disparamos el 'change' inicial para poblar los mecánicos
+                $swalSupervisor.trigger('change');
+            },
+            preConfirm: () => {
+                const supervisorJSON = $('#swal-select-supervisor').val();
+                const mecanicoJSON = $('#swal-select-mecanico').val();
+
+                if (!supervisorJSON || !mecanicoJSON) {
+                    Swal.showValidationMessage('Ambos campos son obligatorios');
+                    return false;
+                }
+                return {
+                    supervisor: JSON.parse(supervisorJSON),
+                    mecanico: JSON.parse(mecanicoJSON)
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const supervisor = result.value.supervisor;
+                const mecanico = result.value.mecanico;
+
+                const datosParaActualizar = {
+                    numero_empleado_supervisor: supervisor.numero_empleado,
+                    nombre_supervisor: supervisor.nombre,
+                    planta: supervisor.planta,
+                    modulo: supervisor.modulo,
+                    nombre_mecanico: mecanico.nombre,
+                    numero_empleado_mecanico: mecanico.numero_empleado
+                };
+
+                $.ajax({
+                    url: `/vinculacion/actualizar/${vinculacionId}`,
+                    type: 'PUT', // Usamos PUT directamente
+                    contentType: 'application/json',
+                    data: JSON.stringify(datosParaActualizar),
+                    success: function (response) {
+                        Swal.fire('¡Actualizado!', response.message, 'success');
+                        cargarTablaVinculaciones();
+                    },
+                    error: function (xhr) {
+                        const errorMsg = xhr.responseJSON?.message || 'No se pudo completar la operación.';
+                        Swal.fire('Error', errorMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
+
     cargarTablaVinculaciones();
-
-
-
 });

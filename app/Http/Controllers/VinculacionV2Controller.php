@@ -113,16 +113,32 @@ class VinculacionV2Controller extends Controller
     public function mostrarRegistros()
     {
         try {
-            // Obtiene registros ordenados del mayor al menor por ID
             $vinculaciones = Vinculacion::orderBy('modulo')->get();
 
-            // Mapea la columna 'planta' con sus equivalentes de texto
             $vinculaciones = $vinculaciones->map(function ($item) {
-                $item->planta = match ($item->planta) {
+                // --- INICIO DE LA MODIFICACIÓN ---
+                
+                // Guardamos los datos originales que necesitaremos en el frontend
+                $item->supervisor_original = [
+                    'numero_empleado' => $item->numero_empleado_supervisor,
+                    'nombre' => $item->nombre_supervisor,
+                    'planta' => $item->getOriginal('planta'), // Obtener el valor numérico original
+                    'modulo' => $item->modulo,
+                ];
+                $item->mecanico_original = [
+                    'numero_empleado' => $item->numero_empleado_mecanico,
+                    'nombre' => $item->nombre_mecanico,
+                    'planta' => $item->getOriginal('planta'),
+                ];
+
+                // Ahora transformamos el valor de la planta a texto para mostrarlo en la tabla
+                $item->planta = match ($item->getOriginal('planta')) {
                     1 => 'Ixtlahuaca',
                     2 => 'San Bartolo',
                     default => 'Sin Planta',
                 };
+                
+                // --- FIN DE LA MODIFICACIÓN ---
                 return $item;
             });
 
@@ -188,6 +204,41 @@ class VinculacionV2Controller extends Controller
             Log::error('Error en la actualización masiva de vinculaciones: ' . $e->getMessage());
 
             return response()->json(['message' => 'Ocurrió un error en el servidor.'], 500);
+        }
+    }
+
+    public function actualizarIndividual(Request $request, $id)
+    {
+        // 1. Validación de los datos recibidos
+        $validator = Validator::make($request->all(), [
+            'numero_empleado_supervisor' => 'required|string',
+            'nombre_supervisor'      => 'required|string',
+            'planta'                 => 'required|integer',
+            'modulo'                 => 'required|string',
+            'nombre_mecanico'        => 'required|string',
+            'numero_empleado_mecanico' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // 2. Buscar la vinculación a actualizar
+        $vinculacion = Vinculacion::find($id);
+
+        if (!$vinculacion) {
+            return response()->json(['message' => 'El registro no fue encontrado.'], 404);
+        }
+
+        // 3. Actualizar el registro
+        try {
+            $vinculacion->update($request->all());
+
+            return response()->json(['message' => 'La vinculación ha sido actualizada correctamente.']);
+
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar vinculación individual: ' . $e->getMessage());
+            return response()->json(['message' => 'Ocurrió un error en el servidor al actualizar.'], 500);
         }
     }
 

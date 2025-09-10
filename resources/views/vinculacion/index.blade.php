@@ -63,7 +63,7 @@
             </div>
             <div class="mt-4 flex gap-2">
                 <button id="guardar-vinculacion"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Guardar Vinculaciones
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">Actualizar horarios
                 </button>
             </div>
         </div>
