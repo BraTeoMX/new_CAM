@@ -74,6 +74,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/vinculacion/mostrarRegistros', [VinculacionV2Controller::class, 'mostrarRegistros']);
         Route::post('/vinculacion/actualizarMasivo', [VinculacionV2Controller::class, 'actualizarMasivo'])->name('vinculacion.actualizarMasivo');
         Route::put('/vinculacion/actualizar/{id}', [VinculacionV2Controller::class, 'actualizarIndividual'])->name('vinculacion.actualizarIndividual');
+        Route::delete('/vinculacion/eliminar/{id}', [VinculacionV2Controller::class, 'eliminar'])->name('vinculacion.eliminar');
 
         //segunda version de Dashboard
         Route::get('/dashboardV2', [DashboardV2Controller::class, 'index'])->name('dashboard.index');

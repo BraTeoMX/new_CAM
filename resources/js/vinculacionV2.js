@@ -305,6 +305,7 @@ $(document).ready(function () {
                                 </div>
                             </td>
                             <td class="text-center">
+                            <div class="flex justify-center gap-2">
                                 <button 
                                     class="btn-editar bg-orange-700 hover:bg-orange-900 text-white font-bold py-1 px-3 rounded shadow-lg"
                                     data-id="${vinculacion.id}"
@@ -312,7 +313,13 @@ $(document).ready(function () {
                                     data-mecanico='${mecanicoDataString}'>
                                     Editar
                                 </button>
-                            </td>
+                                <button 
+                                    class="btn-eliminar bg-red-800 hover:bg-red-950 text-white font-bold py-1 px-3 rounded shadow-lg"
+                                    data-id="${vinculacion.id}">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </td>
                         </tr>`;
                     tbody.append(fila);
                 });
@@ -575,6 +582,50 @@ $(document).ready(function () {
                     error: function (xhr) {
                         const errorMsg = xhr.responseJSON?.message || 'No se pudo completar la operación.';
                         Swal.fire('Error', errorMsg, 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    $('#tabla-vinculacion tbody').on('click', '.btn-eliminar', function () {
+        const vinculacionId = $(this).data('id'); // Obtener el ID del botón
+
+        // 1. Mostrar alerta de confirmación
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, ¡eliminar!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            // 2. Si el usuario confirma, realizar la petición AJAX
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/vinculacion/eliminar/${vinculacionId}`,
+                    type: 'DELETE', // Usamos el método HTTP DELETE
+                    success: function (response) {
+                        // 3. Si la petición es exitosa, mostrar alerta de éxito
+                        Swal.fire(
+                            '¡Eliminado!',
+                            response.message,
+                            'success'
+                        );
+
+                        // 4. Recargar la tabla para reflejar el cambio
+                        cargarTablaVinculaciones();
+                    },
+                    error: function (xhr) {
+                        // 5. Si hay un error, mostrarlo
+                        const errorMsg = xhr.responseJSON?.message || 'No se pudo completar la operación.';
+                        Swal.fire(
+                            'Error',
+                            errorMsg,
+                            'error'
+                        );
                     }
                 });
             }

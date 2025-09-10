@@ -242,4 +242,34 @@ class VinculacionV2Controller extends Controller
         }
     }
 
+    /**
+     * Elimina una vinculación específica.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function eliminar($id)
+    {
+        // 1. Buscar la vinculación por su ID
+        $vinculacion = Vinculacion::find($id);
+
+        // Si no se encuentra, devolver un error 404
+        if (!$vinculacion) {
+            return response()->json(['message' => 'El registro no fue encontrado.'], 404);
+        }
+
+        // 2. Intentar eliminar el registro
+        try {
+            $vinculacion->delete();
+
+            // Si se elimina correctamente, devolver un mensaje de éxito
+            return response()->json(['message' => 'La vinculación ha sido eliminada correctamente.']);
+
+        } catch (\Exception $e) {
+            // En caso de un error inesperado, registrarlo y notificar
+            Log::error('Error al eliminar vinculación: ' . $e->getMessage());
+            return response()->json(['message' => 'Ocurrió un error en el servidor al eliminar el registro.'], 500);
+        }
+    }
+
 }
