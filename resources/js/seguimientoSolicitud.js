@@ -67,35 +67,36 @@ document.addEventListener('DOMContentLoaded', function () {
         searchInput.addEventListener('input', aplicarFiltros);
         statusFilter.addEventListener('change', aplicarFiltros);
 
-        container.addEventListener('click', function (e) {
+        container.addEventListener('click', async function (e) {
             // Verificamos si el elemento clickeado (o su padre) es un botón de "Iniciar Atención"
             const iniciarBtn = e.target.closest('.iniciar-atencion-btn');
             if (iniciarBtn) {
-                e.preventDefault(); // Prevenimos cualquier comportamiento por defecto
-                const ticketId = iniciarBtn.dataset.ticketId;
-                const maquina = iniciarBtn.dataset.maquina;
+                e.preventDefault();
+                iniciarBtn.disabled = true; // <-- CAMBIO: Deshabilitar botón
+                Swal.fire({ // <-- CAMBIO: Mostrar alerta de carga
+                    title: 'Procesando...',
+                    text: 'Por favor, espera.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                try {
+                    const ticketId = iniciarBtn.dataset.ticketId;
+                    const maquina = iniciarBtn.dataset.maquina;
 
-                // --- INICIO DE LA MODIFICACIÓN ---
-
-                // 1. Verificamos si la máquina es 'N/A'
-                if (maquina === 'N/A') {
-                    // Si es 'N/A', no mostramos el modal.
-                    console.log(`Ticket ${ticketId} con máquina N/A. Omitiendo modal.`);
-
-                    // 2. Creamos el objeto 'formValues' con los datos predefinidos.
-                    const formValuesNA = {
-                        clase: 'N/A',
-                        numero_maquina: 'N/A',
-                        tiempo_estimado: "00:15:00" // Usamos 0 como un valor seguro para el tiempo.
-                    };
-
-                    // 3. Llamamos directamente a la función de envío.
-                    // Usamos una función autoejecutable asíncrona para poder usar 'await'.
-                    (async () => {
+                    if (maquina === 'N/A') {
+                        console.log(`Ticket ${ticketId} con máquina N/A. Omitiendo modal.`);
+                        const formValuesNA = {
+                            clase: 'N/A',
+                            numero_maquina: 'N/A',
+                            tiempo_estimado: "00:15:00"
+                        };
                         await enviarInicioAtencion(ticketId, formValuesNA);
-                    })();
-
-                } else {
+                    } else {
+                        await mostrarModalIniciarAtencion(ticketId, maquina);
+                    }
+                } finally {
                     // Si la máquina tiene un valor válido, continuamos con el flujo normal.
                     mostrarModalIniciarAtencion(ticketId, maquina);
                 }
@@ -105,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const finalizarBtn = e.target.closest('.detener-atencion-btn');
             if (finalizarBtn) {
                 e.preventDefault();
+                finalizarBtn.disabled = true;
                 const ticketId = finalizarBtn.dataset.ticketId;
 
                 // 1. Capturamos la hora actual precisa
@@ -119,14 +121,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (activarBahiaBtn) {
                 e.preventDefault();
                 const ticketId = activarBahiaBtn.dataset.ticketId;
-                handleActivarBahia(ticketId); // Llamamos a la nueva función manejadora
+                handleActivarBahia(ticketId, activarBahiaBtn); // <-- CAMBIO: Pasar el botón
             }
 
             const reanudarBahiaBtn = e.target.closest('.reanudar-bahia-btn');
             if (reanudarBahiaBtn) {
                 e.preventDefault();
                 const ticketId = reanudarBahiaBtn.dataset.ticketId;
-                enviarFinalizacionBahia(ticketId); // Llamamos directamente a la función de envío
+                enviarFinalizacionBahia(ticketId, reanudarBahiaBtn);
             }
         });
     }
@@ -134,8 +136,16 @@ document.addEventListener('DOMContentLoaded', function () {
     /**
      * Envía la solicitud al backend para finalizar la pausa activa.
      * @param {string} ticketId - El ID del ticket cuya atención se va a reanudar.
+     * @param {HTMLElement} boton - El botón que se presionó. 
      */
-    async function enviarFinalizacionBahia(ticketId) {
+    async function enviarFinalizacionBahia(ticketId, boton) {
+        boton.disabled = true; // <-- CAMBIO
+        Swal.fire({ // <-- CAMBIO
+            title: 'Reanudando...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
         const isDarkMode = document.documentElement.classList.contains('dark');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -182,6 +192,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'error',
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#ef4444' })
             });
+        } finally {
+            boton.disabled = false; // <-- CAMBIO: Rehabilitar el botón en caso de error
         }
     }
 
@@ -190,40 +202,55 @@ document.addEventListener('DOMContentLoaded', function () {
      * Maneja la acción de activar el tiempo de bahía.
      * Muestra un modal para que el usuario pueda añadir un motivo.
      * @param {string} ticketId - El ID del ticket que se va a pausar.
+     * @param {HTMLElement} boton - El botón que se presionó.
      */
-    async function handleActivarBahia(ticketId) {
-        //const isDarkMode = document.documentElement.classList.contains('dark');
+    async function handleActivarBahia(ticketId, boton) { // <-- CAMBIO
+        boton.disabled = true; // <-- CAMBIO
+        Swal.fire({ // <-- CAMBIO
+            title: 'Activando Pausa...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
 
-        // Preguntamos opcionalmente por un motivo para la pausa
-        //const { value: motivo } = await Swal.fire({
-        //    title: 'Activar Tiempo Bahía',
-        //    input: 'text',
-        //    inputLabel: 'Motivo de la pausa (opcional)',
-        //    inputPlaceholder: 'Ej: Esperando refacción, consulta con supervisor...',
-        //    showCancelButton: true,
-        //    confirmButtonText: 'Activar Pausa',
-        //    cancelButtonText: 'Cancelar',
-        // Estilos para modo oscuro
-        //   ...(isDarkMode && {
-        //        background: '#1f2937',
-        //        color: '#f9fafb',
-        //        confirmButtonColor: '#8b5cf6' // Un color violeta
-        //    }),
-        //    didOpen: () => {
-        // Obtenemos la referencia al campo de entrada
-        //        const input = Swal.getInput();
-        //        if (input) {
-        //            // Forzamos el color del texto a negro
-        //            input.style.color = 'black'; 
-        //        }
-        //    }
-        //});
+        try {
+            //const isDarkMode = document.documentElement.classList.contains('dark');
 
-        // Si el usuario confirma (incluso si el motivo está vacío), procedemos.
-        // 'motivo' será undefined si el usuario presiona "Cancelar".
-        //if (typeof motivo !== 'undefined') {
-        await enviarActivacionBahia(ticketId, '');
-        //}
+            // Preguntamos opcionalmente por un motivo para la pausa
+            //const { value: motivo } = await Swal.fire({
+            //    title: 'Activar Tiempo Bahía',
+            //    input: 'text',
+            //    inputLabel: 'Motivo de la pausa (opcional)',
+            //    inputPlaceholder: 'Ej: Esperando refacción, consulta con supervisor...',
+            //    showCancelButton: true,
+            //    confirmButtonText: 'Activar Pausa',
+            //    cancelButtonText: 'Cancelar',
+            // Estilos para modo oscuro
+            //   ...(isDarkMode && {
+            //        background: '#1f2937',
+            //        color: '#f9fafb',
+            //        confirmButtonColor: '#8b5cf6' // Un color violeta
+            //    }),
+            //    didOpen: () => {
+            // Obtenemos la referencia al campo de entrada
+            //        const input = Swal.getInput();
+            //        if (input) {
+            //            // Forzamos el color del texto a negro
+            //            input.style.color = 'black'; 
+            //        }
+            //    }
+            //});
+
+            // Si el usuario confirma (incluso si el motivo está vacío), procedemos.
+            // 'motivo' será undefined si el usuario presiona "Cancelar".
+            //if (typeof motivo !== 'undefined') {
+            await enviarActivacionBahia(ticketId, '');
+            //}
+        } catch (error) {
+            // El error ya se maneja en enviarActivacionBahia
+        } finally {
+            // Como enviarActivacionBahia recarga la vista, no necesitamos rehabilitar aquí.
+            // Si fallara y no recargara, sí sería necesario.
+        }
     }
 
     /**
@@ -1123,6 +1150,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'error',
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#ef4444' })
             });
+            // <-- CAMBIO: Si ocurre un error, es importante recargar igualmente para que los botones se rehabiliten.
+            const moduloSeleccionado = moduloSelect.value;
+            if (moduloSeleccionado) {
+                cargarYRenderizarRegistros(moduloSeleccionado);
+            }
         }
     }
 
