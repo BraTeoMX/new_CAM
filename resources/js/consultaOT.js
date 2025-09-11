@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ticket.descripcion_problema.toLowerCase().includes(textoBusqueda) ||
                 ticket.maquina.toLowerCase().includes(textoBusqueda) ||
                 ticket.nombre_operario.toLowerCase().includes(textoBusqueda) ||
+                ticket.modulo.toLowerCase().includes(textoBusqueda) ||
                 (asignacion && asignacion.nombre_mecanico.toLowerCase().includes(textoBusqueda));
             return coincideEstado && coincideBusqueda;
         });
