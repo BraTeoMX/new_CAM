@@ -13,6 +13,7 @@ use App\Models\CatalogoArea;
 use App\Models\DiagnosticoSolucion;
 use App\Models\TiempoBahia;
 use App\Models\Falla;
+use App\Models\CatalogoProblema;
 use App\Models\Causa;
 use App\Models\Accion;
 
@@ -227,7 +228,7 @@ class FollowAtentionV2Controller extends Controller
 
     public function obtenerFallas()
     {
-        $fallas = Falla::select('id', 'nombre')->orderBy('nombre')->get();
+        $fallas = CatalogoProblema::select('id', 'nombre')->orderBy('nombre')->get();
         return response()->json($fallas);
     }
 

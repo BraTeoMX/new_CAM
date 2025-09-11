@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
     // 1. Seleccionamos los elementos del DOM.
     const moduloSelect = document.getElementById('modulo-select');
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Variable para guardar los datos y poder filtrarlos después sin llamar a la API
     let todosLosTicketsDelModulo = [];
-    
+
 
     function inicializar() {
         // Inicializamos la librería Select2.
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         configurarEventListeners();
         cargarModulos();
-        cargarFiltroDeEstados(); 
+        cargarFiltroDeEstados();
     }
 
     async function inicializar() {
@@ -31,10 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         configurarEventListeners();
-        cargarFiltroDeEstados(); 
+        cargarFiltroDeEstados();
 
         // 1. Esperamos a que la carga de módulos termine
-        await cargarModulos(); 
+        await cargarModulos();
 
         // 2. Una vez cargados, revisamos la URL y seleccionamos el módulo si existe
         seleccionarModuloDesdeURL();
@@ -43,13 +43,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function seleccionarModuloDesdeURL() {
         // Creamos un objeto para leer fácilmente los parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
-        
+
         // Obtenemos el valor del parámetro 'modulo'
         const moduloDesdeURL = urlParams.get('modulo');
 
         if (moduloDesdeURL) {
             console.log(`Módulo encontrado en la URL: ${moduloDesdeURL}. Cargando datos...`);
-            
+
             // Usamos jQuery para establecer el valor del select y
             // disparamos el evento 'change' para que Select2 reaccione.
             // Esto ejecutará el listener que tengas en 'configurarEventListeners'
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', aplicarFiltros);
         statusFilter.addEventListener('change', aplicarFiltros);
 
-        container.addEventListener('click', function(e) {
+        container.addEventListener('click', function (e) {
             // Verificamos si el elemento clickeado (o su padre) es un botón de "Iniciar Atención"
             const iniciarBtn = e.target.closest('.iniciar-atencion-btn');
             if (iniciarBtn) {
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     (async () => {
                         await enviarInicioAtencion(ticketId, formValuesNA);
                     })();
-                    
+
                 } else {
                     // Si la máquina tiene un valor válido, continuamos con el flujo normal.
                     mostrarModalIniciarAtencion(ticketId, maquina);
@@ -110,19 +110,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 1. Capturamos la hora actual precisa
                 const ahora = new Date();
                 const horaFinalizacion = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}:${String(ahora.getSeconds()).padStart(2, '0')}`;
-                
+
                 // 2. Llamamos a la nueva función que mostrará el modal de finalización
                 mostrarModalFinalizarAtencion(ticketId, horaFinalizacion);
             }
 
             const activarBahiaBtn = e.target.closest('.activar-bahia-btn');
-                if (activarBahiaBtn) {
-                    e.preventDefault();
-                    const ticketId = activarBahiaBtn.dataset.ticketId;
-                    handleActivarBahia(ticketId); // Llamamos a la nueva función manejadora
-                }
+            if (activarBahiaBtn) {
+                e.preventDefault();
+                const ticketId = activarBahiaBtn.dataset.ticketId;
+                handleActivarBahia(ticketId); // Llamamos a la nueva función manejadora
+            }
 
-                const reanudarBahiaBtn = e.target.closest('.reanudar-bahia-btn');
+            const reanudarBahiaBtn = e.target.closest('.reanudar-bahia-btn');
             if (reanudarBahiaBtn) {
                 e.preventDefault();
                 const ticketId = reanudarBahiaBtn.dataset.ticketId;
@@ -192,38 +192,38 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {string} ticketId - El ID del ticket que se va a pausar.
      */
     async function handleActivarBahia(ticketId) {
-        const isDarkMode = document.documentElement.classList.contains('dark');
+        //const isDarkMode = document.documentElement.classList.contains('dark');
 
         // Preguntamos opcionalmente por un motivo para la pausa
-        const { value: motivo } = await Swal.fire({
-            title: 'Activar Tiempo Bahía',
-            input: 'text',
-            inputLabel: 'Motivo de la pausa (opcional)',
-            inputPlaceholder: 'Ej: Esperando refacción, consulta con supervisor...',
-            showCancelButton: true,
-            confirmButtonText: 'Activar Pausa',
-            cancelButtonText: 'Cancelar',
-            // Estilos para modo oscuro
-            ...(isDarkMode && {
-                background: '#1f2937',
-                color: '#f9fafb',
-                confirmButtonColor: '#8b5cf6' // Un color violeta
-            }),
-            didOpen: () => {
-                // Obtenemos la referencia al campo de entrada
-                const input = Swal.getInput();
-                if (input) {
-                    // Forzamos el color del texto a negro
-                    input.style.color = 'black'; 
-                }
-            }
-        });
+        //const { value: motivo } = await Swal.fire({
+        //    title: 'Activar Tiempo Bahía',
+        //    input: 'text',
+        //    inputLabel: 'Motivo de la pausa (opcional)',
+        //    inputPlaceholder: 'Ej: Esperando refacción, consulta con supervisor...',
+        //    showCancelButton: true,
+        //    confirmButtonText: 'Activar Pausa',
+        //    cancelButtonText: 'Cancelar',
+        // Estilos para modo oscuro
+        //   ...(isDarkMode && {
+        //        background: '#1f2937',
+        //        color: '#f9fafb',
+        //        confirmButtonColor: '#8b5cf6' // Un color violeta
+        //    }),
+        //    didOpen: () => {
+        // Obtenemos la referencia al campo de entrada
+        //        const input = Swal.getInput();
+        //        if (input) {
+        //            // Forzamos el color del texto a negro
+        //            input.style.color = 'black'; 
+        //        }
+        //    }
+        //});
 
         // Si el usuario confirma (incluso si el motivo está vacío), procedemos.
         // 'motivo' será undefined si el usuario presiona "Cancelar".
-        if (typeof motivo !== 'undefined') {
-            await enviarActivacionBahia(ticketId, motivo);
-        }
+        //if (typeof motivo !== 'undefined') {
+        await enviarActivacionBahia(ticketId, '');
+        //}
     }
 
     /**
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function mostrarModalEncuesta() {
         const isDarkMode = document.documentElement.classList.contains('dark');
-        
+
         // Mapeo de valores: Texto amigable y emojis para el usuario, número para el backend.
         const opciones = [
             { valor: '4', emoji: '🌟', texto: 'Excelente' },
@@ -311,15 +311,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // 2. CONSTRUIR EL HTML DE LAS OPCIONES PARA CADA SELECT
             // Usamos map() para convertir cada objeto del array en un string <option>
             // y join('') para unirlos todos en un solo bloque de texto.
-            const fallasOptionsHTML = fallas.map(falla => 
+            const fallasOptionsHTML = fallas.map(falla =>
                 `<option value="${falla.nombre}">${falla.nombre}</option>`
             ).join('');
 
-            const causasOptionsHTML = causas.map(causa => 
+            const causasOptionsHTML = causas.map(causa =>
                 `<option value="${causa.nombre}">${causa.nombre}</option>`
             ).join('');
 
-            const accionesOptionsHTML = acciones.map(accion => 
+            const accionesOptionsHTML = acciones.map(accion =>
                 `<option value="${accion.nombre}">${accion.nombre}</option>`
             ).join('');
 
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const falla = document.getElementById('falla-select').value;
                     const causa = document.getElementById('causa-falla-select').value;
                     const accion = document.getElementById('accion-implementada-select').value;
-                    
+
                     if (!falla) {
                         Swal.showValidationMessage('Debes seleccionar la falla.');
                         return false;
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formValues) {
                 // ...mostramos el SEGUNDO modal (Encuesta)
                 const satisfaccionValue = await mostrarModalEncuesta();
-                
+
                 // Si el usuario completó la encuesta...
                 if (satisfaccionValue) {
                     // ...AHORA SÍ enviamos TODO al backend.
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`/FollowOTV2/obtenerRegistros/${modulo}`);
             if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
-            
+
             todosLosTicketsDelModulo = await response.json();
             renderizarTarjetas(todosLosTicketsDelModulo);
 
@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderizarTarjetas(tickets) {
         clearActiveTimers(); // Limpiamos cualquier temporizador que estuviera corriendo.
-        container.innerHTML = ''; 
+        container.innerHTML = '';
 
         if (tickets.length === 0) {
             container.innerHTML = '<p class="text-center text-gray-500 col-span-full">No hay solicitudes para este módulo.</p>';
@@ -593,23 +593,23 @@ document.addEventListener('DOMContentLoaded', function() {
         let ringClass = 'ring-gray-400'; // Color del anillo por defecto
 
         switch (estado) {
-            case 'ASIGNADO': 
+            case 'ASIGNADO':
                 colorTexto = 'text-blue-800 bg-blue-100';
                 ringClass = 'ring-blue-500';
                 break;
-            case 'EN PROCESO': 
+            case 'EN PROCESO':
                 colorTexto = 'text-yellow-800 bg-yellow-100';
                 ringClass = 'ring-yellow-500';
                 break;
-            case 'ATENDIDO': 
+            case 'ATENDIDO':
                 colorTexto = 'text-green-800 bg-green-100';
                 ringClass = 'ring-green-500';
                 break;
-            case 'PENDIENTE': 
+            case 'PENDIENTE':
                 colorTexto = 'text-red-500 bg-red-100';
                 ringClass = 'ring-red-500';
                 break;
-            case 'AUTONOMO': 
+            case 'AUTONOMO':
                 colorTexto = 'text-violet-800 bg-violet-100';
                 ringClass = 'ring-violet-500';
                 break;
@@ -763,8 +763,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Si está en proceso, mostramos un botón para ver detalles o continuar la atención
             return `<p>Solucionado</p>`;
 
-        } else if ( estado === 'ATENDIDO'){
-             return `
+        } else if (estado === 'ATENDIDO') {
+            return `
                 <div class="w-full border border-gray-500 rounded-md p-4 text-center shadow-sm">
                     <h2 class="font-mono text-2xl text-gray-800 dark:text-gray-100 font-bold">
                         <span class="material-symbols-outlined">timer</span> Tiempo total de atención: 
@@ -784,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`/FollowOTV2/obtenerClasesMaquina/${encodeURIComponent(maquina)}`);
             if (!response.ok) throw new Error('No se pudieron cargar los datos de la máquina.');
-            
+
             const data = await response.json();
             const clases = data.clases || [];
             const numerosMaquina = data.numeroMaquina || [];
@@ -837,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         Swal.showValidationMessage('Debes seleccionar un número de máquina.');
                         return false;
                     }
-                    
+
                     const tiempoEstimado = claseSelect.options[claseSelect.selectedIndex].dataset.tiempo;
 
                     return {
@@ -940,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function iniciarTemporizadores() {
         const timerElements = document.querySelectorAll('.timer-display');
-        
+
         timerElements.forEach(timerEl => {
             const startTimeStr = timerEl.dataset.startTime;
             const durationMinutes = parseInt(timerEl.dataset.durationMinutes, 10);
@@ -959,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Guardamos el ID del intervalo para poder limpiarlo después.
             activeTimers.push(intervalId);
-            
+
             // Ejecutamos una vez al inicio para que el usuario no vea el "--:--" por un segundo.
             updateTimer(timerEl, startTimeStr, durationMinutes);
         });
@@ -981,7 +981,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 3. Determinar el color basado en el tiempo restante.
         // Primero limpiamos las clases de color anteriores para evitar conflictos.
         element.classList.remove('text-yellow-500', 'dark:text-yellow-400', 'text-red-600', 'dark:text-red-500', 'text-gray-800', 'dark:text-gray-100');
-        
+
         if (remainingSeconds < 0) {
             element.classList.add('text-red-600', 'dark:text-red-500'); // Tiempo agotado (rojo)
         } else if (remainingSeconds < 300) { // Menos de 5 minutos (300 segundos)
@@ -1051,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showConfirmButton: false,
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb' })
             });
-            
+
             // Recargar los datos para reflejar el cambio
             const moduloSeleccionado = moduloSelect.value;
             if (moduloSeleccionado) {
