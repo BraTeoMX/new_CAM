@@ -107,8 +107,16 @@ document.addEventListener('DOMContentLoaded', function () {
             if (finalizarBtn) {
                 e.preventDefault();
                 finalizarBtn.disabled = true;
-                const ticketId = finalizarBtn.dataset.ticketId;
 
+                Swal.fire({
+                    title: 'Cargando datos...',
+                    text: 'Por favor, espera un momento.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                const ticketId = finalizarBtn.dataset.ticketId;
                 // 1. Capturamos la hora actual precisa
                 const ahora = new Date();
                 const horaFinalizacion = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}:${String(ahora.getSeconds()).padStart(2, '0')}`;
