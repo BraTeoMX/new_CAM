@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const horaFinalizacion = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}:${String(ahora.getSeconds()).padStart(2, '0')}`;
 
                 // 2. Llamamos a la nueva función que mostrará el modal de finalización
-                mostrarModalFinalizarAtencion(ticketId, horaFinalizacion);
+                mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, finalizarBtn);
             }
 
             const activarBahiaBtn = e.target.closest('.activar-bahia-btn');
@@ -320,9 +320,11 @@ document.addEventListener('DOMContentLoaded', function () {
      * NUEVA: Muestra el modal para finalizar la atención y registrar la causa.
      * @param {number} ticketId - El ID del ticket.
      * @param {string} horaFinalizacion - La hora exacta (HH:MM:SS) en que se hizo clic.
+     * @param {HTMLElement} boton
      */
-    async function mostrarModalFinalizarAtencion(ticketId, horaFinalizacion) {
+    async function mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton) {
         const isDarkMode = document.documentElement.classList.contains('dark');
+        let procesoCompletado = false;
 
         try {
             // 1. OBTENER DATOS DE LAS 3 RUTAS SIMULTÁNEAMENTE
@@ -451,18 +453,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (satisfaccionValue) {
                     // ...AHORA SÍ enviamos TODO al backend.
                     await enviarFinalizacionAtencion(ticketId, horaFinalizacion, formValues, satisfaccionValue);
+                    procesoCompletado = true;
                 }
             }
 
         } catch (error) {
             console.error("Error al preparar el modal de finalización:", error);
-            // Si algo falla, mostramos un modal de error
             Swal.fire({
                 title: 'Error',
                 text: error.message,
                 icon: 'error',
-                ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
+                ...(isDarkMode && {
+                    background: '#1f2937',
+                    color: '#f9fafb',
+                    confirmButtonColor: '#3b82f6'
+                })
             });
+        } finally {
+            // <-- CAMBIO 4: Este bloque SIEMPRE se ejecuta
+            // Si el proceso NO se completó (porque se cerró el modal o hubo un error),
+            // y si el botón existe, lo volvemos a habilitar.
+            if (!procesoCompletado && boton) {
+                boton.disabled = false;
+            }
         }
     }
 
