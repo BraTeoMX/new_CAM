@@ -72,35 +72,41 @@ document.addEventListener('DOMContentLoaded', function () {
             const iniciarBtn = e.target.closest('.iniciar-atencion-btn');
             if (iniciarBtn) {
                 e.preventDefault();
-                iniciarBtn.disabled = true; // <-- CAMBIO: Deshabilitar botón
-                Swal.fire({ // <-- CAMBIO: Mostrar alerta de carga
-                    title: 'Procesando...',
-                    text: 'Por favor, espera.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                try {
-                    const ticketId = iniciarBtn.dataset.ticketId;
-                    const maquina = iniciarBtn.dataset.maquina;
+                const ticketId = iniciarBtn.dataset.ticketId;
+                const maquina = iniciarBtn.dataset.maquina;
 
-                    if (maquina === 'N/A') {
-                        console.log(`Ticket ${ticketId} con máquina N/A. Omitiendo modal.`);
+                if (maquina === 'N/A') {
+                    iniciarBtn.disabled = true;
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Por favor, espera.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    try {
                         const formValuesNA = {
                             clase: 'N/A',
                             numero_maquina: 'N/A',
                             tiempo_estimado: "00:15:00"
                         };
                         await enviarInicioAtencion(ticketId, formValuesNA);
-                    } else {
-                        await mostrarModalIniciarAtencion(ticketId, maquina);
+                    } finally {
+                        iniciarBtn.disabled = false;
                     }
-                } finally {
-                    // Si la máquina tiene un valor válido, continuamos con el flujo normal.
-                    mostrarModalIniciarAtencion(ticketId, maquina);
+                } else {
+                    iniciarBtn.disabled = true;
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Por favor, espera.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    mostrarModalIniciarAtencion(ticketId, maquina, iniciarBtn);
                 }
-                // --- FIN DE LA MODIFICACIÓN ---
             }
 
             const finalizarBtn = e.target.closest('.detener-atencion-btn');
@@ -827,8 +833,11 @@ document.addEventListener('DOMContentLoaded', function () {
      * NUEVA: Muestra el modal de SweetAlert2 para iniciar la atención.
      * @param {number} ticketId - El ID del ticket.
      * @param {string} maquina - El nombre de la máquina.
+     * @param {HTMLElement} boton - El botón que se presionó.
      */
-    async function mostrarModalIniciarAtencion(ticketId, maquina) {
+    async function mostrarModalIniciarAtencion(ticketId, maquina, boton) {
+        let procesoCompletado = false;
+
         try {
             const response = await fetch(`/FollowOTV2/obtenerClasesMaquina/${encodeURIComponent(maquina)}`);
             if (!response.ok) throw new Error('No se pudieron cargar los datos de la máquina.');
@@ -853,7 +862,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <option value=""></option>
                             ${clases.map(c => `<option value="${c.class}" data-tiempo="${c.TimeEstimado}">${c.class} (${c.TimeEstimado} min)</option>`).join('')}
                         </select>
-                        
+
                         <label class="block mt-4 mb-2 text-sm font-medium">Número de Máquina:</label>
                         <select id="numero-maquina-select" class="swal2-select" style="width: 100%">
                             <option value=""></option>
@@ -909,6 +918,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (formValues) {
                 console.log('Datos del modal:', formValues);
                 await enviarInicioAtencion(ticketId, formValues);
+                procesoCompletado = true;
             }
 
         } catch (error) {
@@ -921,6 +931,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Y al modal de error
                 ...(isDarkMode && { background: '#1f2937', color: '#f9fafb', confirmButtonColor: '#3b82f6' })
             });
+        } finally {
+            // Si el proceso NO se completó (porque se cerró el modal o hubo un error),
+            // re-habilitar el botón para que pueda intentarse de nuevo
+            if (!procesoCompletado && boton) {
+                boton.disabled = false;
+            }
         }
     }
 
