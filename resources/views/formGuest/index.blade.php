@@ -12,18 +12,26 @@
                 class="mb-4 h-[600px] overflow-y-auto border-b-2 border-gray-200 dark:border-gray-700">
             </div>
             <form id="chat-form">
-                <input type="text" id="message"
-                    class="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
+                <input type="text" id="message" class="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
                     placeholder="Escribe tu mensaje...">
-                <button type="submit"
-                    class="bg-blue-500 text-white font-bold py-2 px-4 rounded
+                <button type="submit" class="bg-blue-500 text-white font-bold py-2 px-4 rounded
                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                        disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-500"
-                    disabled>
-                        Enviar
+                        disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-500" disabled>
+                    Enviar
                 </button>
             </form>
         </div>
     </div>
-    @vite(['resources/js/chat.js'])
+
+    {{-- Sistema de Chat Modular - Reemplaza al chat.js monolítico --}}
+    @vite([
+    'resources/js/chat/constants.js',
+    'resources/js/chat/state.js',
+    'resources/js/chat/api.js',
+    'resources/js/chat/ui.js',
+    'resources/js/chat/utils.js',
+    'resources/js/chat/validation.js',
+    'resources/js/chat/chatFlow.js',
+    'resources/js/chat/index.js'
+    ])
 </x-guest-layout>
