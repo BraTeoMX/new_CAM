@@ -23,8 +23,8 @@
         </div>
     </div>
 
-    {{-- Sistema de Chat Modular - Reemplaza al chat.js monolítico --}}
+    {{-- Sistema de Chat Modular Refactorizado - Módulos separados para mejor mantenibilidad --}}
     @vite([
-    'resources/js/chat.js'
+    'resources/js/chat/index.js'
     ])
 </x-guest-layout>

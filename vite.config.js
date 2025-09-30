@@ -36,7 +36,8 @@ export default defineConfig({
                 'resources/js/reporte/excellPDF.js',
                 'resources/js/reporte/reporteMecanico.js',
                 'resources/js/reasignacion/reasignacion.js',
-                'resources/js/chat.js',
+                // Sistema de chat refactorizado - reemplaza al chat.js monolítico
+                'resources/js/chat/index.js',
             ],
             refresh: true,
         }),
