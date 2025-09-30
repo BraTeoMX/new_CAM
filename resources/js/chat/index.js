@@ -1,15 +1,58 @@
 /**
  * Punto de entrada principal del sistema de chat refactorizado
- * Exporta todos los módulos y la instancia principal del ChatManager
+ * Inicializa automáticamente el chat cuando se carga
  */
 
-// Exportar módulos individuales
+// Importar módulos necesarios
+import { chatState } from './state.js';
+import { chatAPI } from './api.js';
+import { chatUI } from './ui.js';
+
+// Función de inicialización
+async function initializeChat() {
+    try {
+        console.log('Inicializando sistema de chat refactorizado...');
+
+        // Verificar que los elementos DOM existan
+        const chatForm = document.getElementById('chat-form');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message');
+
+        if (!chatForm || !chatMessages || !messageInput) {
+            console.warn('Elementos del chat no encontrados. Asegúrate de que el HTML esté cargado correctamente.');
+            return false;
+        }
+
+        // Importar dinámicamente el ChatManager para evitar dependencias circulares
+        const { chatManager } = await import('./chat-manager.js');
+
+        // Inicializar el chat
+        await chatManager.init();
+
+        // Para compatibilidad con código existente
+        window.chatManager = chatManager;
+
+        console.log('Sistema de chat refactorizado inicializado exitosamente.');
+        return true;
+    } catch (error) {
+        console.error('Error fatal al inicializar el sistema de chat refactorizado:', error);
+        return false;
+    }
+}
+
+// Inicialización automática cuando el DOM esté listo
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        // Pequeño delay para asegurar que todo esté cargado
+        setTimeout(() => {
+            initializeChat();
+        }, 100);
+    });
+}
+
+// Exportar módulos para uso externo (sin chatManager para evitar conflictos)
+export { chatState } from './state.js';
+export { chatAPI } from './api.js';
+export { chatUI } from './ui.js';
 export { MACHINES, STEPS } from './constants.js';
 export * from './utils.js';
-export { StateManager, chatState } from './state.js';
-export { ChatAPI, chatAPI } from './api.js';
-export { ChatUI, chatUI } from './ui.js';
-export { ChatManager, chatManager } from './chat-manager.js';
-
-// Para compatibilidad con el código existente, asignar a window
-window.chatManager = chatManager;

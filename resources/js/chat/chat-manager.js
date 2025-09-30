@@ -432,13 +432,13 @@ export class ChatManager {
         questionSpan.innerHTML = `
             <p>¿Pudiste resolver el problema, con los pasos de ayuda?</p>
             <div class="flex flex-col sm:flex-row w-full gap-4 mt-3">
-                <button class=" w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(true)">
+                <button class=" w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" data-response="yes">
                     SI
                 </button>
-                <button class=" w-full sm:w-auto bg-orange-400 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse(false)">
+                <button class=" w-full sm:w-auto bg-orange-400 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded" data-response="no">
                     NO
                 </button>
-                <button class=" w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="window.chatManager.handleResponse('3')">
+                <button class=" w-full sm:w-auto bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" data-response="cancel">
                     Cancelar ticket
                 </button>
             </div>
@@ -448,6 +448,15 @@ export class ChatManager {
         questionDiv.appendChild(questionSpan);
         chatMessages.appendChild(questionDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Agregar event listeners a los botones
+        const yesBtn = questionDiv.querySelector('[data-response="yes"]');
+        const noBtn = questionDiv.querySelector('[data-response="no"]');
+        const cancelBtn = questionDiv.querySelector('[data-response="cancel"]');
+
+        if (yesBtn) yesBtn.addEventListener('click', () => this.handleResponse(true));
+        if (noBtn) noBtn.addEventListener('click', () => this.handleResponse(false));
+        if (cancelBtn) cancelBtn.addEventListener('click', () => this.handleResponse('3'));
 
         updateTimerDisplay();
         let timerExpired = false;
