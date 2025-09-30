@@ -25,13 +25,6 @@
 
     {{-- Sistema de Chat Modular - Reemplaza al chat.js monolítico --}}
     @vite([
-    'resources/js/chat/constants.js',
-    'resources/js/chat/state.js',
-    'resources/js/chat/api.js',
-    'resources/js/chat/ui.js',
-    'resources/js/chat/utils.js',
-    'resources/js/chat/validation.js',
-    'resources/js/chat/chatFlow.js',
-    'resources/js/chat/index.js'
+    'resources/js/chat.js'
     ])
 </x-guest-layout>
