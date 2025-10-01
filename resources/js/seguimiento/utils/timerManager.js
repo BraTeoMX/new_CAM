@@ -3,7 +3,7 @@
  * @module utils/timerManager
  */
 
-import { SELECTORS, TIEMPOS, TIMER_CLASSES } from '../config/constants.js';
+import { SELECTORS, TIEMPOS, TIMER_CLASSES, UMBRALES_ALERTA } from '../config/constants.js';
 
 /**
  * Clase que maneja los temporizadores de cuenta regresiva
@@ -11,6 +11,16 @@ import { SELECTORS, TIEMPOS, TIMER_CLASSES } from '../config/constants.js';
 export class TimerManager {
     constructor() {
         this.activeTimers = [];
+        this.alertasActivadas = new Map(); // Rastrea qué alertas ya se mostraron por ticket
+        this.modalManager = null; // Se inyectará desde el index
+    }
+
+    /**
+     * Establece el gestor de modales para mostrar alertas
+     * @param {object} modalManager - Instancia del ModalManager
+     */
+    setModalManager(modalManager) {
+        this.modalManager = modalManager;
     }
 
     /**
@@ -80,9 +90,95 @@ export class TimerManager {
         // 3. Aplicar estilos según el tiempo restante
         this.#aplicarEstiloSegunTiempo(element, remainingSeconds);
 
-        // 4. Formatear y mostrar el tiempo
+        // 4. Verificar y mostrar alertas si es necesario
+        this.#verificarYMostrarAlertas(element, remainingSeconds);
+
+        // 5. Formatear y mostrar el tiempo
         const formattedTime = this.#formatearTiempo(remainingSeconds);
         element.textContent = formattedTime;
+    }
+
+    /**
+     * Verifica el tiempo restante y muestra alertas según los umbrales
+     * @param {HTMLElement} element - El elemento del temporizador
+     * @param {number} remainingSeconds - Segundos restantes
+     * @private
+     */
+    #verificarYMostrarAlertas(element, remainingSeconds) {
+        if (!this.modalManager) return;
+
+        // Extraer el ID del ticket del elemento
+        const ticketId = element.id.replace('timer-', '');
+
+        // Obtener información del ticket desde la tarjeta
+        const tarjeta = element.closest('.relative');
+        if (!tarjeta) return;
+
+        const folio = tarjeta.querySelector('h3')?.textContent || 'N/A';
+        const descripcion = tarjeta.querySelector('.truncate')?.textContent || 'N/A';
+
+        // Inicializar el registro de alertas para este ticket si no existe
+        if (!this.alertasActivadas.has(ticketId)) {
+            this.alertasActivadas.set(ticketId, {
+                advertencia: false,
+                critico: false,
+                excedido: false,
+                ultimoMinutoExcedido: -1
+            });
+        }
+
+        const alertas = this.alertasActivadas.get(ticketId);
+
+        // ALERTA 1: 5 minutos restantes (advertencia amarilla)
+        if (remainingSeconds <= UMBRALES_ALERTA.ADVERTENCIA &&
+            remainingSeconds > UMBRALES_ALERTA.CRITICO &&
+            !alertas.advertencia) {
+
+            this.modalManager.mostrarAlertaAdvertencia({
+                folio,
+                descripcion,
+                tiempoRestante: remainingSeconds
+            });
+            alertas.advertencia = true;
+        }
+
+        // ALERTA 2: 1 minuto restante (alerta naranja crítica)
+        if (remainingSeconds <= UMBRALES_ALERTA.CRITICO &&
+            remainingSeconds > UMBRALES_ALERTA.EXCEDIDO &&
+            !alertas.critico) {
+
+            this.modalManager.mostrarAlertaCritica({
+                folio,
+                descripcion,
+                tiempoRestante: remainingSeconds
+            });
+            alertas.critico = true;
+        }
+
+        // ALERTA 3: Tiempo excedido (alerta roja cada minuto)
+        if (remainingSeconds < UMBRALES_ALERTA.EXCEDIDO) {
+            const minutosExcedidos = Math.floor(Math.abs(remainingSeconds) / 60);
+
+            // Mostrar alerta la primera vez que se excede
+            if (!alertas.excedido) {
+                this.modalManager.mostrarAlertaExcedido({
+                    folio,
+                    descripcion,
+                    tiempoExcedido: remainingSeconds
+                });
+                alertas.excedido = true;
+                alertas.ultimoMinutoExcedido = minutosExcedidos;
+            }
+            // Mostrar alerta cada minuto adicional excedido
+            else if (minutosExcedidos > alertas.ultimoMinutoExcedido) {
+                this.modalManager.mostrarAlertaExcedido({
+                    folio,
+                    descripcion,
+                    tiempoExcedido: remainingSeconds
+                });
+                alertas.ultimoMinutoExcedido = minutosExcedidos;
+            }
+        }
     }
 
     /**
@@ -191,6 +287,9 @@ export class TimerManager {
             return;
         }
 
+        // Resetear las alertas para este ticket
+        this.alertasActivadas.delete(ticketId);
+
         // Crear un nuevo intervalo para este temporizador específico
         const intervalId = setInterval(() => {
             this.#updateTimer(timerElement, startTimeStr, durationMinutes);
@@ -201,6 +300,21 @@ export class TimerManager {
 
         // Ejecutar una vez inmediatamente
         this.#updateTimer(timerElement, startTimeStr, durationMinutes);
+    }
+
+    /**
+     * Limpia las alertas de un ticket específico
+     * @param {number} ticketId - ID del ticket
+     */
+    limpiarAlertasTicket(ticketId) {
+        this.alertasActivadas.delete(ticketId);
+    }
+
+    /**
+     * Limpia todas las alertas
+     */
+    limpiarTodasLasAlertas() {
+        this.alertasActivadas.clear();
     }
 }
 

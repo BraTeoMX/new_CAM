@@ -37,6 +37,9 @@ class SeguimientoApp {
         // Inicializar Select2 en el selector de módulos
         $(this.moduloSelect).select2(SELECT2_CONFIG.MODULO);
 
+        // Inyectar modalManager en timerManager para las alertas
+        timerManager.setModalManager(modalManager);
+
         // Configurar event listeners
         this.configurarEventListeners();
 

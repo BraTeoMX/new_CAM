@@ -99,6 +99,17 @@ export const TIEMPOS = {
     ACTUALIZACION_TIMER: 1000, // 1 segundo
     MENSAJE_EXITO: 2000, // 2 segundos
     ADVERTENCIA_TIEMPO: 300, // 5 minutos en segundos
+    ALERTA_DURACION: 4000, // 4 segundos para alertas automáticas
+};
+
+/**
+ * Umbrales de tiempo para alertas (en segundos)
+ */
+export const UMBRALES_ALERTA = {
+    ADVERTENCIA: 300, // 5 minutos
+    CRITICO: 60, // 1 minuto
+    EXCEDIDO: 0, // Tiempo agotado
+    INTERVALO_EXCEDIDO: 60, // Cada minuto después de exceder
 };
 
 /**

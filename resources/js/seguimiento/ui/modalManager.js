@@ -311,6 +311,92 @@ export class ModalManager {
     cerrarModal() {
         Swal.close();
     }
+
+    /**
+     * Muestra una alerta temporal de advertencia (5 minutos restantes)
+     * @param {object} ticketInfo - Información del ticket
+     */
+    mostrarAlertaAdvertencia(ticketInfo) {
+        const { folio, descripcion, tiempoRestante } = ticketInfo;
+        const minutos = Math.floor(tiempoRestante / 60);
+
+        Swal.fire({
+            title: '⚠️ Advertencia de Tiempo',
+            html: `
+                <div class="text-left">
+                    <p class="mb-2"><strong>Ticket:</strong> ${folio}</p>
+                    <p class="mb-2"><strong>Descripción:</strong> ${descripcion}</p>
+                    <p class="mb-2 text-yellow-600 dark:text-yellow-400"><strong>Tiempo restante:</strong> ${minutos} minutos</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">El tiempo de atención está por agotarse.</p>
+                </div>
+            `,
+            icon: 'warning',
+            timer: TIEMPOS.ALERTA_DURACION,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end',
+            ...this.#getConfiguracionDarkMode()
+        });
+    }
+
+    /**
+     * Muestra una alerta temporal crítica (1 minuto restante)
+     * @param {object} ticketInfo - Información del ticket
+     */
+    mostrarAlertaCritica(ticketInfo) {
+        const { folio, descripcion, tiempoRestante } = ticketInfo;
+        const segundos = tiempoRestante;
+
+        Swal.fire({
+            title: '🔥 ¡Tiempo Crítico!',
+            html: `
+                <div class="text-left">
+                    <p class="mb-2"><strong>Ticket:</strong> ${folio}</p>
+                    <p class="mb-2"><strong>Descripción:</strong> ${descripcion}</p>
+                    <p class="mb-2 text-orange-600 dark:text-orange-400"><strong>Tiempo restante:</strong> ${segundos} segundos</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">¡Finaliza la atención pronto!</p>
+                </div>
+            `,
+            icon: 'warning',
+            timer: TIEMPOS.ALERTA_DURACION,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end',
+            iconColor: '#f97316',
+            ...this.#getConfiguracionDarkMode()
+        });
+    }
+
+    /**
+     * Muestra una alerta temporal de tiempo excedido
+     * @param {object} ticketInfo - Información del ticket
+     */
+    mostrarAlertaExcedido(ticketInfo) {
+        const { folio, descripcion, tiempoExcedido } = ticketInfo;
+        const minutos = Math.floor(Math.abs(tiempoExcedido) / 60);
+        const segundos = Math.abs(tiempoExcedido) % 60;
+
+        Swal.fire({
+            title: '🚨 ¡Tiempo Excedido!',
+            html: `
+                <div class="text-left">
+                    <p class="mb-2"><strong>Ticket:</strong> ${folio}</p>
+                    <p class="mb-2"><strong>Descripción:</strong> ${descripcion}</p>
+                    <p class="mb-2 text-red-600 dark:text-red-400"><strong>Tiempo excedido:</strong> ${minutos}m ${segundos}s</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">El tiempo límite ha sido superado.</p>
+                </div>
+            `,
+            icon: 'error',
+            timer: TIEMPOS.ALERTA_DURACION,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end',
+            ...this.#getConfiguracionDarkMode()
+        });
+    }
 }
 
 // Exportar una instancia única del gestor
