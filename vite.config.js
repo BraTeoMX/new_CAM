@@ -25,7 +25,7 @@ export default defineConfig({
                 //'resources/js/usercreate.js',
                 //'resources/js/FormOTMeca.js',
                 'resources/js/AsisVirFlo.js',
-                'resources/js/seguimientoSolicitud.js',
+                'resources/js/seguimiento/index.js',
                 'resources/js/dashboard/dashboard.js',
                 'resources/js/IAChat/ChatIA.js',
                 'resources/js/IAChat/select2Modulo.js',
