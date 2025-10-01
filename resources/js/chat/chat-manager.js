@@ -708,47 +708,54 @@ export class ChatManager {
                 <div class="bg-gray-100 dark:bg-gray-700 dark:text-white p-3 rounded-lg mb-2">
                     <strong>¿A qué módulo quieres dar seguimiento 🧐?</strong>
                     <br>
-                    <select id="modulo-seguimiento" class="mt-2 w-full rounded border-gray-300 dark:bg-gray-700 dark:text-white"></select>
+                    <select id="modulo-seguimiento" style="width:100%"></select>
                 </div>
             </div>
         `;
         this.ui.elements.chatMessages.appendChild(messageDiv);
         this.ui.elements.chatMessages.scrollTop = this.ui.elements.chatMessages.scrollHeight;
 
-        const select = messageDiv.querySelector('#modulo-seguimiento');
-        try {
-            const res = await this.api.getModulesForFollowup();
-            res.forEach(mod => {
-                let value = mod.Modulo || mod.moduleid || mod.MODULEID || mod.value || mod;
-                let text = mod.Modulo || mod.moduleid || mod.MODULEID || mod.value || mod;
-                if (value && text) {
-                    let option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = text;
-                    select.appendChild(option);
-                }
-            });
-        } catch (e) {
-            console.error('Error al cargar módulos para seguimiento:', e);
-            let option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'Error al cargar módulos';
-            select.appendChild(option);
-        }
-
-        select.onchange = () => {
-            if (select.value) {
-                Swal.fire({
-                    title: 'Espera',
-                    text: 'Estamos procesando tu petición...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+        setTimeout(() => {
+            if (window.$ && $('#modulo-seguimiento').length) {
+                $('#modulo-seguimiento').select2({
+                    placeholder: 'Selecciona un módulo',
+                    ajax: {
+                        url: '/FormGuestV2/obtenerAreasModulosSeguimiento',
+                        type: 'GET',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return { search: params.term || '' };
+                        },
+                        processResults: function (data, params) {
+                            let results = $.map(data, function (item) {
+                                return { id: item.modulo, text: item.modulo };
+                            });
+                            if (params.term && params.term.length > 0) {
+                                const term = params.term.toLowerCase();
+                                results = results.filter(r => r.text.toLowerCase().includes(term));
+                            }
+                            return { results };
+                        }
+                    },
+                    minimumResultsForSearch: 0
                 });
-                window.location.href = `/FollowOTV2?modulo=${encodeURIComponent(select.value)}`;
+                $('#modulo-seguimiento').on('select2:select', (e) => {
+                    const modulo = e.params.data.text;
+                    // Mostrar spinner/modal
+                    Swal.fire({
+                        title: 'Espera',
+                        text: 'Estamos procesando tu petición',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    // Redirigir con el módulo como query param
+                    setTimeout(() => {
+                        window.location.href = `/FollowOTV2?modulo=${encodeURIComponent(modulo)}`;
+                    }, 1200);
+                });
             }
-        };
+        }, 100);
     }
 
     /**
