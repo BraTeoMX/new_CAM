@@ -24,8 +24,9 @@ export class ChatUI {
     initializeElements() {
         this.elements = {
             chatMessages: document.getElementById('chat-messages'),
-            messageInput: document.getElementById('message'),
-            form: document.getElementById('chat-form')
+            // Input y formulario ocultos - no se utilizan en el flujo guiado
+            messageInput: null,
+            form: null
         };
     }
 

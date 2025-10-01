@@ -14,14 +14,14 @@ async function initializeChat() {
         console.log('Inicializando sistema de chat refactorizado...');
 
         // Verificar que los elementos DOM existan
-        const chatForm = document.getElementById('chat-form');
         const chatMessages = document.getElementById('chat-messages');
-        const messageInput = document.getElementById('message');
 
-        if (!chatForm || !chatMessages || !messageInput) {
+        if (!chatMessages) {
             console.warn('Elementos del chat no encontrados. Asegúrate de que el HTML esté cargado correctamente.');
             return false;
         }
+
+        // Nota: chatForm y messageInput están ocultos, no necesitamos verificarlos
 
         // Importar dinámicamente el ChatManager para evitar dependencias circulares
         const { chatManager } = await import('./chat-manager.js');

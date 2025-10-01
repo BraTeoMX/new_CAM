@@ -11,15 +11,16 @@
             <div id="chat-messages"
                 class="mb-4 h-[600px] overflow-y-auto border-b-2 border-gray-200 dark:border-gray-700">
             </div>
-            <form id="chat-form">
+            <!-- Input y botón ocultos - el chat funciona solo con botones guiados -->
+            <div id="chat-form" style="display: none;">
                 <input type="text" id="message" class="w-full p-2 mb-2 border rounded dark:bg-gray-700 dark:text-white"
                     placeholder="Escribe tu mensaje...">
                 <button type="submit" class="bg-blue-500 text-white font-bold py-2 px-4 rounded
                         hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                        disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-500" disabled>
+                        disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-blue-500">
                     Enviar
                 </button>
-            </form>
+            </div>
         </div>
     </div>
 

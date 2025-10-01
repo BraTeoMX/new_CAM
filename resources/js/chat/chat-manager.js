@@ -29,11 +29,8 @@ export class ChatManager {
         try {
             this.ui.initializeElements();
 
-            if (!this.ui.elements.form) {
-                throw new Error('Chat form not found');
-            }
-
-            this.setupEventListeners();
+            // El formulario está oculto, no necesitamos verificarlo
+            // this.setupEventListeners(); // No necesitamos event listeners del formulario oculto
             await this.startConversation();
             this.startSessionKeepAlive();
         } catch (error) {
@@ -248,7 +245,7 @@ export class ChatManager {
         chatMessages.appendChild(problemDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        this.ui.elements.messageInput.disabled = true;
+        // El input se mantiene habilitado para permitir interacción del usuario
 
         try {
             const catalogoCompleto = await this.api.getProblemCatalog();
@@ -301,7 +298,7 @@ export class ChatManager {
     async showSteps(machineIndex) {
         this.ui.cleanup();
 
-        this.ui.elements.messageInput.disabled = true;
+        // El input se mantiene habilitado para permitir interacción del usuario
 
         await this.ui.appendChatMessage('Por favor sigue estos pasos:', this.ui.elements.chatMessages);
 
@@ -321,7 +318,7 @@ export class ChatManager {
             let stepIndex = 0;
             const showNextStep = () => {
                 if (stepIndex >= STEPS.length) {
-                    this.ui.elements.messageInput.disabled = false;
+                    // El input está oculto, no necesitamos habilitarlo
                     this.showFinalQuestion();
                     return;
                 }
@@ -372,7 +369,7 @@ export class ChatManager {
         stepDivWrapper.appendChild(stepDiv);
         chatMessages.appendChild(stepDivWrapper);
 
-        this.ui.elements.messageInput.disabled = true;
+        // El input se mantiene habilitado para permitir interacción del usuario
 
         let completed = false;
         const nextStepBtn = stepDiv.querySelector('.next-step-btn');
@@ -755,41 +752,22 @@ export class ChatManager {
 
     /**
      * Configura los listeners de eventos
+     * Nota: El formulario está oculto, no necesitamos event listeners para input/button
      */
     setupEventListeners() {
-        this.ui.elements.form.addEventListener('submit', (e) => this.handleSubmit(e));
-
-        // Observador para scroll automático
+        // Observador para scroll automático del chat
         const observer = new MutationObserver(() => {
-            this.ui.elements.chatMessages.scrollTop = this.ui.elements.chatMessages.scrollHeight;
+            if (this.ui.elements.chatMessages) {
+                this.ui.elements.chatMessages.scrollTop = this.ui.elements.chatMessages.scrollHeight;
+            }
         });
         observer.observe(this.ui.elements.chatMessages, { childList: true, subtree: true });
     }
 
     /**
-     * Maneja el envío del formulario
+     * Función handleSubmit eliminada - no se necesita para formulario oculto
+     * El chat funciona únicamente con el flujo guiado de botones y selectores
      */
-    async handleSubmit(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        try {
-            const message = this.ui.elements.messageInput.value.trim();
-            if (!message) return;
-
-            this.ui.appendUserMessage(message, this.ui.elements.chatMessages);
-            this.ui.elements.messageInput.value = '';
-
-            const handler = this.state.get('nextResponseHandler');
-            if (handler) {
-                this.state.set('nextResponseHandler', null);
-                await handler(message);
-            }
-        } catch (error) {
-            this.ui.showError('Error al procesar el mensaje');
-            console.error(error);
-        }
-    }
 
     /**
      * Inicia el mecanismo de keep-alive de sesión

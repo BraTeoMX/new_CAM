@@ -9,11 +9,9 @@ import { chatManager } from './index.js';
 document.addEventListener('DOMContentLoaded', () => {
     try {
         // Verificar que los elementos DOM existan
-        const chatForm = document.getElementById('chat-form');
         const chatMessages = document.getElementById('chat-messages');
-        const messageInput = document.getElementById('message');
 
-        if (!chatForm || !chatMessages || !messageInput) {
+        if (!chatMessages) {
             console.warn('Elementos del chat no encontrados. Asegúrate de que el HTML esté cargado correctamente.');
             return;
         }
