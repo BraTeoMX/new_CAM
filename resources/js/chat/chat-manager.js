@@ -368,6 +368,7 @@ export class ChatManager {
 
         stepDivWrapper.appendChild(stepDiv);
         chatMessages.appendChild(stepDivWrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         // El input se mantiene habilitado para permitir interacción del usuario
 
