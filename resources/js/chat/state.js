@@ -3,6 +3,8 @@
  * Maneja todo el estado de la aplicación de manera organizada,
  * sincronizando con variables globales cuando sea necesario
  */
+import { MACHINES } from './constants.js';
+
 export class StateManager {
     constructor() {
         // Estado interno de la aplicación
@@ -54,6 +56,11 @@ export class StateManager {
         window.GLOBAL_CHAT_PLANTA = this._state.modulePlanta;
         window.GLOBAL_SUPERVISOR_NOMBRE = this._state.nombreSupervisor;
         window.GLOBAL_SUPERVISOR_NUMERO = this._state.numeroSupervisor;
+
+        // Hacer MACHINES disponible globalmente para compatibilidad
+        if (typeof window !== 'undefined') {
+            window.MACHINES = MACHINES;
+        }
     }
 
     /**
@@ -131,9 +138,9 @@ export class StateManager {
     }
 
     /**
-     * Obtiene un resumen del estado actual para mostrar al usuario
-     * @returns {object} Resumen formateado del estado
-     */
+      * Obtiene un resumen del estado actual para mostrar al usuario
+      * @returns {object} Resumen formateado del estado
+      */
     getSummary() {
         let operarioNombre = '';
         let operarioNumero = '';
@@ -143,11 +150,21 @@ export class StateManager {
             operarioNumero = parts[1] || '';
         }
 
+        // Verificación segura para obtener el nombre de la máquina
+        let maquinaNombre = '';
+        if (this._state.selectedMachineIndex !== null &&
+            this._state.selectedMachineIndex !== undefined &&
+            typeof this._state.selectedMachineIndex === 'number' &&
+            MACHINES &&
+            MACHINES[this._state.selectedMachineIndex]) {
+            maquinaNombre = MACHINES[this._state.selectedMachineIndex];
+        }
+
         return {
             modulo: this._state.userModule,
             operarioNumero,
             operarioNombre,
-            maquina: this._state.selectedMachineIndex !== null ? window.MACHINES[this._state.selectedMachineIndex] : '',
+            maquina: maquinaNombre,
             problema: this._state.userProblem
         };
     }

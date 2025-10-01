@@ -56,3 +56,9 @@ export { chatAPI } from './api.js';
 export { chatUI } from './ui.js';
 export { MACHINES, STEPS } from './constants.js';
 export * from './utils.js';
+
+// Hacer MACHINES disponible globalmente para compatibilidad
+import { MACHINES } from './constants.js';
+if (typeof window !== 'undefined') {
+    window.MACHINES = MACHINES;
+}
