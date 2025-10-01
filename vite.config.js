@@ -13,7 +13,7 @@ export default defineConfig({
                 'resources/js/active.js',
                 'resources/js/calendar.js',
                 'resources/js/events.js',
-                'resources/js/IAChat.js',
+                //'resources/js/IAChat.js',
                 'resources/js/Sortable.js',
                 'resources/js/Pussher.js',
                 'resources/js/utils.js',
