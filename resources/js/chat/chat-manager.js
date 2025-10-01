@@ -729,6 +729,7 @@ export class ChatManager {
                 }
             });
         } catch (e) {
+            console.error('Error al cargar módulos para seguimiento:', e);
             let option = document.createElement('option');
             option.value = '';
             option.textContent = 'Error al cargar módulos';
@@ -745,7 +746,7 @@ export class ChatManager {
                         Swal.showLoading();
                     }
                 });
-                window.location.href = `FollowOT?modulo=${encodeURIComponent(select.value)}`;
+                window.location.href = `/FollowOTV2?modulo=${encodeURIComponent(select.value)}`;
             }
         };
     }
