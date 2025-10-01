@@ -93,6 +93,30 @@ export class TicketService {
     }
 
     /**
+     * Obtiene un ticket específico actualizado
+     * @param {string} modulo - El nombre del módulo
+     * @param {number} ticketId - El ID del ticket
+     * @returns {Promise<object>} Objeto de ticket actualizado
+     */
+    async obtenerTicketActualizado(modulo, ticketId) {
+        try {
+            // Obtenemos todos los registros y filtramos el específico
+            // Esto es temporal hasta que el backend tenga un endpoint específico
+            const tickets = await this.#get(`${API_ENDPOINTS.OBTENER_REGISTROS}/${modulo}`);
+            const ticket = tickets.find(t => t.id === parseInt(ticketId));
+
+            if (!ticket) {
+                throw new Error(`Ticket ${ticketId} no encontrado`);
+            }
+
+            return ticket;
+        } catch (error) {
+            console.error('Error al obtener ticket actualizado:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Obtiene el catálogo de estados disponibles
      * @returns {Promise<Array>} Array de objetos de estado
      */

@@ -205,6 +205,55 @@ export class CardRenderer {
     }
 
     /**
+     * Actualiza una tarjeta específica sin re-renderizar todas
+     * @param {object} ticket - Objeto de ticket actualizado
+     * @returns {boolean} true si se actualizó correctamente
+     */
+    actualizarTarjetaIndividual(ticket) {
+        const tarjetaExistente = this.container.querySelector(`[data-ticket-id="${ticket.id}"]`)?.closest('.relative');
+
+        if (!tarjetaExistente) {
+            console.warn(`Tarjeta con ID ${ticket.id} no encontrada`);
+            return false;
+        }
+
+        // Crear el HTML de la nueva tarjeta
+        const nuevoHTML = this.#crearTarjetaHTML(ticket);
+
+        // Crear un elemento temporal para parsear el HTML
+        const temp = document.createElement('div');
+        temp.innerHTML = nuevoHTML;
+        const nuevaTarjeta = temp.firstElementChild;
+
+        // Reemplazar la tarjeta antigua con la nueva
+        tarjetaExistente.replaceWith(nuevaTarjeta);
+
+        return true;
+    }
+
+    /**
+     * Actualiza solo el resumen de una tarjeta (sin cambiar estado)
+     * @param {number} ticketId - ID del ticket
+     * @param {object} datosActualizados - Datos a actualizar
+     */
+    actualizarDatosTarjeta(ticketId, datosActualizados) {
+        const tarjeta = this.container.querySelector(`[data-ticket-id="${ticketId}"]`)?.closest('.relative');
+
+        if (!tarjeta) {
+            console.warn(`Tarjeta con ID ${ticketId} no encontrada`);
+            return;
+        }
+
+        // Actualizar campos específicos sin re-renderizar toda la tarjeta
+        if (datosActualizados.fecha_actualizacion_formateada) {
+            const spanActualizacion = tarjeta.querySelector('.text-xs.text-gray-500 span:last-child');
+            if (spanActualizacion) {
+                spanActualizacion.textContent = `Actualizado: ${datosActualizados.fecha_actualizacion_formateada}`;
+            }
+        }
+    }
+
+    /**
      * Limpia el contenedor de tarjetas
      */
     limpiar() {

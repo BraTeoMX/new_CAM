@@ -190,6 +190,40 @@ export class TicketState {
     getTotalTicketsFiltrados() {
         return this.ticketsFiltrados.length;
     }
+
+    /**
+     * Actualiza un ticket específico en el estado
+     * @param {object} ticketActualizado - Ticket con datos actualizados
+     * @returns {boolean} true si se actualizó correctamente
+     */
+    actualizarTicket(ticketActualizado) {
+        const index = this.tickets.findIndex(t => t.id === ticketActualizado.id);
+
+        if (index === -1) {
+            console.warn(`Ticket ${ticketActualizado.id} no encontrado en el estado`);
+            return false;
+        }
+
+        // Actualizar en el array principal
+        this.tickets[index] = ticketActualizado;
+
+        // Actualizar en el array filtrado si existe
+        const indexFiltrado = this.ticketsFiltrados.findIndex(t => t.id === ticketActualizado.id);
+        if (indexFiltrado !== -1) {
+            this.ticketsFiltrados[indexFiltrado] = ticketActualizado;
+        }
+
+        return true;
+    }
+
+    /**
+     * Obtiene un ticket por su ID
+     * @param {number} ticketId - ID del ticket
+     * @returns {object|null} Ticket encontrado o null
+     */
+    obtenerTicketPorId(ticketId) {
+        return this.tickets.find(t => t.id === ticketId) || null;
+    }
 }
 
 // Exportar una instancia única del estado

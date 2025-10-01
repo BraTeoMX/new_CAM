@@ -170,6 +170,38 @@ export class TimerManager {
     getCantidadTemporizadores() {
         return this.activeTimers.length;
     }
+
+    /**
+     * Reinicia el temporizador de una tarjeta específica
+     * @param {number} ticketId - ID del ticket
+     */
+    reiniciarTemporizadorEspecifico(ticketId) {
+        const timerElement = document.querySelector(`#timer-${ticketId}`);
+
+        if (!timerElement) {
+            console.warn(`Temporizador para ticket ${ticketId} no encontrado`);
+            return;
+        }
+
+        const startTimeStr = timerElement.dataset.startTime;
+        const durationMinutes = parseInt(timerElement.dataset.durationMinutes, 10);
+
+        if (!startTimeStr || isNaN(durationMinutes)) {
+            console.warn("Faltan datos para el temporizador del ticket:", ticketId);
+            return;
+        }
+
+        // Crear un nuevo intervalo para este temporizador específico
+        const intervalId = setInterval(() => {
+            this.#updateTimer(timerElement, startTimeStr, durationMinutes);
+        }, TIEMPOS.ACTUALIZACION_TIMER);
+
+        // Guardar el ID del intervalo
+        this.activeTimers.push(intervalId);
+
+        // Ejecutar una vez inmediatamente
+        this.#updateTimer(timerElement, startTimeStr, durationMinutes);
+    }
 }
 
 // Exportar una instancia única del gestor

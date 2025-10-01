@@ -148,7 +148,7 @@ class SeguimientoApp {
         try {
             const result = await ticketService.iniciarAtencion(ticketId, datos);
             await modalManager.mostrarExito(result.message);
-            await this.recargarDatos();
+            await this.actualizarTarjetaEspecifica(ticketId);
         } catch (error) {
             throw error;
         }
@@ -193,7 +193,7 @@ class SeguimientoApp {
         try {
             const result = await ticketService.finalizarAtencion(ticketId, datos);
             await modalManager.mostrarExito(result.message);
-            await this.recargarDatos();
+            await this.actualizarTarjetaEspecifica(ticketId);
         } catch (error) {
             throw error;
         }
@@ -212,11 +212,11 @@ class SeguimientoApp {
         try {
             const result = await ticketService.activarBahia(ticketId, '');
             await modalManager.mostrarExito(result.message, 'Pausa Activada');
-            await this.recargarDatos();
+            await this.actualizarTarjetaEspecifica(ticketId);
         } catch (error) {
             console.error('Error al activar bahía:', error);
             modalManager.mostrarError(error.message);
-            await this.recargarDatos(); // Recargar para rehabilitar botones
+            await this.actualizarTarjetaEspecifica(ticketId);
         }
     }
 
@@ -233,7 +233,7 @@ class SeguimientoApp {
         try {
             const result = await ticketService.finalizarBahia(ticketId);
             await modalManager.mostrarExito(result.message, 'Atención Reanudada');
-            await this.recargarDatos();
+            await this.actualizarTarjetaEspecifica(ticketId);
         } catch (error) {
             console.error('Error al reanudar bahía:', error);
             modalManager.mostrarError(error.message);
@@ -383,6 +383,50 @@ class SeguimientoApp {
         const moduloActual = ticketState.getModulo();
         if (moduloActual) {
             await this.actualizarResumen(moduloActual);
+            await this.cargarYRenderizarRegistros(moduloActual);
+        }
+    }
+
+    /**
+     * Actualiza solo una tarjeta específica sin recargar todo
+     * @param {number} ticketId - ID del ticket a actualizar
+     */
+    async actualizarTarjetaEspecifica(ticketId) {
+        const moduloActual = ticketState.getModulo();
+
+        if (!moduloActual) {
+            console.warn('No hay módulo seleccionado');
+            return;
+        }
+
+        try {
+            // Actualizar el resumen (es rápido y no causa parpadeo)
+            await this.actualizarResumen(moduloActual);
+
+            // Obtener solo el ticket actualizado
+            const ticketActualizado = await ticketService.obtenerTicketActualizado(moduloActual, ticketId);
+
+            // Actualizar el estado
+            ticketState.actualizarTicket(ticketActualizado);
+
+            // Actualizar solo la tarjeta específica en el DOM
+            const actualizado = this.cardRenderer.actualizarTarjetaIndividual(ticketActualizado);
+
+            if (actualizado) {
+                // Si la tarjeta tiene temporizador, reiniciarlo
+                const timerElement = document.querySelector(`#timer-${ticketId}`);
+                if (timerElement) {
+                    timerManager.reiniciarTemporizadorEspecifico(ticketId);
+                }
+            } else {
+                // Si no se pudo actualizar la tarjeta (por ejemplo, cambió de estado y ya no está visible),
+                // recargamos todo
+                console.warn('No se pudo actualizar la tarjeta específica, recargando todo...');
+                await this.cargarYRenderizarRegistros(moduloActual);
+            }
+        } catch (error) {
+            console.error('Error al actualizar tarjeta específica:', error);
+            // En caso de error, recargamos todo como fallback
             await this.cargarYRenderizarRegistros(moduloActual);
         }
     }
