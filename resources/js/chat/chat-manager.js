@@ -23,6 +23,23 @@ export class ChatManager {
     }
 
     /**
+     * Deshabilita un elemento select (regular o select2)
+     * @param {string|HTMLElement} selector - Selector CSS o elemento DOM del select
+     */
+    disableSelect(selector) {
+        const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+        if (!element) return;
+
+        // Deshabilitar el elemento nativo
+        element.disabled = true;
+
+        // Si es un select2, también deshabilitarlo
+        if (window.$ && $(element).data('select2')) {
+            $(element).prop('disabled', true).trigger('change.select2');
+        }
+    }
+
+    /**
      * Inicializa el chat
      */
     async init() {
@@ -90,6 +107,9 @@ export class ChatManager {
     handleModuleSelection(selectedData) {
         const newModule = selectedData.text;
         const moduleType = selectedData.type;
+
+        // Deshabilitar el select de módulo después de la selección
+        this.disableSelect('#modul');
 
         // Actualizar estado
         this.state.update({
@@ -177,6 +197,9 @@ export class ChatManager {
                     const operarioId = e.params.data.id;
                     const operarioText = e.params.data.text;
 
+                    // Deshabilitar el select de operario después de la selección
+                    this.disableSelect('#operario-select');
+
                     this.state.set('selectedOperario', { id: operarioId, text: operarioText });
                     this.showMachineSelect();
                 });
@@ -220,6 +243,9 @@ export class ChatManager {
         select.addEventListener('change', (e) => {
             const idx = parseInt(e.target.value);
             if (isNaN(idx)) return;
+
+            // Deshabilitar el select de máquina después de la selección
+            this.disableSelect('#machine-select');
 
             this.state.set('selectedMachineIndex', idx);
             this.askUserProblem(idx);
@@ -268,6 +294,9 @@ export class ChatManager {
             $('#problema-select').on('select2:select', async (e) => {
                 const selectedProblem = e.params.data;
                 if (!selectedProblem.id) return;
+
+                // Deshabilitar el select de problema después de la selección
+                this.disableSelect('#problema-select');
 
                 this.state.set('selectedProblemId', selectedProblem.id);
                 this.state.set('userProblem', selectedProblem.text);
@@ -743,6 +772,10 @@ export class ChatManager {
                 });
                 $('#modulo-seguimiento').on('select2:select', (e) => {
                     const modulo = e.params.data.text;
+
+                    // Deshabilitar el select de módulo de seguimiento después de la selección
+                    this.disableSelect('#modulo-seguimiento');
+
                     // Mostrar spinner/modal
                     Swal.fire({
                         title: 'Espera',
