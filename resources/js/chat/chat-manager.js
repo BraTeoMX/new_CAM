@@ -6,7 +6,7 @@
 import { chatState } from './state.js';
 import { chatAPI } from './api.js';
 import { chatUI } from './ui.js';
-import { getTimeBasedGreeting, convertirATiempoEnSegundos } from './utils.js';
+import { getTimeBasedGreeting, convertirATiempoEnSegundos, formatTime } from './utils.js';
 import { MACHINES, STEPS } from './constants.js';
 
 export class ChatManager {
