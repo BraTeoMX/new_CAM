@@ -229,6 +229,7 @@ export class ModalManager {
                             <label for="accion-implementada-select" class="block mb-2 text-sm font-medium">Seleccione la acción que implementó:</label>
                             <select id="accion-implementada-select" class="swal2-select" style="width: 100%;">
                                 <option value=""></option>
+                                <option value="OTRO">OTRO</option>
                                 ${accionesOptionsHTML}
                             </select>
                         </div>
