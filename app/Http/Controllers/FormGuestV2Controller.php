@@ -268,6 +268,9 @@ class FormGuestV2Controller extends Controller
                 // Generar folio único
                 $folio = 'OT' . '-' . strtoupper(substr(md5(uniqid()), 0, 6));
 
+                // Calcular si el registro se realiza en tiempo extra
+                $tiempoExtra = $this->calcularTiempoExtra(now());
+
                 // Crear el TicketOT
                 $newTicket = TicketOT::create([
                     'modulo'                     => $sanitizedData['modulo'],
@@ -281,6 +284,7 @@ class FormGuestV2Controller extends Controller
                     'maquina'                    => $sanitizedData['maquina'],
                     'folio'                      => $folio,
                     'estado'                     => $estadoFinalDelTicket,
+                    'tiempo_extra'               => $tiempoExtra,
                     'created_at'                 => now(),
                     'updated_at'                 => now()
                 ]);
@@ -386,4 +390,79 @@ class FormGuestV2Controller extends Controller
         }
     }
 
+    /**
+     * Calcula si un registro se realiza en tiempo extra basado en horarios laborales
+     *
+     * Horarios laborales definidos:
+     * - Tiempo normal:
+     *   - Lunes a jueves: 08:00 a 19:00
+     *   - Viernes: 08:00 a 14:00
+     * - Tiempo extra:
+     *   - Lunes a jueves: 19:01 a 23:59
+     *   - Viernes: 14:01 a 23:59
+     *   - Sábados y domingos: Todo el día (00:00 a 23:59)
+     *
+     * @param \Carbon\Carbon $fechaHora Fecha y hora del registro
+     * @return int 1 si es tiempo extra, 0 si es tiempo normal
+     */
+    private function calcularTiempoExtra(Carbon $fechaHora): int
+    {
+        try {
+            // Obtener el día de la semana (1 = Lunes, 7 = Domingo)
+            $diaSemana = $fechaHora->dayOfWeekIso;
+            // Obtener la hora en formato HH:mm
+            $hora = $fechaHora->format('H:i');
+
+            Log::info('Calculando tiempo_extra:', [
+                'dia_semana' => $diaSemana,
+                'hora' => $hora,
+                'fecha_hora' => $fechaHora->toDateTimeString()
+            ]);
+
+            // Sábados y domingos: Todo el día es tiempo extra
+            if ($diaSemana === 6 || $diaSemana === 7) {
+                Log::info('Fin de semana detectado - Tiempo extra');
+                return 1;
+            }
+
+            // Lunes a jueves
+            if ($diaSemana >= 1 && $diaSemana <= 4) {
+                // Tiempo normal: 08:00 a 19:00
+                // Tiempo extra: 19:01 a 23:59
+                if ($hora >= '08:00' && $hora <= '19:00') {
+                    Log::info('Lunes-Jueves horario normal');
+                    return 0;
+                } elseif ($hora >= '19:01' || $hora <= '07:59') {
+                    Log::info('Lunes-Jueves horario extra');
+                    return 1;
+                }
+            }
+
+            // Viernes
+            if ($diaSemana === 5) {
+                // Tiempo normal: 08:00 a 14:00
+                // Tiempo extra: 14:01 a 23:59
+                if ($hora >= '08:00' && $hora <= '14:00') {
+                    Log::info('Viernes horario normal');
+                    return 0;
+                } elseif ($hora >= '14:01' || $hora <= '07:59') {
+                    Log::info('Viernes horario extra');
+                    return 1;
+                }
+            }
+
+            // Por defecto, considerar como tiempo extra (caso no contemplado)
+            Log::warning('Caso no contemplado en cálculo de tiempo_extra, considerando como extra');
+            return 1;
+
+        } catch (\Exception $e) {
+            Log::error('Error al calcular tiempo_extra: ' . $e->getMessage(), [
+                'fecha_hora' => $fechaHora->toDateTimeString(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // En caso de error, por seguridad considerar como tiempo extra
+            return 1;
+        }
+    }
 }

@@ -55,6 +55,7 @@ class TicketOt extends Model
         'descripcion_problema',
         'maquina',
         'estado',
+        'tiempo_extra',
     ];
 
     /**
@@ -67,6 +68,7 @@ class TicketOt extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'estado' => 'integer', // Asegura que 'estado' se maneje como entero
+        'tiempo_extra' => 'integer', // Asegura que 'tiempo_extra' se maneje como entero (0 o 1)
     ];
 
     public function asignaciones()
