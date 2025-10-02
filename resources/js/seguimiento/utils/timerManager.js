@@ -4,6 +4,7 @@
  */
 
 import { SELECTORS, TIEMPOS, TIMER_CLASSES, UMBRALES_ALERTA } from '../config/constants.js';
+import { ticketState } from '../state/ticketState.js';
 
 /**
  * Clase que maneja los temporizadores de cuenta regresiva
@@ -109,6 +110,13 @@ export class TimerManager {
 
         // Extraer el ID del ticket del elemento
         const ticketId = element.id.replace('timer-', '');
+
+        // Verificar si el ticket está en estado activo (EN PROCESO)
+        const ticket = ticketState.obtenerTicketPorId(parseInt(ticketId));
+        if (!ticket || ticket.catalogo_estado?.nombre !== 'EN PROCESO') {
+            // No mostrar alertas para tickets que no están en proceso activo
+            return;
+        }
 
         // Obtener información del ticket desde la tarjeta
         const tarjeta = element.closest('.relative');

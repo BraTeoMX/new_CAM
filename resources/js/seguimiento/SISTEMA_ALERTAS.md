@@ -7,6 +7,8 @@ Implementar un sistema proactivo de notificaciones que alerte al usuario sobre e
 
 ## 🔔 Tipos de Alertas
 
+**Nota importante:** Las alertas solo se muestran para tickets en estado "EN PROCESO" (atenciones activas). Los tickets finalizados o en otros estados no generan notificaciones.
+
 ### 1. Alerta de Advertencia (⚠️ Amarilla)
 **Umbral:** 5 minutos restantes
 
@@ -15,7 +17,7 @@ Implementar un sistema proactivo de notificaciones que alerte al usuario sobre e
 - Icono: ⚠️ Warning
 - Duración: 4 segundos
 - Posición: Top-right (toast)
-- Se activa: Una sola vez
+- Se activa: Una sola vez por ticket activo
 
 **Información mostrada:**
 - Número de ticket (folio)
@@ -33,7 +35,7 @@ Implementar un sistema proactivo de notificaciones que alerte al usuario sobre e
 - Icono: 🔥 Fire
 - Duración: 4 segundos
 - Posición: Top-right (toast)
-- Se activa: Una sola vez
+- Se activa: Una sola vez por ticket activo
 
 **Información mostrada:**
 - Número de ticket (folio)
@@ -51,7 +53,7 @@ Implementar un sistema proactivo de notificaciones que alerte al usuario sobre e
 - Icono: 🚨 Error
 - Duración: 4 segundos
 - Posición: Top-right (toast)
-- Se activa: Al exceder y cada minuto adicional
+- Se activa: Al exceder y cada minuto adicional (solo para tickets activos)
 
 **Información mostrada:**
 - Número de ticket (folio)
