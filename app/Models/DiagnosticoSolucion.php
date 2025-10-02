@@ -44,6 +44,8 @@ class DiagnosticoSolucion extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'hora_inicio' => 'datetime',
+        'hora_final' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

@@ -287,7 +287,7 @@ class FollowAtentionV2Controller extends Controller
                     'causa' => $validatedData['causa_falla'],
                     'accion_correctiva' => $validatedData['accion_implementada'],
                     'comentarios' => $validatedData['comentarios'],
-                    'hora_final' => $validatedData['hora_finalizacion'], // Now stores full datetime
+                    'hora_final' => $horaFinal, // Use Carbon instance instead of raw string
                     'tiempo_ejecucion' => $tiempoDeEjecucionEnSegundos, // <-- Guardamos el valor calculado
                     'encuesta' => $validatedData['satisfaccion'],
                 ]);
