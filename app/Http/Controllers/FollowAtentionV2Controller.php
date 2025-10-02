@@ -254,7 +254,7 @@ class FollowAtentionV2Controller extends Controller
             'falla' => 'required|string|max:255',
             'causa_falla' => 'required|string|max:255',
             'accion_implementada' => 'required|string|max:255',
-            'hora_finalizacion' => 'required|date_format:H:i:s',
+            'hora_finalizacion' => 'required|date', // Changed from date_format:H:i:s to date to accept full datetime
             'comentarios' => 'nullable|string',
             'satisfaccion' => 'required|integer|between:1,4',
         ]);
@@ -273,7 +273,7 @@ class FollowAtentionV2Controller extends Controller
                 }
 
                 // <-- 3. CÁLCULO DEL TIEMPO DE EJECUCIÓN
-                // Convertimos las horas (string) a objetos Carbon para poder calcular la diferencia.
+                // Convertimos las horas (ahora datetime completo) a objetos Carbon para poder calcular la diferencia.
                 $horaInicio = Carbon::parse($diagnostico->hora_inicio);
                 $horaFinal = Carbon::parse($validatedData['hora_finalizacion']);
 
@@ -287,11 +287,11 @@ class FollowAtentionV2Controller extends Controller
                     'causa' => $validatedData['causa_falla'],
                     'accion_correctiva' => $validatedData['accion_implementada'],
                     'comentarios' => $validatedData['comentarios'],
-                    'hora_final' => $validatedData['hora_finalizacion'],
+                    'hora_final' => $validatedData['hora_finalizacion'], // Now stores full datetime
                     'tiempo_ejecucion' => $tiempoDeEjecucionEnSegundos, // <-- Guardamos el valor calculado
                     'encuesta' => $validatedData['satisfaccion'],
                 ]);
-                
+
                 // 5. Actualizamos el estado del ticket principal a 5 ("ATENDIDO").
                 $asignacion->ticket()->update(['estado' => 5]);
             });

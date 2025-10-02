@@ -65,22 +65,29 @@ export class TimerManager {
     /**
      * Actualiza un temporizador específico
      * @param {HTMLElement} element - El elemento del temporizador
-     * @param {string} startTimeStr - Hora de inicio en formato HH:MM:SS
+     * @param {string} startTimeStr - Fecha y hora de inicio en formato ISO o datetime
      * @param {number} durationMinutes - Duración en minutos
      * @private
      */
     #updateTimer(element, startTimeStr, durationMinutes) {
-        // 1. Parsear la hora de inicio a un objeto Date válido para hoy
-        const today = new Date();
-        const [hours, minutes, seconds] = startTimeStr.split(':');
-        const startTime = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate(),
-            hours,
-            minutes,
-            seconds
-        );
+        // 1. Parsear la fecha y hora de inicio
+        let startTime;
+        if (startTimeStr.includes('T') || startTimeStr.includes('-')) {
+            // Es un datetime completo (ISO format o MySQL datetime)
+            startTime = new Date(startTimeStr);
+        } else {
+            // Fallback: asumir formato HH:MM:SS para compatibilidad
+            const today = new Date();
+            const [hours, minutes, seconds] = startTimeStr.split(':');
+            startTime = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate(),
+                hours,
+                minutes,
+                seconds
+            );
+        }
 
         // 2. Calcular los segundos restantes
         const now = new Date();
@@ -236,21 +243,28 @@ export class TimerManager {
 
     /**
      * Calcula el tiempo restante en segundos
-     * @param {string} startTimeStr - Hora de inicio en formato HH:MM:SS
+     * @param {string} startTimeStr - Fecha y hora de inicio
      * @param {number} durationMinutes - Duración en minutos
      * @returns {number} Segundos restantes
      */
     calcularTiempoRestante(startTimeStr, durationMinutes) {
-        const today = new Date();
-        const [hours, minutes, seconds] = startTimeStr.split(':');
-        const startTime = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate(),
-            hours,
-            minutes,
-            seconds
-        );
+        let startTime;
+        if (startTimeStr.includes('T') || startTimeStr.includes('-')) {
+            // Es un datetime completo
+            startTime = new Date(startTimeStr);
+        } else {
+            // Fallback para formato HH:MM:SS
+            const today = new Date();
+            const [hours, minutes, seconds] = startTimeStr.split(':');
+            startTime = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate(),
+                hours,
+                minutes,
+                seconds
+            );
+        }
 
         const now = new Date();
         const totalDurationInSeconds = durationMinutes * 60;

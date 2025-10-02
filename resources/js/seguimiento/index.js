@@ -168,9 +168,9 @@ class SeguimientoApp {
         modalManager.mostrarCargando('Cargando datos...');
 
         try {
-            // Capturar hora actual
+            // Capturar hora actual completa (datetime)
             const ahora = new Date();
-            const horaFinalizacion = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}:${String(ahora.getSeconds()).padStart(2, '0')}`;
+            const horaFinalizacion = ahora.toISOString(); // Full datetime in ISO format
 
             // Mostrar modal de finalización
             const datos = await modalManager.mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton);
