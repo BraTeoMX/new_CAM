@@ -19,6 +19,11 @@ class ReportesController extends Controller
         return view('reporte.index'); // SUGERENCIA: Nombres de vistas en minúscula.
     }
 
+    public function diario()
+    {
+        return view('reporte.diario');
+    }
+
     public function obtenerDetallesTickets(Request $request)
     {
         // 1. OBTENER PARÁMETROS
@@ -54,7 +59,7 @@ class ReportesController extends Controller
                 $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
                 $segundosNetos = $tiempoEjecucionSeg - $tiempoBahiaSeg;
                 $minutosDecimal = ($segundosNetos > 0) ? round($segundosNetos / 60, 2) : 0;
-                
+
                 // Formateo para tiempo total de ejecución (NUEVO)
                 $minutosTotalesParaMostrar = floor($tiempoEjecucionSeg / 60);
                 $segundosTotalesParaMostrar = $tiempoEjecucionSeg % 60;
@@ -81,27 +86,27 @@ class ReportesController extends Controller
                     'nombre_operario' => $ticket->nombre_operario,
                     'tipo_problema' => $ticket->tipo_problema,
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
-                    
+
                     // --- CAMPOS DE TIEMPO ---
                     'hora_inicio_diagnostico' => $asignacion->diagnostico->hora_inicio,
                     'hora_final_diagnostico' => $asignacion->diagnostico->hora_final,
-                    
+
                     // 1. TIEMPO TOTAL (bruto, sin restar paradas)
                     'tiempo_total' => $tiempoTotalFormateado,
-                    
+
                     // 2. TIEMPO NETO (real, restando paradas)
                     'minutos_netos_decimal' => $minutosDecimal, // Tiempo neto en decimal para cálculos
                     'tiempo_neto_formateado' => $tiempoNetoFormateado,
 
                     // 3. TIEMPO EN BAHÍAS (total de paradas)
                     'tiempo_total_bahia_formateado' => $tiempoBahiaFormateado,
-                    
+
                     // Desglose de paradas individuales (opcional)
                     'tiempos_bahia_individuales_seg' => $asignacion->diagnostico->tiemposBahia->pluck('duracion_segundos'),
 
                     'numero_maquina' => $asignacion->diagnostico->numero_maquina,
                     'clase_maquina' => $asignacion->diagnostico->clase_maquina,
-                    
+
                     // --- DETALLES ADICIONALES ---
                     'problema' => $ticket->problema_reportado,
                     'falla' => $asignacion->diagnostico->falla,
@@ -125,9 +130,54 @@ class ReportesController extends Controller
                 $finalResponse['global'][] = $filaDetalle;
             }
         }
-        
+
         // 5. DEVOLVER LA RESPUESTA
         return response()->json($finalResponse);
+    }
+
+    public function obtenerReporteDiarioMaquinas(Request $request)
+    {
+        Log::info('Datos obtenidos desde el caché.'); // Ejemplo de log
+        // Obtener parámetros
+        $date = $request->input('date', Carbon::today()->toDateString());
+        $planta = $request->input('planta'); // 1 o 2
+
+        // Consulta
+        $tickets = TicketOt::with([
+            'asignaciones.diagnostico'
+        ])
+        ->whereDate('created_at', $date)
+        ->where('planta', $planta)
+        ->whereIn('estado', [5, 8])
+        ->get();
+
+        $data = [];
+
+        foreach ($tickets as $ticket) {
+            foreach ($ticket->asignaciones as $asignacion) {
+                if (!$asignacion->diagnostico) {
+                    continue;
+                }
+
+                $tiempoEjecucionSeg = (int) $asignacion->diagnostico->tiempo_ejecucion;
+                $minutos = floor($tiempoEjecucionSeg / 60);
+                $segundos = $tiempoEjecucionSeg % 60;
+                $tiempoFormateado = $minutos . ' min ' . $segundos . ' seg';
+
+                $data[] = [
+                    'modulo' => $ticket->modulo,
+                    'numero_empleado_operario' => $ticket->numero_empleado_operario,
+                    'nombre_operario' => $ticket->nombre_operario,
+                    'numero_empleado_supervisor' => $ticket->numero_empleado_supervisor,
+                    'nombre_supervisor' => $ticket->nombre_supervisor,
+                    'tiempo_ejecucion' => $tiempoFormateado,
+                    'clase_maquina' => $asignacion->diagnostico->clase_maquina,
+                    'numero_maquina' => $asignacion->diagnostico->numero_maquina,
+                ];
+            }
+        }
+
+        return response()->json($data);
     }
 
 }

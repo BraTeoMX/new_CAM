@@ -38,6 +38,7 @@ export default defineConfig({
                 'resources/js/reasignacion/reasignacion.js',
                 // Sistema de chat refactorizado - reemplaza al chat.js monolítico
                 'resources/js/chat/index.js',
+                'resources/js/reporte/reporteDiario.js',
             ],
             refresh: true,
         }),

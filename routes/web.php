@@ -109,6 +109,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/reportesMecanicos', [ReportesController::class, 'index'])->name('reportes.index');
         Route::get('/reportesMecanicos/obtenerDetallesTickets', [ReportesController::class, 'obtenerDetallesTickets']);
 
+        // Reporte diario de máquinas descompuestas
+        Route::get('/reporte/diario', [ReportesController::class, 'diario'])->name('reporte.diario');
+        Route::get('/reporte/diario/obtenerReporteDiarioMaquinas', [ReportesController::class, 'obtenerReporteDiarioMaquinas']);
+
     });
 });
 
