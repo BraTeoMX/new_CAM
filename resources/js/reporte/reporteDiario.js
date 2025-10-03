@@ -1,3 +1,14 @@
+// Import DataTable and extensions
+import $ from 'jquery';
+import 'datatables.net';
+import 'datatables.net-bs5';
+import 'datatables.net-buttons';
+import 'datatables.net-buttons-bs5';
+import 'datatables.net-buttons/js/buttons.html5';
+import JSZip from 'jszip';
+
+window.JSZip = JSZip;
+
 // Initialize DataTable variable
 let table;
 
@@ -34,25 +45,11 @@ $(document).ready(function () {
         buttons: [
             {
                 extend: 'excelHtml5',
-                title: function () {
-                    const fecha = $('#fecha').val();
-                    const dateObj = new Date(fecha);
-                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                    const formattedDate = dateObj.toLocaleDateString('es-ES', options);
-                    return 'Reporte de Maquinas descompuestas ' + formattedDate;
-                },
-                className: 'btn btn-success'
+                text: 'Excel'
             },
             {
                 extend: 'csvHtml5',
-                title: function () {
-                    const fecha = $('#fecha').val();
-                    const dateObj = new Date(fecha);
-                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                    const formattedDate = dateObj.toLocaleDateString('es-ES', options);
-                    return 'Reporte de Maquinas descompuestas ' + formattedDate;
-                },
-                className: 'btn btn-primary'
+                text: 'CSV'
             }
         ],
         responsive: true,
