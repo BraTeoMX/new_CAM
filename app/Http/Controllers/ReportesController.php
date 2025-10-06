@@ -160,9 +160,6 @@ class ReportesController extends Controller
                 }
 
                 $tiempoEjecucionSeg = (int) $asignacion->diagnostico->tiempo_ejecucion;
-                $minutos = floor($tiempoEjecucionSeg / 60);
-                $segundos = $tiempoEjecucionSeg % 60;
-                $tiempoFormateado = $minutos . ' min ' . $segundos . ' seg';
 
                 $data[] = [
                     'modulo' => $ticket->modulo,
@@ -170,14 +167,44 @@ class ReportesController extends Controller
                     'nombre_operario' => $ticket->nombre_operario,
                     'numero_empleado_supervisor' => $ticket->numero_empleado_supervisor,
                     'nombre_supervisor' => $ticket->nombre_supervisor,
-                    'tiempo_ejecucion' => $tiempoFormateado,
+                    'tiempo_ejecucion_seg' => $tiempoEjecucionSeg,
                     'clase_maquina' => $asignacion->diagnostico->clase_maquina,
                     'numero_maquina' => $asignacion->diagnostico->numero_maquina,
                 ];
             }
         }
 
-        return response()->json($data);
+        // Agrupar por modulo y numero_empleado_operario
+        $grouped = collect($data)->groupBy(function ($item) {
+            return $item['modulo'] . '-' . $item['numero_empleado_operario'];
+        });
+
+        $result = $grouped->map(function ($group) {
+            $first = $group->first();
+
+            // Sumar tiempos en segundos
+            $totalSegundos = $group->sum('tiempo_ejecucion_seg');
+            $minutos = floor($totalSegundos / 60);
+            $segundos = $totalSegundos % 60;
+            $tiempoFormateado = $minutos . ' min ' . $segundos . ' seg';
+
+            // Recopilar valores únicos para clase_maquina y numero_maquina
+            $claseMaquinaUnique = $group->pluck('clase_maquina')->unique()->implode(', ');
+            $numeroMaquinaUnique = $group->pluck('numero_maquina')->unique()->implode(', ');
+
+            return [
+                'modulo' => $first['modulo'],
+                'numero_empleado_operario' => $first['numero_empleado_operario'],
+                'nombre_operario' => $first['nombre_operario'],
+                'numero_empleado_supervisor' => $first['numero_empleado_supervisor'],
+                'nombre_supervisor' => $first['nombre_supervisor'],
+                'tiempo_ejecucion' => $tiempoFormateado,
+                'clase_maquina' => $claseMaquinaUnique,
+                'numero_maquina' => $numeroMaquinaUnique,
+            ];
+        })->values();
+
+        return response()->json($result);
     }
 
 }
