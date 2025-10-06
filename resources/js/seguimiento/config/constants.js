@@ -61,6 +61,7 @@ export const API_ENDPOINTS = {
     OBTENER_REGISTROS: '/FollowOTV2/obtenerRegistros',
     OBTENER_ESTADOS: '/FollowOTV2/obtenerCatalogoEstados',
     OBTENER_CLASES_MAQUINA: '/FollowOTV2/obtenerClasesMaquina',
+    OBTENER_TODAS_CLASES_MAQUINA: '/FollowOTV2/obtenerTodasClasesMaquina',
     OBTENER_FALLAS: '/FollowOTV2/obtenerFallas',
     OBTENER_CAUSAS: '/FollowOTV2/obtenerCausas',
     OBTENER_ACCIONES: '/FollowOTV2/obtenerAcciones',

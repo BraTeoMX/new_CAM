@@ -118,22 +118,12 @@ class SeguimientoApp {
         modalManager.mostrarCargando();
 
         try {
-            if (maquina === 'N/A') {
-                // Caso especial: máquina N/A
-                const formValuesNA = {
-                    clase: 'N/A',
-                    numero_maquina: 'N/A',
-                    tiempo_estimado: DEFAULTS.TIEMPO_ESTIMADO_NA
-                };
-                await this.enviarInicioAtencion(ticketId, formValuesNA);
+            // Mostrar modal para seleccionar clase y número de máquina (incluyendo caso N/A con datos completos)
+            const formValues = await modalManager.mostrarModalIniciarAtencion(ticketId, maquina, boton);
+            if (formValues) {
+                await this.enviarInicioAtencion(ticketId, formValues);
             } else {
-                // Mostrar modal para seleccionar clase y número de máquina
-                const formValues = await modalManager.mostrarModalIniciarAtencion(ticketId, maquina, boton);
-                if (formValues) {
-                    await this.enviarInicioAtencion(ticketId, formValues);
-                } else {
-                    enableButton(boton);
-                }
+                enableButton(boton);
             }
         } catch (error) {
             console.error('Error al iniciar atención:', error);

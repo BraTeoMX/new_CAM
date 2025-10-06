@@ -151,15 +151,36 @@ class FollowAtentionV2Controller extends Controller
             // También retorna el TimeEstimado para cada clase
             $clases = ClasseMaquina::where('mach', $maquina)
                 ->get(['class_id', 'class', 'TimeEstimado']);
-            
+
             $numeroMaquina = $this->obtenerNumeroMaquina($clases);
-            
+
             return response()->json([
                 'clases' => $clases,
                 'numeroMaquina' => $numeroMaquina
             ]);
         } catch (\Exception $e) {
             Log::error('Error en getClasesMaquina: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function obtenerTodasClasesMaquina()
+    {
+        try {
+            // Obtener todas las clases de máquina sin filtro
+            $clases = ClasseMaquina::get(['class_id', 'class', 'TimeEstimado']);
+
+            // Obtener todos los números de máquina sin filtro
+            $numeroMaquina = DB::connection('sqlsrv_dev')
+                ->table('InvMecanicos')
+                ->get(['Remplacad']);
+
+            return response()->json([
+                'clases' => $clases,
+                'numeroMaquina' => $numeroMaquina
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en obtenerTodasClasesMaquina: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

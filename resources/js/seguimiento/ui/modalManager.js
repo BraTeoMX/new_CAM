@@ -77,7 +77,10 @@ export class ModalManager {
      */
     async mostrarModalIniciarAtencion(ticketId, maquina, boton) {
         try {
-            const data = await ticketService.obtenerClasesMaquina(maquina);
+            // Si la máquina es 'N/A', obtener todas las clases y números sin filtro
+            const data = maquina === 'N/A'
+                ? await ticketService.obtenerTodasClasesMaquina()
+                : await ticketService.obtenerClasesMaquina(maquina);
             const clases = data.clases || [];
             const numerosMaquina = data.numeroMaquina || [];
 

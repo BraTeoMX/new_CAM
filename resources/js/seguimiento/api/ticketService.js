@@ -145,6 +145,19 @@ export class TicketService {
     }
 
     /**
+     * Obtiene todas las clases y números de máquina disponibles (sin filtro)
+     * @returns {Promise<object>} Objeto con clases y números de máquina
+     */
+    async obtenerTodasClasesMaquina() {
+        try {
+            return await this.#get(API_ENDPOINTS.OBTENER_TODAS_CLASES_MAQUINA);
+        } catch (error) {
+            console.error(MENSAJES_ERROR.CARGAR_MAQUINA, error);
+            throw new Error(MENSAJES_ERROR.CARGAR_MAQUINA);
+        }
+    }
+
+    /**
      * Obtiene el catálogo de fallas
      * @returns {Promise<Array>} Array de objetos de falla
      */
