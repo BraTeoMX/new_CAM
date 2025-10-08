@@ -247,7 +247,7 @@ function createDataGridHTML() {
         <div class="flex flex-col items-center justify-center">
             <span class="material-symbols-rounded text-4xl text-green-500 mb-1">confirmation_number</span>
             <p class="stat-tickets text-4xl font-bold text-gray-800 dark:text-white">-</p>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Tickets</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Tickets Concluidos</p>
         </div>
         <div class="flex flex-col items-center justify-center">
             <span class="material-symbols-rounded text-4xl text-purple-500 mb-2">functions</span>
