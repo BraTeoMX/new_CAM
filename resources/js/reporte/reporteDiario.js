@@ -17,9 +17,11 @@ $(document).ready(function () {
     const today = new Date().toISOString().split('T')[0];
     $('#fecha').val(today);
 
-    // Initialize Flatpickr for date input with custom format
+    // Initialize Flatpickr for date input with custom display format
     flatpickr("#fecha", {
-        dateFormat: "d-m-Y", // Día-Mes-Año
+        altInput: true,        // Use an alternate input for display
+        altFormat: "d-m-Y",    // Display format: Día-Mes-Año
+        dateFormat: "Y-m-d",   // Internal format: Año-Mes-Día (for backend)
         defaultDate: today
     });
 
@@ -93,10 +95,24 @@ $(document).ready(function () {
         const planta = $('#planta').val();
 
         if (!fecha || !planta) {
-            alert('Por favor, selecciona una fecha y una planta.');
+            Swal.fire('Error', 'Por favor, selecciona una fecha y una planta.', 'error');
             return;
         }
 
-        table.ajax.reload();
+        // Show loading alert
+        Swal.fire({
+            title: 'Cargando...',
+            text: 'Obteniendo datos del reporte.',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Reload table and close loading on success
+        table.ajax.reload(function () {
+            Swal.close();
+        });
     });
 });
