@@ -29,14 +29,14 @@
         @endif
 
         {{-- Programar OTS pendientes --}}
-        <a href="{{ route('OTsProgram') }}"
+        {{--<a href="{{ route('OTsProgram') }}"
             class="flex flex-col items-center justify-center flex-1 mx-1 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition
             @if (Request::segment(1) === 'OTsProgram') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif">
             <span
                 class="material-symbols-outlined w-6 h-6 mb-1 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-500"
                 style="font-size:1.5rem;">edit_calendar</span>
             <span class="text-xs font-medium text-gray-600 dark:text-gray-300 truncate">Programar OTS</span>
-        </a>
+        </a>--}}
 
         {{-- Reportes (todos los usuarios) --}}
         <div class="relative flex-1 mx-1" x-data="{ open: false }">

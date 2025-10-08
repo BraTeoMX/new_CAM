@@ -134,7 +134,7 @@
                     </li>
                     @endif
                     <!-- OTs Pendientes o en standby -->
-                    <li>
+                    {{--<li>
                         <a class="flex items-center pl-4 pr-3 py-2 rounded-lg
                                 @if (Request::segment(1) === 'OTsProgram') bg-[linear-gradient(135deg,var(--tw-gradient-stops))] from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] @endif
                                 transition truncate text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white"
@@ -144,7 +144,7 @@
                                 class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">Programar
                                 OTS pendientes</span>
                         </a>
-                    </li>
+                    </li>--}}
                     <!-- Reportes (colapsable) -->
                     <li x-data="{ open: {{ in_array(Request::segment(1), ['Documentar', 'FormOTMeca']) ? 1 : 0 }} }">
                         <div class="pl-4 pr-3 py-2 rounded-lg">
