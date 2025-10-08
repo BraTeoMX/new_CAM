@@ -699,7 +699,7 @@ export class ChatManager {
                 <div class="bg-gray-100 dark:bg-gray-700 dark:text-white p-3 rounded-lg mb-2">
                     <strong>¿Qué es lo que deseas hacer ahora?</strong>
                     <div class="flex flex-col sm:flex-row w-full gap-2 mt-3">
-                        <button id="btn-crear-ticket-final" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">Crear ticket</button>
+                        <button id="btn-crear-ticket-final" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">Regresar</button>
                         <button id="btn-seguimiento-ticket-final" class="w-full sm:w-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">Dar seguimiento a un ticket</button>
                     </div>
                 </div>
