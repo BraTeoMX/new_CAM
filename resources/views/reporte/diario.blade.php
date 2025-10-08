@@ -8,8 +8,7 @@
             class="flex items-center mb-6 bg-white dark:bg-gray-900 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
             <img src="{{ asset('images/intimark.webp') }}" alt="Logo" class="h-16 w-50 rounded mr-4">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">REPORTE DIARIO DE MÁQUINAS DESCOMPUESTAS
-                </h1>
+                <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">REPORTE DIARIO CAM</h1>
                 <div class="mt-2 flex items-center flex-wrap gap-4">
                     <div>
                         <span class="font-semibold text-gray-700 dark:text-gray-300 mr-2">FECHA:</span>

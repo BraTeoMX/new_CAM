@@ -17,6 +17,12 @@ $(document).ready(function () {
     const today = new Date().toISOString().split('T')[0];
     $('#fecha').val(today);
 
+    // Initialize Flatpickr for date input with custom format
+    flatpickr("#fecha", {
+        dateFormat: "d-m-Y", // Día-Mes-Año
+        defaultDate: today
+    });
+
     // Initialize DataTable
     table = $('#reporteTable').DataTable({
         ajax: {
