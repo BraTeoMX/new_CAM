@@ -337,9 +337,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateTimer(element, startTimeStr, durationMinutes) {
-        const today = new Date();
-        const [hours, minutes, seconds] = startTimeStr.split(':');
-        const startTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, seconds);
+        // Parse TIMESTAMP format (YYYY-MM-DD HH:MM:SS) to Date object
+        const startTime = new Date(startTimeStr.replace(' ', 'T'));
 
         const now = new Date();
         const totalDurationInSeconds = durationMinutes * 60;
