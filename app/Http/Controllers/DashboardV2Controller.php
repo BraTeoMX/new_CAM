@@ -218,7 +218,7 @@ class DashboardV2Controller extends Controller
 
                 // Usamos las fechas como objetos Carbon para calcular la diferencia fácilmente.
                 $fechaCreacionTicket = $ticket->created_at;
-                $fechaFinalizacionDiagnostico = $asignacion->diagnostico->updated_at; // O created_at si es más preciso para ti
+                $fechaFinalizacionDiagnostico = $asignacion->diagnostico->hora_final; 
 
                 // Calculamos la diferencia total en segundos
                 $segundosBrutos = $fechaFinalizacionDiagnostico->diffInSeconds($fechaCreacionTicket);
