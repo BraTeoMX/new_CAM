@@ -7,7 +7,7 @@ const searchResultsContainer = document.getElementById('search-results-container
 const searchForm = document.getElementById('search-form');
 
 /**
- * Clasifica y muestra los resultados de la búsqueda en columnas por estado.
+ * Clasifica y muestra los resultados de la búsqueda en columnas por estado, ordenados por jerarquía.
  * @param {Array} ots - El array de OTs resultado de la búsqueda.
  */
 function mostrarResultadosBusqueda(ots) {
@@ -28,14 +28,35 @@ function mostrarResultadosBusqueda(ots) {
         return acc;
     }, {});
 
-    for (const estado in otsPorEstado) {
+    // Definir el orden jerárquico de los estados
+    const statusOrder = ['ASIGNADO', 'EN PROCESO', 'ATENDIDO', 'AUTONOMO', 'CANCELADO'];
+
+    // Obtener las claves y ordenarlas según la jerarquía
+    const sortedEstados = Object.keys(otsPorEstado).sort((a, b) => {
+        const indexA = statusOrder.indexOf(a);
+        const indexB = statusOrder.indexOf(b);
+
+        // Si ambos están en la lista, ordenar por índice
+        if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+        }
+        // Si solo A está en la lista, A va primero
+        if (indexA !== -1) return -1;
+        // Si solo B está en la lista, B va primero
+        if (indexB !== -1) return 1;
+        // Si ninguno está, ordenar alfabéticamente
+        return a.localeCompare(b);
+    });
+
+    // Iterar sobre los estados ordenados
+    sortedEstados.forEach(estado => {
         const columnWrapper = document.createElement('div');
         columnWrapper.innerHTML = `
             <h3 class="text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 md:mb-4">${estado}</h3>
             <div class="space-y-4 bg-gray-100 dark:bg-gray-800/50 p-2 md:p-4 rounded-lg shadow-md"></div>
         `;
         const columnContent = columnWrapper.querySelector('.space-y-4');
-        
+
         otsPorEstado[estado].forEach(ot => {
             // --- INICIO DE LA MODIFICACIÓN ---
             let actionType = 'detalles'; // Por defecto, abrir detalles
@@ -48,11 +69,11 @@ function mostrarResultadosBusqueda(ots) {
 
             const card = createOTCard(ot, actionType);
             // --- FIN DE LA MODIFICACIÓN ---
-            
+
             columnContent.appendChild(card);
         });
         searchResultsContainer.appendChild(columnWrapper);
-    }
+    });
 }
 
 // ... (El resto del archivo 'initializeSearch' no cambia)
@@ -76,7 +97,7 @@ export function initializeSearch() {
         if (dates) {
             [fecha_inicio, fecha_fin] = dates.split(' to ');
         }
-        
+
         const queryParams = new URLSearchParams({
             folio: folio || '',
             fecha_inicio: fecha_inicio || '',
