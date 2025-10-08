@@ -90,20 +90,22 @@ class DashboardV2Controller extends Controller
         // 2. INICIALIZAR ACUMULADORES
         // Un array para cada grupo que necesitamos.
         $results = [
-            'planta_1' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0],
-            'planta_2' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0],
-            'general'  => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0],
+            'planta_1' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0, 'sum_tiempo_real_minutos' => 0],
+            'planta_2' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0, 'sum_tiempo_real_minutos' => 0],
+            'general'  => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0, 'sum_tiempo_real_minutos' => 0],
         ];
 
         // 3. PROCESAR LOS DATOS EN PHP (UNA SOLA PASADA)
         foreach ($tickets as $ticket) {
             $ticketKey = 'planta_' . $ticket->planta;
-            
+
             $tiempoEjecucionTicket = 0;
             $duracionSegundosTicket = 0;
+            $tiempoRealMinutosTicket = 0;
 
             // Sumamos los tiempos de todas las asignaciones/diagnósticos del ticket
             foreach ($ticket->asignaciones as $asignacion) {
+                $tiempoRealMinutosTicket += (int) $asignacion->tiempo_real_minutos;
                 if ($asignacion->diagnostico) {
                     $tiempoEjecucionTicket += (int) $asignacion->diagnostico->tiempo_ejecucion;
                     // Sumamos los tiempos de bahía de este diagnóstico
@@ -116,12 +118,14 @@ class DashboardV2Controller extends Controller
                 $results[$ticketKey]['total_tickets']++;
                 $results[$ticketKey]['sum_tiempo_ejecucion'] += $tiempoEjecucionTicket;
                 $results[$ticketKey]['sum_duracion_segundos'] += $duracionSegundosTicket;
+                $results[$ticketKey]['sum_tiempo_real_minutos'] += $tiempoRealMinutosTicket;
             }
 
             // Acumular siempre en el grupo general
             $results['general']['total_tickets']++;
             $results['general']['sum_tiempo_ejecucion'] += $tiempoEjecucionTicket;
             $results['general']['sum_duracion_segundos'] += $duracionSegundosTicket;
+            $results['general']['sum_tiempo_real_minutos'] += $tiempoRealMinutosTicket;
         }
 
         // 4. CALCULAR LOS VALORES FINALES Y FORMATEAR LA RESPUESTA
@@ -134,9 +138,9 @@ class DashboardV2Controller extends Controller
             $totalTickets = $data['total_tickets'];
             
             if ($totalTickets > 0) {
-                // 1. Restamos los segundos directamente
-                $segundosNetos = $data['sum_tiempo_ejecucion'] - $data['sum_duracion_segundos'];
-                
+                // 1. Restamos los segundos directamente y sumamos tiempo_real_minutos
+                $segundosNetos = $data['sum_tiempo_ejecucion'] - $data['sum_duracion_segundos'] + $data['sum_tiempo_real_minutos'];
+
                 // 2. Convertimos el resultado neto a minutos. Usamos floor para obtener minutos completos.
                 $minutosTotales = floor($segundosNetos / 60);
 
