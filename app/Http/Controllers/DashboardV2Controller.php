@@ -558,7 +558,7 @@ class DashboardV2Controller extends Controller
                 $formattedDate = Carbon::createFromDate($year, $month, $day)->format('d/m');
                 $data[] = [
                     'date' => $formattedDate,
-                    'creadas' => $creados->get($day, 0), // Obtiene el total o 0 si no hay
+                    'creadas' =>  max(0, $creados->get($day, 0) - 1), // Obtiene el total o 0 si no hay
                     'completadas' => $completados->get($day, 0) // Obtiene el total o 0 si no hay
                 ];
             }
