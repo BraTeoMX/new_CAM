@@ -232,6 +232,7 @@ class FollowAtentionV2Controller extends Controller
                         'numero_maquina' => $validatedData['numero_maquina'],
                         'tiempo_estimado' => $tiempoEnSegundos,
                         'hora_inicio' => now(), // Guardamos la hora actual como inicio
+                        'hora_final' => now(), // Guardamos la hora actual como inicio
                     ]
                 );
                 
