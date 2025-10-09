@@ -544,9 +544,9 @@ class DashboardV2Controller extends Controller
             // 3. Obtener los tickets COMPLETADOS (estado=5) en ese mes, agrupados por día de ACTUALIZACIÓN
             $completados = TicketOt::query()
                 ->where('estado', 5) // El estado "Atendido" o "Completado"
-                ->whereYear('updated_at', $year) // Usamos 'updated_at' como fecha de completado
-                ->whereMonth('updated_at', $month)
-                ->select(DB::raw('DAY(updated_at) as day'), DB::raw('COUNT(*) as total'))
+                ->whereYear('created_at', $year) // Usamos 'updated_at' como fecha de completado
+                ->whereMonth('created_at', $month)
+                ->select(DB::raw('DAY(created_at) as day'), DB::raw('COUNT(*) as total'))
                 ->groupBy('day')
                 ->pluck('total', 'day');
 
