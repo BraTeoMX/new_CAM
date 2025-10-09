@@ -275,7 +275,7 @@ class FollowAtentionV2Controller extends Controller
             'falla' => 'required|string|max:255',
             'causa_falla' => 'required|string|max:255',
             'accion_implementada' => 'required|string|max:255',
-            'hora_finalizacion' => 'required|date', // Changed from date_format:H:i:s to date to accept full datetime
+            'hora_finalizacion' => 'nullable|date', // Made nullable since we'll use current time
             'comentarios' => 'nullable|string',
             'satisfaccion' => 'required|integer|between:1,4',
         ]);
@@ -294,9 +294,9 @@ class FollowAtentionV2Controller extends Controller
                 }
 
                 // <-- 3. CÁLCULO DEL TIEMPO DE EJECUCIÓN
-                // Convertimos las horas (ahora datetime completo) a objetos Carbon para poder calcular la diferencia.
+                // Usamos la hora actual en zona horaria de México para garantizar consistencia
                 $horaInicio = Carbon::parse($diagnostico->hora_inicio);
-                $horaFinal = Carbon::parse($validatedData['hora_finalizacion']);
+                $horaFinal = now(); // Usamos la hora actual en la zona horaria configurada (America/Mexico_City)
 
                 // Calculamos la diferencia total en segundos.
                 $tiempoDeEjecucionEnSegundos = $horaFinal->diffInSeconds($horaInicio);
@@ -308,7 +308,7 @@ class FollowAtentionV2Controller extends Controller
                     'causa' => $validatedData['causa_falla'],
                     'accion_correctiva' => $validatedData['accion_implementada'],
                     'comentarios' => $validatedData['comentarios'],
-                    'hora_final' => $horaFinal, // Use Carbon instance instead of raw string
+                    'hora_final' => $horaFinal, // Guardamos la hora actual en zona horaria de México
                     'tiempo_ejecucion' => $tiempoDeEjecucionEnSegundos, // <-- Guardamos el valor calculado
                     'encuesta' => $validatedData['satisfaccion'],
                 ]);
