@@ -75,7 +75,7 @@ class DashboardV2Controller extends Controller
         $tickets = TicketOt::with([
             'asignaciones.diagnostico' => function ($query) {
                 // Para cada diagnóstico, trae sus tiempos de bahía y updated_at
-                $query->select('id', 'asignacion_ot_id', 'tiempo_ejecucion', 'updated_at')
+                $query->select('id', 'asignacion_ot_id', 'tiempo_ejecucion', 'updated_at', 'hora_final')
                       ->with(['tiemposBahia' => function($subQuery) {
                           $subQuery->select('diagnostico_solucion_id', 'duracion_segundos');
                       }]);
@@ -105,7 +105,7 @@ class DashboardV2Controller extends Controller
             foreach ($ticket->asignaciones as $asignacion) {
                 if ($asignacion->diagnostico) {
                     // Calcular segundos brutos por asignación
-                    $segundosBrutos = $asignacion->diagnostico->updated_at->diffInSeconds($ticket->created_at);
+                    $segundosBrutos = $asignacion->diagnostico->hora_final->diffInSeconds($ticket->created_at);
                     $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
                     $segundosBrutosSinBahia = $segundosBrutos - $tiempoBahiaSeg;
                     $segundosBrutosSinBahiaTicket += $segundosBrutosSinBahia;
