@@ -74,8 +74,8 @@ class DashboardV2Controller extends Controller
         // seleccionando solo las columnas que realmente necesitamos.
         $tickets = TicketOt::with([
             'asignaciones.diagnostico' => function ($query) {
-                // Para cada diagnóstico, trae sus tiempos de bahía
-                $query->select('id', 'asignacion_ot_id', 'tiempo_ejecucion')
+                // Para cada diagnóstico, trae sus tiempos de bahía y updated_at
+                $query->select('id', 'asignacion_ot_id', 'tiempo_ejecucion', 'updated_at')
                       ->with(['tiemposBahia' => function($subQuery) {
                           $subQuery->select('diagnostico_solucion_id', 'duracion_segundos');
                       }]);
@@ -84,48 +84,43 @@ class DashboardV2Controller extends Controller
         ->whereYear('created_at', $year)
         ->whereMonth('created_at', $month)
         ->whereIn('estado', [1, 5, 7, 8])
-        ->select('id', 'planta') // Solo necesitamos id y planta del ticket principal
+        ->select('id', 'planta', 'created_at') // Agregamos created_at para calcular tiempo bruto
         ->get();
 
         // 2. INICIALIZAR ACUMULADORES
         // Un array para cada grupo que necesitamos.
         $results = [
-            'planta_1' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0, 'sum_tiempo_real_minutos' => 0],
-            'planta_2' => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0, 'sum_tiempo_real_minutos' => 0],
-            'general'  => ['total_tickets' => 0, 'sum_tiempo_ejecucion' => 0, 'sum_duracion_segundos' => 0, 'sum_tiempo_real_minutos' => 0],
+            'planta_1' => ['total_tickets' => 0, 'sum_segundos_brutos_sin_bahia' => 0],
+            'planta_2' => ['total_tickets' => 0, 'sum_segundos_brutos_sin_bahia' => 0],
+            'general'  => ['total_tickets' => 0, 'sum_segundos_brutos_sin_bahia' => 0],
         ];
 
         // 3. PROCESAR LOS DATOS EN PHP (UNA SOLA PASADA)
         foreach ($tickets as $ticket) {
             $ticketKey = 'planta_' . $ticket->planta;
 
-            $tiempoEjecucionTicket = 0;
-            $duracionSegundosTicket = 0;
-            $tiempoRealMinutosTicket = 0;
+            $segundosBrutosSinBahiaTicket = 0;
 
-            // Sumamos los tiempos de todas las asignaciones/diagnósticos del ticket
+            // Sumamos los tiempos brutos sin bahía de todas las asignaciones/diagnósticos del ticket
             foreach ($ticket->asignaciones as $asignacion) {
-                $tiempoRealMinutosTicket += (int) $asignacion->tiempo_real_minutos;
                 if ($asignacion->diagnostico) {
-                    $tiempoEjecucionTicket += (int) $asignacion->diagnostico->tiempo_ejecucion;
-                    // Sumamos los tiempos de bahía de este diagnóstico
-                    $duracionSegundosTicket += $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
+                    // Calcular segundos brutos por asignación
+                    $segundosBrutos = $asignacion->diagnostico->updated_at->diffInSeconds($ticket->created_at);
+                    $tiempoBahiaSeg = $asignacion->diagnostico->tiemposBahia->sum('duracion_segundos');
+                    $segundosBrutosSinBahia = $segundosBrutos - $tiempoBahiaSeg;
+                    $segundosBrutosSinBahiaTicket += $segundosBrutosSinBahia;
                 }
             }
 
             // Acumular en el grupo de la planta correspondiente
             if (array_key_exists($ticketKey, $results)) {
                 $results[$ticketKey]['total_tickets']++;
-                $results[$ticketKey]['sum_tiempo_ejecucion'] += $tiempoEjecucionTicket;
-                $results[$ticketKey]['sum_duracion_segundos'] += $duracionSegundosTicket;
-                $results[$ticketKey]['sum_tiempo_real_minutos'] += $tiempoRealMinutosTicket;
+                $results[$ticketKey]['sum_segundos_brutos_sin_bahia'] += $segundosBrutosSinBahiaTicket;
             }
 
             // Acumular siempre en el grupo general
             $results['general']['total_tickets']++;
-            $results['general']['sum_tiempo_ejecucion'] += $tiempoEjecucionTicket;
-            $results['general']['sum_duracion_segundos'] += $duracionSegundosTicket;
-            $results['general']['sum_tiempo_real_minutos'] += $tiempoRealMinutosTicket;
+            $results['general']['sum_segundos_brutos_sin_bahia'] += $segundosBrutosSinBahiaTicket;
         }
 
         // 4. CALCULAR LOS VALORES FINALES Y FORMATEAR LA RESPUESTA
@@ -138,8 +133,8 @@ class DashboardV2Controller extends Controller
             $totalTickets = $data['total_tickets'];
             
             if ($totalTickets > 0) {
-                // 1. Restamos los segundos directamente y sumamos tiempo_real_minutos
-                $segundosNetos = $data['sum_tiempo_ejecucion'] - $data['sum_duracion_segundos'] + $data['sum_tiempo_real_minutos'];
+                // 1. Usamos la suma de segundos brutos sin bahía
+                $segundosNetos = $data['sum_segundos_brutos_sin_bahia'];
 
                 // 2. Convertimos el resultado neto a minutos. Usamos floor para obtener minutos completos.
                 $minutosTotales = floor($segundosNetos / 60);
