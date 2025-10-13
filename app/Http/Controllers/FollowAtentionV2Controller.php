@@ -267,6 +267,56 @@ class FollowAtentionV2Controller extends Controller
     }
 
 
+    private function calcularTiempoEjecucionEnSegundosLaborales(Carbon $horaInicio, Carbon $horaFinal)
+    {
+        $totalSegundos = 0;
+
+        // Definir horarios laborales
+        $horarios = [
+            1 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Lunes
+            2 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Martes
+            3 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Miércoles
+            4 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Jueves
+            5 => ['normal' => ['08:00', '14:00'], 'extra' => ['14:01', '18:00']], // Viernes
+            6 => ['extra' => ['08:00', '18:00']], // Sábado
+            7 => ['extra' => ['08:00', '18:00']], // Domingo
+        ];
+
+        $current = $horaInicio->copy();
+        while ($current->lessThan($horaFinal)) {
+            $diaSemana = $current->dayOfWeekIso; // 1=Lunes, 7=Domingo
+            $diaHorarios = $horarios[$diaSemana] ?? [];
+
+            // Calcular tiempo en este día
+            $tiempoDia = 0;
+
+            foreach (['normal', 'extra'] as $tipo) {
+                if (isset($diaHorarios[$tipo])) {
+                    $horaInicioTipo = Carbon::createFromFormat('H:i', $diaHorarios[$tipo][0], $current->timezone)->setDate($current->year, $current->month, $current->day);
+                    $horaFinTipo = Carbon::createFromFormat('H:i', $diaHorarios[$tipo][1], $current->timezone)->setDate($current->year, $current->month, $current->day);
+
+                    // Intersección con el período del día
+                    $diaInicio = $current->copy()->startOfDay();
+                    $diaFin = $current->copy()->endOfDay();
+
+                    $start = $horaInicioTipo->max($diaInicio)->max($horaInicio);
+                    $end = $horaFinTipo->min($diaFin)->min($horaFinal);
+
+                    if ($start->lessThan($end)) {
+                        $tiempoDia += $end->diffInSeconds($start);
+                    }
+                }
+            }
+
+            $totalSegundos += $tiempoDia;
+
+            // Avanzar al siguiente día
+            $current = $current->copy()->addDay()->startOfDay();
+        }
+
+        return $totalSegundos;
+    }
+
     public function finalizarAtencion(Request $request)
     {
         Log::info('Finalizando atención para el ticket: ' . $request->input('ticket_id'), $request->all());
@@ -294,13 +344,18 @@ class FollowAtentionV2Controller extends Controller
                     throw new \Exception('No se encontró un diagnóstico iniciado para esta asignación.');
                 }
 
-                // <-- 3. CÁLCULO DEL TIEMPO DE EJECUCIÓN
+                // <-- 3. CÁLCULO DEL TIEMPO DE EJECUCIÓN EN HORAS LABORALES
                 // Usamos la hora actual en zona horaria de México para garantizar consistencia
                 $horaInicio = Carbon::parse($diagnostico->hora_inicio);
                 $horaFinal = now(); // Usamos la hora actual en la zona horaria configurada (America/Mexico_City)
 
-                // Calculamos la diferencia total en segundos.
-                $tiempoDeEjecucionEnSegundos = $horaFinal->diffInSeconds($horaInicio);
+                // Calculamos el tiempo de ejecución solo en horas laborales.
+                $tiempoDeEjecucionEnSegundos = $this->calcularTiempoEjecucionEnSegundosLaborales($horaInicio, $horaFinal);
+
+                // Si el tiempo calculado es 0 o negativo, usar el tiempo total como fallback
+                if ($tiempoDeEjecucionEnSegundos <= 0) {
+                    $tiempoDeEjecucionEnSegundos = $horaFinal->diffInSeconds($horaInicio);
+                }
 
                 // <-- 4. ACTUALIZAMOS EL DIAGNÓSTICO (INCLUYENDO EL NUEVO CÁLCULO)
                 // Usamos el objeto $diagnostico que ya obtuvimos para hacer el update.
