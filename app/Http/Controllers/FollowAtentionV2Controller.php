@@ -267,6 +267,42 @@ class FollowAtentionV2Controller extends Controller
     }
 
 
+    private function calcularTiempoMismoDia(Carbon $horaInicio, Carbon $horaFinal)
+    {
+        $diaSemana = $horaInicio->dayOfWeekIso; // 1=Lunes, 7=Domingo
+
+        // Definir horarios laborales para el día específico
+        $horarios = [
+            1 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Lunes
+            2 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Martes
+            3 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Miércoles
+            4 => ['normal' => ['08:00', '19:00'], 'extra' => ['19:01', '22:30']], // Jueves
+            5 => ['normal' => ['08:00', '14:00'], 'extra' => ['14:01', '18:00']], // Viernes
+            6 => ['extra' => ['08:00', '18:00']], // Sábado
+            7 => ['extra' => ['08:00', '18:00']], // Domingo
+        ];
+
+        $diaHorarios = $horarios[$diaSemana] ?? [];
+        $tiempoDia = 0;
+
+        foreach (['normal', 'extra'] as $tipo) {
+            if (isset($diaHorarios[$tipo])) {
+                $horaInicioTipo = Carbon::createFromFormat('H:i', $diaHorarios[$tipo][0], $horaInicio->timezone)->setDate($horaInicio->year, $horaInicio->month, $horaInicio->day);
+                $horaFinTipo = Carbon::createFromFormat('H:i', $diaHorarios[$tipo][1], $horaInicio->timezone)->setDate($horaInicio->year, $horaInicio->month, $horaInicio->day);
+
+                // Intersección con el período del día
+                $start = $horaInicioTipo->max($horaInicio);
+                $end = $horaFinTipo->min($horaFinal);
+
+                if ($start->lessThan($end)) {
+                    $tiempoDia += $end->diffInSeconds($start);
+                }
+            }
+        }
+
+        return $tiempoDia;
+    }
+
     private function calcularTiempoEjecucionEnSegundosLaborales(Carbon $horaInicio, Carbon $horaFinal)
     {
         $totalSegundos = 0;
@@ -349,8 +385,13 @@ class FollowAtentionV2Controller extends Controller
                 $horaInicio = Carbon::parse($diagnostico->hora_inicio);
                 $horaFinal = now(); // Usamos la hora actual en la zona horaria configurada (America/Mexico_City)
 
-                // Calculamos el tiempo de ejecución solo en horas laborales.
-                $tiempoDeEjecucionEnSegundos = $this->calcularTiempoEjecucionEnSegundosLaborales($horaInicio, $horaFinal);
+                // Optimización: si es el mismo día, cálculo directo simplificado
+                if ($horaInicio->isSameDay($horaFinal)) {
+                    $tiempoDeEjecucionEnSegundos = $this->calcularTiempoMismoDia($horaInicio, $horaFinal);
+                } else {
+                    // Para múltiples días, usar la función completa
+                    $tiempoDeEjecucionEnSegundos = $this->calcularTiempoEjecucionEnSegundosLaborales($horaInicio, $horaFinal);
+                }
 
                 // Si el tiempo calculado es 0 o negativo, usar el tiempo total como fallback
                 if ($tiempoDeEjecucionEnSegundos <= 0) {
