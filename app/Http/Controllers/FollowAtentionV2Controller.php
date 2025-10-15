@@ -326,7 +326,14 @@ class FollowAtentionV2Controller extends Controller
             // Calcular tiempo en este día
             $tiempoDia = 0;
 
-            foreach (['normal', 'extra'] as $tipo) {
+            // Determinar si este es el día final
+            $esDiaFinal = $current->isSameDay($horaFinal);
+
+            // Si no es el día final, solo contar tiempo normal
+            // Si es el día final, contar normal y extra (pero solo si horaFinal está en extra)
+            $tiposAContar = $esDiaFinal ? ['normal', 'extra'] : ['normal'];
+
+            foreach ($tiposAContar as $tipo) {
                 if (isset($diaHorarios[$tipo])) {
                     $horaInicioTipo = Carbon::createFromFormat('H:i', $diaHorarios[$tipo][0], $current->timezone)->setDate($current->year, $current->month, $current->day);
                     $horaFinTipo = Carbon::createFromFormat('H:i', $diaHorarios[$tipo][1], $current->timezone)->setDate($current->year, $current->month, $current->day);

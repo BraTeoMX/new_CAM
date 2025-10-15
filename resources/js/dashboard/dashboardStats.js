@@ -300,10 +300,10 @@ function initializeDataTable(tableId) {
         // Aquí le decimos a DataTables cómo tratar específicamente a nuestras columnas.
         columnDefs: [
             {
-                // `targets: 5` se refiere a la sexta columna (el índice empieza en 0).
-                targets: 5,
+                // `targets: [5, 6]` se refiere a las columnas de Tiempo Bruto y Tiempo Neto (índices 5 y 6).
+                targets: [5, 6],
                 // `type: 'num'` FUERZA a DataTables a usar el ordenamiento numérico
-                // para esta columna, activando así nuestra lógica en `render`.
+                // para estas columnas, activando así nuestra lógica en `render`.
                 type: 'num'
             }
         ],
