@@ -176,12 +176,13 @@ class UserAdminController extends Controller
             $user->status = !$user->status;
             $user->save();
             
-            $newStatus = $user->status ? 'Activo' : 'Inactivo';
+            $newStatus = $user->status ? 'Activo' : 'Baja';
             Log::info("Estatus del usuario {$user->name} (ID: {$user->id}) cambiado a {$newStatus}.");
 
             return response()->json([
                 'message' => 'Estatus del usuario actualizado correctamente.',
-                'new_status' => $newStatus
+                'new_status' => $newStatus,
+                'user_id' => $user->id
             ]);
 
         } catch (\Exception $e) {

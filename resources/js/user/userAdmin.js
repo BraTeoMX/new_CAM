@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    // Global state for users
+    let users = [];
+
     const botonAbrirModal = document.getElementById('btn-open-usercreate');
     const modalCrearUsuario = document.getElementById('modal-usercreate');
     const botonCerrarModal = document.getElementById('btn-close-usercreate');
@@ -96,10 +99,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         showConfirmButton: false
                     });
 
+                    // Add new user to local state and table
+                    const newUser = result.user;
+                    // Normalize status to match frontend expectations
+                    newUser.status = 'Activo'; // New users are active by default
+                    users.push(newUser);
+
+                    // Add new row to table
+                    const newRow = renderUserRow(newUser);
+                    tablaBody.insertAdjacentHTML('beforeend', newRow);
+
                     formCrearUsuario.reset();
                     cerrarModal();
-                    // Opcional: Recargar la tabla de usuarios o añadir el nuevo usuario dinámicamente
-                    // location.reload(); 
 
                 } else { // La petición falló
 
@@ -154,6 +165,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const usuarios = await response.json();
 
+            // Store users in global state
+            users = usuarios;
+
             // Limpiamos la tabla antes de llenarla.
             tablaBody.innerHTML = '';
 
@@ -171,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     : 'text-green-600 dark:text-green-500 hover:underline';
 
                 const fila = `
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" data-user-id="${user.id}">
                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             ${user.id}
                         </td>
@@ -193,11 +207,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         </td>
                         <td class="px-6 py-4 flex items-center space-x-4">
                             <button type="button" class="font-medium text-blue-600 dark:text-blue-500 hover:underline btn-edit" data-user-id="${user.id}">Editar</button>
-                            
-                            <button type="button" 
-                                    class="font-medium ${statusActionClass} btn-status-change" 
-                                    data-user-id="${user.id}" 
-                                    data-user-name="${user.name}" 
+
+                            <button type="button"
+                                    class="font-medium ${statusActionClass} btn-status-change"
+                                    data-user-id="${user.id}"
+                                    data-user-name="${user.name}"
                                     data-current-status="${user.status}">
                                 ${statusActionText}
                             </button>
@@ -212,6 +226,49 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error al cargar los usuarios:', error);
             tablaBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-red-500">Error al cargar los datos. Intente de nuevo.</td></tr>`;
         }
+    }
+
+    // Function to render a single user row
+    function renderUserRow(user) {
+        const statusActionText = user.status === 'Activo' ? 'Desactivar' : 'Activar';
+        const statusActionClass = user.status === 'Activo'
+            ? 'text-red-600 dark:text-red-500 hover:underline'
+            : 'text-green-600 dark:text-green-500 hover:underline';
+
+        return `
+            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" data-user-id="${user.id}">
+                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    ${user.id}
+                </td>
+                <td class="px-6 py-4">
+                    <div class="font-semibold">${user.name}</div>
+                    <div class="text-xs text-gray-500">${user.email}</div>
+                </td>
+                <td class="px-6 py-4">
+                    ${user.num_empleado}
+                </td>
+                <td class="px-6 py-4">
+                    ${user.puesto}
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center">
+                        <div class="h-2.5 w-2.5 rounded-full ${user.status === 'Activo' ? 'bg-green-500' : 'bg-red-500'} me-2"></div>
+                        ${user.status}
+                    </div>
+                </td>
+                <td class="px-6 py-4 flex items-center space-x-4">
+                    <button type="button" class="font-medium text-blue-600 dark:text-blue-500 hover:underline btn-edit" data-user-id="${user.id}">Editar</button>
+
+                    <button type="button"
+                            class="font-medium ${statusActionClass} btn-status-change"
+                            data-user-id="${user.id}"
+                            data-user-name="${user.name}"
+                            data-current-status="${user.status}">
+                        ${statusActionText}
+                    </button>
+                </td>
+            </tr>
+        `;
     }
 
     // 1. Declaraciones ÚNICAS para el modal de edición. No chocan con las de "Crear".
@@ -320,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Determinar la acción y configurar el SweetAlert
             const action = currentStatus === 'Activo' ? 'desactivar' : 'activar';
-            const newStatusText = currentStatus === 'Activo' ? 'Inactivo' : 'Activo';
+            const newStatusText = currentStatus === 'Activo' ? 'Baja' : 'Activo';
 
             Swal.fire({
                 title: `¿Estás seguro?`,
@@ -360,14 +417,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(result.message || 'Error en el servidor.');
             }
 
-            // Si todo salió bien, mostramos una alerta de éxito y recargamos la tabla
+            // Update user in local state
+            const userIndex = users.findIndex(u => u.id == userId);
+            if (userIndex !== -1) {
+                users[userIndex].status = result.new_status;
+                // Update the specific row in the table
+                const row = tablaBody.querySelector(`tr[data-user-id="${userId}"]`);
+                if (row) {
+                    const newRow = renderUserRow(users[userIndex]);
+                    row.outerHTML = newRow;
+                }
+            }
+
+            // Si todo salió bien, mostramos una alerta de éxito
             Swal.fire(
                 '¡Actualizado!',
-                `El usuario "${userName}" ahora está ${newStatus.toLowerCase()}.`,
+                `El usuario "${userName}" ahora está ${result.new_status.toLowerCase()}.`,
                 'success'
             );
-
-            cargarUsuarios(); // Recargamos la tabla para mostrar los cambios
 
         } catch (error) {
             console.error('Error al cambiar el estatus del usuario:', error);
@@ -434,8 +501,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         text: result.message
                     });
 
+                    // Update user in local state
+                    const userIndex = users.findIndex(u => u.id == userId);
+                    if (userIndex !== -1) {
+                        // Update user properties
+                        users[userIndex].name = body.name;
+                        users[userIndex].email = body.email;
+                        users[userIndex].num_empleado = body.num_empleado;
+                        users[userIndex].puesto = body.rol;
+
+                        // Update the specific row in the table
+                        const row = tablaBody.querySelector(`tr[data-user-id="${userId}"]`);
+                        if (row) {
+                            const newRow = renderUserRow(users[userIndex]);
+                            row.outerHTML = newRow;
+                        }
+                    }
+
                     cerrarModalEdicion();
-                    cargarUsuarios(); // Fundamental para ver los cambios
 
                 } else {
                     if (response.status === 422) { // Error de validación
