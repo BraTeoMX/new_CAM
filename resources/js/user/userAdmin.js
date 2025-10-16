@@ -232,10 +232,20 @@ document.addEventListener('DOMContentLoaded', function () {
         if (modalEdicion) {
             modalEdicion.classList.add('hidden');
             modalEdicion.classList.remove('flex');
-            hiddenUserIdInput.value = ''; // Limpiamos el ID al cerrar
-            document.getElementById('edit-name').value = '';
-            document.getElementById('edit-email').value = '';
-            document.getElementById('edit-puesto').value = '';
+            if (hiddenUserIdInput) hiddenUserIdInput.value = ''; // Limpiamos el ID al cerrar
+
+            // Limpiamos todos los campos del formulario de edición
+            const editName = document.getElementById('edit-name');
+            const editEmail = document.getElementById('edit-email');
+            const editNumEmpleado = document.getElementById('edit-num-empleado');
+            const editRol = document.getElementById('edit-rol');
+            const editPassword = document.getElementById('edit-password');
+
+            if (editName) editName.value = '';
+            if (editEmail) editEmail.value = '';
+            if (editNumEmpleado) editNumEmpleado.value = '';
+            if (editRol) editRol.value = '';
+            if (editPassword) editPassword.value = '';
         }
     };
 
@@ -252,12 +262,18 @@ document.addEventListener('DOMContentLoaded', function () {
             // Cerramos el Swal de "cargando" una vez que tenemos los datos
             Swal.close();
 
-            // Llenamos el formulario
-            document.getElementById('edit-name').value = user.name;
-            document.getElementById('edit-email').value = user.email;
-            document.getElementById('edit-num-empleado').value = user.num_empleado;
-            document.getElementById('edit-puesto').value = user.puesto;
-            document.getElementById('edit-password').value = '';
+            // Llenamos el formulario con validaciones de existencia de elementos
+            const editName = document.getElementById('edit-name');
+            const editEmail = document.getElementById('edit-email');
+            const editNumEmpleado = document.getElementById('edit-num-empleado');
+            const editRol = document.getElementById('edit-rol');
+            const editPassword = document.getElementById('edit-password');
+
+            if (editName) editName.value = user.name || '';
+            if (editEmail) editEmail.value = user.email || '';
+            if (editNumEmpleado) editNumEmpleado.value = user.num_empleado || '';
+            if (editRol) editRol.value = user.puesto || ''; // Usamos el valor de puesto que contiene el nombre del rol
+            if (editPassword) editPassword.value = '';
 
         } catch (error) {
             console.error('Error al llenar el formulario de edición:', error);
