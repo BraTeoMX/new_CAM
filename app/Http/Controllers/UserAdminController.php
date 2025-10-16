@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\CatalogoRol;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -55,6 +56,26 @@ class UserAdminController extends Controller
         return response()->json($puestos);
     }
 
+    public function getRoles()
+    {
+        try {
+            $roles = CatalogoRol::select('id', 'nombre')
+                ->orderBy('nombre')
+                ->get()
+                ->map(function ($rol) {
+                    return [
+                        'id' => $rol->id,
+                        'nombre' => $rol->nombre
+                    ];
+                });
+
+            return response()->json($roles);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener la lista de roles: ' . $e->getMessage());
+            return response()->json(['message' => 'No se pudo obtener la lista de roles.'], 500);
+        }
+    }
+
     // Crear usuario
     public function store(Request $request)
     {
@@ -73,7 +94,7 @@ class UserAdminController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'num_empleado' => 'required|string|max:255|unique:users,num_empleado',
             'password' => 'required|string|min:6',
-            'puesto' => 'required|string|max:255',
+            'rol' => 'required|string|max:255',
         ], $messages);
 
         try {
@@ -82,7 +103,7 @@ class UserAdminController extends Controller
                 'email' => $validated['email'],
                 'num_empleado' => $validated['num_empleado'],
                 'password' => bcrypt($validated['password']),
-                'puesto' => $validated['puesto'],
+                'puesto' => $validated['rol'], // Guardar el nombre del rol en la columna puesto
             ]);
 
             return response()->json(['message' => 'Usuario creado correctamente', 'user' => $user], 201);
@@ -116,7 +137,7 @@ class UserAdminController extends Controller
             'name' => 'required|string|max:255|unique:users,name,' . $user->id,
             'num_empleado' => 'required|string|max:255|unique:users,num_empleado,' . $user->id,
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            'puesto' => 'required|string|max:255',
+            'rol' => 'required|string|max:255',
             'password' => 'nullable|string|min:6', // 'nullable' permite que el campo esté vacío.
         ], $messages);
 
@@ -127,7 +148,7 @@ class UserAdminController extends Controller
                 'name' => $validatedData['name'],
                 'num_empleado' => $validatedData['num_empleado'],
                 'email' => $validatedData['email'],
-                'puesto' => $validatedData['puesto'],
+                'puesto' => $validatedData['rol'], // Guardar el nombre del rol en la columna puesto
             ];
 
             // Solo si se envió una nueva contraseña, la encriptamos y la añadimos.

@@ -21,38 +21,38 @@ document.addEventListener('DOMContentLoaded', function () {
         botonCancelarModal.addEventListener('click', cerrarModal);
     }
 
-    const selectPuestoCreacion = document.getElementById('usercreate-puesto');
-    const selectPuestoEdicion = document.getElementById('edit-puesto'); // Nueva referencia
+    const selectRolCreacion = document.getElementById('usercreate-rol');
+    const selectRolEdicion = document.getElementById('edit-rol'); // Nueva referencia
 
-    async function cargarPuestos() {
+    async function cargarRoles() {
         try {
-            const response = await fetch('/UserAdmin/puestos');
+            const response = await fetch('/UserAdmin/roles');
             if (!response.ok) { throw new Error(`Error del servidor: ${response.status}`); }
-            const puestos = await response.json();
+            const roles = await response.json();
 
             // Limpiamos y llenamos el SELECT DE CREACIÓN
-            selectPuestoCreacion.innerHTML = '';
-            selectPuestoCreacion.add(new Option('Seleccione un puesto', ''));
-            puestos.forEach(puesto => {
-                selectPuestoCreacion.add(new Option(puesto, puesto));
+            selectRolCreacion.innerHTML = '';
+            selectRolCreacion.add(new Option('Seleccione un rol', ''));
+            roles.forEach(rol => {
+                selectRolCreacion.add(new Option(rol.nombre, rol.nombre));
             });
 
             // Limpiamos y llenamos el SELECT DE EDICIÓN
-            selectPuestoEdicion.innerHTML = '';
-            selectPuestoEdicion.add(new Option('Seleccione un puesto', ''));
-            puestos.forEach(puesto => {
-                selectPuestoEdicion.add(new Option(puesto, puesto));
+            selectRolEdicion.innerHTML = '';
+            selectRolEdicion.add(new Option('Seleccione un rol', ''));
+            roles.forEach(rol => {
+                selectRolEdicion.add(new Option(rol.nombre, rol.nombre));
             });
 
         } catch (error) {
-            console.error('No se pudieron cargar los puestos:', error);
+            console.error('No se pudieron cargar los roles:', error);
             // Mostramos error en ambos selects
-            selectPuestoCreacion.innerHTML = '<option value="">Error al cargar</option>';
-            selectPuestoEdicion.innerHTML = '<option value="">Error al cargar</option>';
+            selectRolCreacion.innerHTML = '<option value="">Error al cargar</option>';
+            selectRolEdicion.innerHTML = '<option value="">Error al cargar</option>';
         }
     }
 
-    cargarPuestos();
+    cargarRoles();
 
     const formCrearUsuario = document.getElementById('form-usercreate');
     if (formCrearUsuario) {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 email: datosUsuario['usercreate-email'],
                 num_empleado: datosUsuario['usercreate-num_empleado'],
                 password: datosUsuario['usercreate-password'],
-                puesto: datosUsuario['usercreate-puesto']
+                rol: datosUsuario['usercreate-rol']
             };
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const result = await response.json();
 
                 if (response.ok) { // La petición fue exitosa (código 2xx)
-                    
+
                     // --- CAMBIO 1: ALERTA DE ÉXITO ---
                     Swal.fire({
                         icon: 'success',
@@ -104,11 +104,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else { // La petición falló
 
                     if (response.status === 422) { // Error de validación específico de Laravel
-                        
+
                         // --- CAMBIO 2: ALERTA DE VALIDACIÓN (WARNING) ---
                         // Formateamos los errores para mostrarlos en una lista
                         const errorMessages = Object.values(result.errors).flat().join('<br>');
-                        
+
                         Swal.fire({
                             icon: 'warning',
                             title: 'Datos Inválidos',
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
 
                     } else {
-                        
+
                         // --- CAMBIO 3: ALERTA DE ERROR GENERAL (DANGER/ERROR) ---
                         // Para errores 500 u otros problemas del servidor
                         Swal.fire({
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
             } catch (error) {
-                
+
                 // --- CAMBIO 4: ALERTA DE ERROR DE CONEXIÓN ---
                 console.error('Error al enviar el formulario:', error);
                 Swal.fire({
@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', function () {
             usuarios.forEach(user => {
                 // Lógica para el botón de cambio de estatus
                 const statusActionText = user.status === 'Activo' ? 'Desactivar' : 'Activar';
-                const statusActionClass = user.status === 'Activo' 
-                    ? 'text-red-600 dark:text-red-500 hover:underline' 
+                const statusActionClass = user.status === 'Activo'
+                    ? 'text-red-600 dark:text-red-500 hover:underline'
                     : 'text-green-600 dark:text-green-500 hover:underline';
 
                 const fila = `
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('edit-email').value = user.email;
             document.getElementById('edit-num-empleado').value = user.num_empleado;
             document.getElementById('edit-puesto').value = user.puesto;
-            document.getElementById('edit-password').value = ''; 
+            document.getElementById('edit-password').value = '';
 
         } catch (error) {
             console.error('Error al llenar el formulario de edición:', error);
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tablaBody.addEventListener('click', function (event) {
         if (event.target && event.target.matches('.btn-edit')) {
             const userId = event.target.dataset.userId;
-            
+
             if (hiddenUserIdInput) {
                 hiddenUserIdInput.value = userId;
             }
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const formEdicion = document.getElementById('editUserForm');
 
     if (formEdicion) {
-        formEdicion.addEventListener('submit', async function(event) {
+        formEdicion.addEventListener('submit', async function (event) {
             event.preventDefault();
 
             const formData = new FormData(formEdicion);
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire('Error', 'No se ha identificado al usuario a editar.', 'error');
                 return;
             }
-            
+
             const data = Object.fromEntries(formData.entries());
 
             // Renombramos los campos para que coincidan con el backend
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 name: data['edit-name'],
                 email: data['edit-email'],
                 num_empleado: data['edit-num-empleado'],
-                puesto: data['edit-puesto'],
+                rol: data['edit-rol'],
                 password: data['edit-password']
             };
 
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         title: '¡Usuario Actualizado!',
                         text: result.message
                     });
-                    
+
                     cerrarModalEdicion();
                     cargarUsuarios(); // Fundamental para ver los cambios
 
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (response.status === 422) { // Error de validación
                         // --- CAMBIO 2: ALERTA DE VALIDACIÓN (WARNING) ---
                         const errorMessages = Object.values(result.errors).flat().join('<br>');
-                        
+
                         Swal.fire({
                             icon: 'warning',
                             title: 'Datos Inválidos',
@@ -496,24 +496,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Buena práctica: nos aseguramos de que el campo de búsqueda exista antes de añadirle un evento.
     if (searchInput) {
-    
+
         // 2. Añadir un 'event listener' que se dispare cada vez que el usuario teclea.
         // El evento 'keyup' se activa justo después de que el valor del input ha cambiado.
         searchInput.addEventListener('keyup', () => {
-    
+
             // 3. Obtener el texto de búsqueda y convertirlo a minúsculas para una búsqueda sin distinción de mayúsculas/minúsculas.
             const searchTerm = searchInput.value.toLowerCase();
-    
+
             // 4. Obtener el cuerpo de la tabla y todas sus filas (<tr>).
             const tableBody = document.getElementById('users-table-body');
             const tableRows = tableBody.querySelectorAll('tr');
-    
+
             // 5. Recorrer cada fila de la tabla para decidir si se muestra o se oculta.
             tableRows.forEach(row => {
-    
+
                 // 6. Obtener todo el contenido de texto de la fila actual y convertirlo a minúsculas.
                 const rowText = row.textContent.toLowerCase();
-    
+
                 // 7. Comprobar si el texto de la fila incluye el término de búsqueda.
                 if (rowText.includes(searchTerm)) {
                     // Si coincide, nos aseguramos de que la fila sea visible.

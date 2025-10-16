@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         //nuevo enfoque de rutas para usuarios
         Route::get('/UserAdmin', [UserAdminController::class, 'index'])->name('user.index');
         Route::get('/UserAdmin/puestos', [UserAdminController::class, 'getPuestos']);
+        Route::get('/UserAdmin/roles', [UserAdminController::class, 'getRoles']);
         Route::post('/UserAdmin/users', [UserAdminController::class, 'store']);
         Route::get('/UserAdmin/listaUsuarios', [UserAdminController::class, 'getUsers'])->name('users.listaUsuarios');
         Route::get('/UserAdmin/users/{user}', [UserAdminController::class, 'show'])->name('users.show');
