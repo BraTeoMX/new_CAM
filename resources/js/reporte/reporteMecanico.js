@@ -200,8 +200,8 @@ const calculatePlantKPIs = (plantData) => {
     const topFallas = Object.entries(fallasCount)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 3)
-        .map(([falla, count]) => `${falla} (${count})`)
-        .join(', ');
+        .map(([falla, count]) => `• ${falla} (${count})`)
+        .join('\n');
 
     return {
         totalTickets,
@@ -476,13 +476,13 @@ const displayKPITable = (kpis) => {
                 <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white text-center">
                     ${metric.label}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 text-center ${getKPIColorClass(metric.key, kpis.ixtlahuaca[metric.key])}">
+                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 text-center ${getKPIColorClass(metric.key, kpis.ixtlahuaca[metric.key])} ${metric.key === 'topFallas' ? 'whitespace-pre-line' : 'whitespace-nowrap'}">
                     ${ixtValue}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 text-center ${getKPIColorClass(metric.key, kpis.sanBartolo[metric.key])}">
+                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 text-center ${getKPIColorClass(metric.key, kpis.sanBartolo[metric.key])} ${metric.key === 'topFallas' ? 'whitespace-pre-line' : 'whitespace-nowrap'}">
                     ${sanValue}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-green-700 dark:text-green-400 text-center">
+                <td class="px-4 py-3 text-sm font-bold text-green-700 dark:text-green-400 text-center ${metric.key === 'topFallas' ? 'whitespace-pre-line' : 'whitespace-nowrap'}">
                     ${globalValue}
                 </td>
             `;
@@ -554,12 +554,9 @@ const getKPIColorClass = (key, value) => {
 const formatDateForDisplay = (dateString) => {
     if (!dateString) return '';
     try {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        // Parsear manualmente para evitar problemas de zona horaria
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
     } catch (error) {
         return dateString;
     }
