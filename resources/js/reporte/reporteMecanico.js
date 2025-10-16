@@ -130,10 +130,20 @@ const getSortValue = (item, col) => {
         case 'modulo': return item.modulo ?? '';
         case 'supervisor': return item.supervisor ?? '';
         case 'op': return item.operario_num_empleado ?? '';
+        case 'nombre': return item.nombre_operario ?? '';
+        case 'problema': return item.tipo_problema ?? '';
+        case 'hora_paro': return item.hora_inicio_diagnostico ?? '';
+        case 'hora_termino': return item.hora_final_diagnostico ?? '';
+        case 'total_min': return item.tiempo_total ?? '';
+        case 'minutos_reales': return item.tiempo_neto_formateado ?? '';
+        case 'minutos_bahia': return item.tiempo_total_bahia_formateado ?? '';
+        case 'id_maquina': return item.numero_maquina ?? '';
+        case 'tipo_maquina': return item.clase_maquina ?? '';
         case 'mecanico': return item.mecanico_nombre ?? '';
-        case 'total_min': return item.minutos_totales ?? 0; // Se asume este campo para ordenar
-        case 'minutos_reales': return item.minutos_netos ?? 0;
-        case 'minutos_bahia': return item.minutos_bahia ?? 0; // Se asume este campo para ordenar
+        case 'codigo_falla': return item.falla ?? '';
+        case 'causa': return item.causa ?? '';
+        case 'accion': return item.accion ?? '';
+        case 'encuesta': return item.encuesta ?? '';
         default:
             return (item[col] ?? '').toString();
     }
@@ -190,10 +200,23 @@ const getFilteredSortedData = () => {
             let va = getSortValue(a, sortColumn);
             let vb = getSortValue(b, sortColumn);
 
-            if (typeof va === 'number' && typeof vb === 'number') {
-                return sortDirection === 'asc' ? va - vb : vb - va;
+            // Handle numeric sorting for time fields
+            if (sortColumn === 'total_min' || sortColumn === 'minutos_reales' || sortColumn === 'minutos_bahia') {
+                const numA = parseFloat(va.toString().replace(/[^\d.]/g, '')) || 0;
+                const numB = parseFloat(vb.toString().replace(/[^\d.]/g, '')) || 0;
+                return sortDirection === 'asc' ? numA - numB : numB - numA;
             }
 
+            // Handle date-time sorting
+            if (sortColumn === 'hora_paro' || sortColumn === 'hora_termino') {
+                const dateA = new Date(va.toString().replace(/(\d{2})-(\d{2})-(\d{4})/, '$3-$2-$1'));
+                const dateB = new Date(vb.toString().replace(/(\d{2})-(\d{2})-(\d{4})/, '$3-$2-$1'));
+                if (!isNaN(dateA) && !isNaN(dateB)) {
+                    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+                }
+            }
+
+            // Default string sorting
             va = (va ?? '').toString().toLowerCase();
             vb = (vb ?? '').toString().toLowerCase();
 
@@ -334,7 +357,7 @@ const addSortEvents = () => {
     const table = document.getElementById(tableId);
     if (!table) return;
     const ths = table.querySelectorAll('thead tr:first-child th');
-    
+
     headerMap.forEach((col) => {
         const th = ths[col.idx];
         if (th) {
