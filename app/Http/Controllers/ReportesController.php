@@ -88,8 +88,8 @@ class ReportesController extends Controller
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
 
                     // --- CAMPOS DE TIEMPO ---
-                    'hora_inicio_diagnostico' => $asignacion->diagnostico->hora_inicio,
-                    'hora_final_diagnostico' => $asignacion->diagnostico->hora_final,
+                    'hora_inicio_diagnostico' => $asignacion->diagnostico->hora_inicio ? Carbon::parse($asignacion->diagnostico->hora_inicio)->format('d-m-Y, H:i:s') : '',
+                    'hora_final_diagnostico' => $asignacion->diagnostico->hora_final ? Carbon::parse($asignacion->diagnostico->hora_final)->format('d-m-Y, H:i:s') : '',
 
                     // 1. TIEMPO TOTAL (bruto, sin restar paradas)
                     'tiempo_total' => $tiempoTotalFormateado,
