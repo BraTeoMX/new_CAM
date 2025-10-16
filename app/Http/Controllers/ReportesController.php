@@ -88,6 +88,7 @@ class ReportesController extends Controller
                     'mecanico_nombre' => $asignacion->nombre_mecanico,
 
                     // --- CAMPOS DE TIEMPO ---
+                    'fecha_creacion' => $ticket->created_at ? Carbon::parse($ticket->created_at)->format('d-m-Y, H:i:s') : '',
                     'hora_inicio_diagnostico' => $asignacion->diagnostico->hora_inicio ? Carbon::parse($asignacion->diagnostico->hora_inicio)->format('d-m-Y, H:i:s') : '',
                     'hora_final_diagnostico' => $asignacion->diagnostico->hora_final ? Carbon::parse($asignacion->diagnostico->hora_final)->format('d-m-Y, H:i:s') : '',
 

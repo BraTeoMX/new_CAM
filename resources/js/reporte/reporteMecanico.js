@@ -22,6 +22,7 @@ let filterValues = {
     op: '',
     nombre: '',
     problema: '',
+    fecha_creacion: '',
     hora_paro: '',
     hora_termino: '',
     total_min: '',
@@ -132,6 +133,7 @@ const getSortValue = (item, col) => {
         case 'op': return item.operario_num_empleado ?? '';
         case 'nombre': return item.nombre_operario ?? '';
         case 'problema': return item.tipo_problema ?? '';
+        case 'fecha_creacion': return item.fecha_creacion ?? '';
         case 'hora_paro': return item.hora_inicio_diagnostico ?? '';
         case 'hora_termino': return item.hora_final_diagnostico ?? '';
         case 'total_min': return item.tiempo_total ?? '';
@@ -182,6 +184,7 @@ const getFilteredSortedData = () => {
         const matchesOp = !filterValues.op || (item.operario_num_empleado ?? '').toLowerCase().includes(filterValues.op.toLowerCase());
         const matchesNombre = !filterValues.nombre || (item.nombre_operario ?? '').toLowerCase().includes(filterValues.nombre.toLowerCase());
         const matchesProblema = !filterValues.problema || (item.tipo_problema ?? '').toLowerCase().includes(filterValues.problema.toLowerCase());
+        const matchesFechaCreacion = !filterValues.fecha_creacion || (item.fecha_creacion ?? '').includes(filterValues.fecha_creacion);
         const matchesMecanico = !filterValues.mecanico || (item.mecanico_nombre ?? '').toLowerCase().includes(filterValues.mecanico.toLowerCase());
         const matchesCodigoFalla = !filterValues.codigo_falla || (item.falla ?? '').toLowerCase().includes(filterValues.codigo_falla.toLowerCase());
         const matchesCausa = !filterValues.causa || (item.causa ?? '').toLowerCase().includes(filterValues.causa.toLowerCase());
@@ -189,7 +192,7 @@ const getFilteredSortedData = () => {
         const matchesEncuesta = !filterValues.encuesta || (item.encuesta ?? '').toLowerCase().includes(filterValues.encuesta.toLowerCase());
 
         return matchesPlanta && matchesFolio && matchesModulo && matchesSupervisor &&
-            matchesOp && matchesNombre && matchesProblema && matchesHoraParo &&
+            matchesOp && matchesNombre && matchesProblema && matchesFechaCreacion && matchesHoraParo &&
             matchesHoraTermino && matchesTotalMin && matchesMinutosReales && matchesMinutosBahia &&
             matchesIdMaquina && matchesTipoMaquina && matchesMecanico &&
             matchesCodigoFalla && matchesCausa && matchesAccion && matchesEncuesta;
@@ -208,7 +211,7 @@ const getFilteredSortedData = () => {
             }
 
             // Handle date-time sorting
-            if (sortColumn === 'hora_paro' || sortColumn === 'hora_termino') {
+            if (sortColumn === 'hora_paro' || sortColumn === 'hora_termino' || sortColumn === 'fecha_creacion') {
                 const dateA = new Date(va.toString().replace(/(\d{2})-(\d{2})-(\d{4})/, '$3-$2-$1'));
                 const dateB = new Date(vb.toString().replace(/(\d{2})-(\d{2})-(\d{4})/, '$3-$2-$1'));
                 if (!isNaN(dateA) && !isNaN(dateB)) {
@@ -256,6 +259,7 @@ const displayDataInTable = (data) => {
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.operario_num_empleado ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.nombre_operario ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">${item.tipo_problema ?? ''}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-blue-700 dark:text-blue-400">${item.fecha_creacion ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-bold text-purple-700 dark:text-purple-400">${item.hora_inicio_diagnostico ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-green-700 dark:text-green-400">${item.hora_final_diagnostico ?? ''}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-neutral-300">${item.tiempo_total ?? ''}</td>
@@ -312,7 +316,7 @@ if (downloadPdfBtn) { downloadPdfBtn.addEventListener('click', () => { saveTable
 // CORREGIDO: Se añaden los nuevos IDs de los filtros de minutos
 const filterIds = [
     'planta', 'folio', 'modulo', 'supervisor', 'op', 'nombre', 'problema',
-    'hora_paro', 'hora_termino', 'total_min', 'minutos_reales', 'minutos_bahia',
+    'fecha_creacion', 'hora_paro', 'hora_termino', 'total_min', 'minutos_reales', 'minutos_bahia',
     'id_maquina', 'tipo_maquina', 'mecanico', 'codigo_falla', 'causa', 'accion', 'encuesta'
 ];
 
@@ -338,18 +342,19 @@ const headerMap = [
     { id: 'op', idx: 4 },
     { id: 'nombre', idx: 5 },
     { id: 'problema', idx: 6 },
-    { id: 'hora_paro', idx: 7 },
-    { id: 'hora_termino', idx: 8 },
-    { id: 'total_min', idx: 9 },
-    { id: 'minutos_reales', idx: 10 },
-    { id: 'minutos_bahia', idx: 11 },
-    { id: 'id_maquina', idx: 12 },
-    { id: 'tipo_maquina', idx: 13 },
-    { id: 'mecanico', idx: 14 },
-    { id: 'codigo_falla', idx: 15 },
-    { id: 'causa', idx: 16 },
-    { id: 'accion', idx: 17 },
-    { id: 'encuesta', idx: 18 }
+    { id: 'fecha_creacion', idx: 7 },
+    { id: 'hora_paro', idx: 8 },
+    { id: 'hora_termino', idx: 9 },
+    { id: 'total_min', idx: 10 },
+    { id: 'minutos_reales', idx: 11 },
+    { id: 'minutos_bahia', idx: 12 },
+    { id: 'id_maquina', idx: 13 },
+    { id: 'tipo_maquina', idx: 14 },
+    { id: 'mecanico', idx: 15 },
+    { id: 'codigo_falla', idx: 16 },
+    { id: 'causa', idx: 17 },
+    { id: 'accion', idx: 18 },
+    { id: 'encuesta', idx: 19 }
 ];
 
 

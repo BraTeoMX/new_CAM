@@ -63,13 +63,16 @@
                                 SUPERVISOR</th>
                             <th
                                 class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">
-                                # OP</th>
+                                NUMERO OPERARIO</th>
                             <th
                                 class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">
                                 NOMBRE</th>
                             <th
                                 class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">
                                 PROBLEMA</th>
+                            <th
+                                class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">
+                                FECHA CREACIÓN</th>
                             <th
                                 class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-blue-900 dark:text-blue-200 uppercase tracking-wider text-center">
                                 INICIO ATENCIÓN</th>
@@ -134,6 +137,11 @@
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
                                 <input type="text" name="problema" id="problema" placeholder="Problema"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                            </th>
+                            <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                                <input type="text" name="fecha_creacion" id="fecha_creacion"
+                                    placeholder="dd-mm-yyyy, hh:mm:ss"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 placeholder-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             </th>
                             <th class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
