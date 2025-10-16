@@ -538,8 +538,8 @@ const getKPIColorClass = (key, value) => {
             return 'text-red-600 dark:text-red-400';
         case 'promedioTiempoNeto':
         case 'promedioTiempoTotal':
-            if (value <= 30) return 'text-green-600 dark:text-green-400';
-            if (value <= 60) return 'text-yellow-600 dark:text-yellow-400';
+            if (value < 20) return 'text-green-600 dark:text-green-400';
+            if (value <= 25) return 'text-yellow-600 dark:text-yellow-400';
             return 'text-red-600 dark:text-red-400';
         default:
             return 'text-gray-700 dark:text-gray-200';
