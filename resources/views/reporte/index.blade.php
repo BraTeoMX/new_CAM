@@ -203,6 +203,41 @@
                 <div id="pagination-container" class="mt-4 flex justify-center"></div>
             </div>
         </div>
+
+        {{-- TABLA KPI RESUMEN --}}
+        <div class="mt-8">
+            <div
+                class="bg-gradient-to-br from-green-100 via-white to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 text-center">
+                    RESUMEN DE KPIs - <span id="kpi-date-range" class="text-green-600 dark:text-green-400"></span>
+                </h2>
+                <div class="overflow-x-auto rounded-xl">
+                    <table id="kpiTable"
+                        class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900 rounded-xl shadow-lg ring-1 ring-gray-200 dark:ring-gray-700">
+                        <thead
+                            class="bg-gradient-to-r from-green-200 via-green-100 to-green-50 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800">
+                            <tr>
+                                <th
+                                    class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-green-900 dark:text-green-200 uppercase tracking-wider text-center">
+                                    MÉTRICA</th>
+                                <th
+                                    class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-green-900 dark:text-green-200 uppercase tracking-wider text-center">
+                                    IXTLAHUACA</th>
+                                <th
+                                    class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-green-900 dark:text-green-200 uppercase tracking-wider text-center">
+                                    SAN BARTOLO</th>
+                                <th
+                                    class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-lg font-extrabold text-green-900 dark:text-green-200 uppercase tracking-wider text-center">
+                                    GLOBAL</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            {{-- Aquí se insertan las filas KPI dinámicamente --}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     @vite(['resources/js/reporte/reporteMecanico.js'])
     {{-- Modal para elegir Excel o PDF --}}

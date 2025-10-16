@@ -5,7 +5,9 @@ import { copyTableToClipboard, saveTableAsExcel, saveTableAsPDF } from './excell
 // =================================================================================
 
 let dataArray = []; // Almacenará los datos de la API (del array 'global')
+let currentDateRange = { start: '', end: '' }; // Para mostrar en KPIs
 const tableId = 'ordenTrabajoTable';
+const kpiTableId = 'kpiTable';
 
 // --- PAGINACIÓN ---
 const ROWS_PER_PAGE = 100;
@@ -70,10 +72,17 @@ const fetchData = async (startDate, endDate) => {
         const data = await response.json();
         dataArray = data.global || [];
 
+        // Actualizar rango de fechas actual
+        currentDateRange = { start: startDate, end: endDate };
+
         currentPage = 1;
         const filtered = getFilteredSortedData();
         displayDataInTable(filtered);
         renderPagination(filtered.length, currentPage);
+
+        // Calcular y mostrar KPIs
+        const kpis = calculateKPIs(filtered);
+        displayKPITable(kpis);
 
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -103,6 +112,123 @@ const getColorForEncuesta = (valor) => {
             return 'text-gray-500 dark:text-gray-300'; // No calificado
     }
 };
+
+/**
+ * Calcula los KPIs basados en los datos filtrados
+ * @param {Array} data - Datos filtrados
+ * @returns {Object} KPIs calculados por planta y globales
+ */
+const calculateKPIs = (data) => {
+    try {
+        if (!data || data.length === 0) {
+            return {
+                ixtlahuaca: getEmptyKPIs(),
+                sanBartolo: getEmptyKPIs(),
+                global: getEmptyKPIs()
+            };
+        }
+
+        // Separar datos por planta
+        const ixtlahuacaData = data.filter(item => item.planta === 'Ixtlahuaca');
+        const sanBartoloData = data.filter(item => item.planta === 'San Bartolo');
+
+        return {
+            ixtlahuaca: calculatePlantKPIs(ixtlahuacaData),
+            sanBartolo: calculatePlantKPIs(sanBartoloData),
+            global: calculatePlantKPIs(data)
+        };
+    } catch (error) {
+        console.error('Error calculating KPIs:', error);
+        return {
+            ixtlahuaca: getEmptyKPIs(),
+            sanBartolo: getEmptyKPIs(),
+            global: getEmptyKPIs()
+        };
+    }
+};
+
+/**
+ * Calcula KPIs para una planta específica
+ * @param {Array} plantData - Datos de una planta
+ * @returns {Object} KPIs calculados
+ */
+const calculatePlantKPIs = (plantData) => {
+    if (!plantData || plantData.length === 0) {
+        return getEmptyKPIs();
+    }
+
+    const totalTickets = plantData.length;
+
+    // Calcular tiempos
+    const tiemposNetos = plantData.map(item => parseFloat(item.minutos_netos_decimal) || 0);
+    const tiemposTotales = plantData.map(item => {
+        const tiempoTotal = item.tiempo_total || '';
+        const match = tiempoTotal.match(/(\d+)\s*min\s*(\d+)\s*seg/);
+        return match ? parseInt(match[1]) + (parseInt(match[2]) / 60) : 0;
+    });
+
+    const totalTiempoNeto = tiemposNetos.reduce((sum, tiempo) => sum + tiempo, 0);
+    const totalTiempoTotal = tiemposTotales.reduce((sum, tiempo) => sum + tiempo, 0);
+
+    const promedioTiempoNeto = totalTickets > 0 ? totalTiempoNeto / totalTickets : 0;
+    const promedioTiempoTotal = totalTickets > 0 ? totalTiempoTotal / totalTickets : 0;
+
+    // Eficiencia (tiempo neto vs total)
+    const eficiencia = totalTiempoTotal > 0 ? (totalTiempoNeto / totalTiempoTotal) * 100 : 0;
+
+    // Tasa de satisfacción
+    const encuestasValidas = plantData.filter(item => item.valor_encuesta && item.valor_encuesta >= 1 && item.valor_encuesta <= 4);
+    const promedioEncuesta = encuestasValidas.length > 0
+        ? encuestasValidas.reduce((sum, item) => sum + item.valor_encuesta, 0) / encuestasValidas.length
+        : 0;
+    const tasaSatisfaccion = promedioEncuesta > 0 ? (promedioEncuesta / 4) * 100 : 0;
+
+    // Mecánicos únicos
+    const mecanicosUnicos = new Set(plantData.map(item => item.mecanico_nombre).filter(Boolean));
+    const totalMecanicos = mecanicosUnicos.size;
+
+    // Máquinas únicas
+    const maquinasUnicas = new Set(plantData.map(item => item.numero_maquina).filter(Boolean));
+    const totalMaquinas = maquinasUnicas.size;
+
+    // Fallas más comunes (top 3)
+    const fallasCount = {};
+    plantData.forEach(item => {
+        const falla = item.falla || 'Sin especificar';
+        fallasCount[falla] = (fallasCount[falla] || 0) + 1;
+    });
+    const topFallas = Object.entries(fallasCount)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([falla, count]) => `${falla} (${count})`)
+        .join(', ');
+
+    return {
+        totalTickets,
+        promedioTiempoNeto: Math.round(promedioTiempoNeto * 100) / 100,
+        promedioTiempoTotal: Math.round(promedioTiempoTotal * 100) / 100,
+        eficiencia: Math.round(eficiencia * 100) / 100,
+        tasaSatisfaccion: Math.round(tasaSatisfaccion * 100) / 100,
+        totalMecanicos,
+        totalMaquinas,
+        topFallas: topFallas || 'Sin datos'
+    };
+};
+
+/**
+ * Retorna KPIs vacíos para casos sin datos
+ * @returns {Object} KPIs con valores por defecto
+ */
+const getEmptyKPIs = () => ({
+    totalTickets: 0,
+    promedioTiempoNeto: 0,
+    promedioTiempoTotal: 0,
+    eficiencia: 0,
+    tasaSatisfaccion: 0,
+    totalMecanicos: 0,
+    totalMaquinas: 0,
+    topFallas: 'Sin datos'
+});
 
 /**
  * Maneja los eventos de cambio en los inputs de fecha y aplica validaciones.
@@ -303,6 +429,142 @@ const renderPagination = (totalRows, page) => {
     }
 };
 
+/**
+ * Muestra la tabla de KPIs
+ * @param {Object} kpis - KPIs calculados
+ */
+const displayKPITable = (kpis) => {
+    try {
+        const table = document.getElementById(kpiTableId);
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        // Actualizar rango de fechas en el título
+        const dateRangeElement = document.getElementById('kpi-date-range');
+        if (dateRangeElement) {
+            const startFormatted = formatDateForDisplay(currentDateRange.start);
+            const endFormatted = formatDateForDisplay(currentDateRange.end);
+            dateRangeElement.textContent = `${startFormatted} - ${endFormatted}`;
+        }
+
+        // Definir las métricas a mostrar
+        const metrics = [
+            { key: 'totalTickets', label: 'Total de Tickets', format: 'number' },
+            { key: 'promedioTiempoNeto', label: 'Tiempo Promedio Neto (min)', format: 'decimal' },
+            { key: 'promedioTiempoTotal', label: 'Tiempo Promedio Total (min)', format: 'decimal' },
+            { key: 'eficiencia', label: 'Eficiencia (%)', format: 'percentage' },
+            { key: 'tasaSatisfaccion', label: 'Satisfacción (%)', format: 'percentage' },
+            { key: 'totalMecanicos', label: 'Mecánicos Activos', format: 'number' },
+            { key: 'totalMaquinas', label: 'Máquinas Atendidas', format: 'number' },
+            { key: 'topFallas', label: 'Top 3 Fallas', format: 'text' }
+        ];
+
+        // Crear filas para cada métrica
+        metrics.forEach(metric => {
+            const row = document.createElement('tr');
+            row.className = "bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors";
+
+            const ixtValue = formatKPIValue(kpis.ixtlahuaca[metric.key], metric.format);
+            const sanValue = formatKPIValue(kpis.sanBartolo[metric.key], metric.format);
+            const globalValue = formatKPIValue(kpis.global[metric.key], metric.format);
+
+            row.innerHTML = `
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white text-center">
+                    ${metric.label}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 text-center ${getKPIColorClass(metric.key, kpis.ixtlahuaca[metric.key])}">
+                    ${ixtValue}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200 text-center ${getKPIColorClass(metric.key, kpis.sanBartolo[metric.key])}">
+                    ${sanValue}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-green-700 dark:text-green-400 text-center">
+                    ${globalValue}
+                </td>
+            `;
+
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error displaying KPI table:', error);
+    }
+};
+
+/**
+ * Formatea valores KPI según el tipo
+ * @param {*} value - Valor a formatear
+ * @param {string} format - Tipo de formato
+ * @returns {string} Valor formateado
+ */
+const formatKPIValue = (value, format) => {
+    if (value === null || value === undefined || value === '') {
+        return '0';
+    }
+
+    switch (format) {
+        case 'number':
+            return Number(value).toLocaleString();
+        case 'decimal':
+            return Number(value).toFixed(2);
+        case 'percentage':
+            return `${Number(value).toFixed(1)}%`;
+        case 'text':
+        default:
+            return String(value);
+    }
+};
+
+/**
+ * Retorna clases de color para KPIs según su valor
+ * @param {string} key - Clave de la métrica
+ * @param {*} value - Valor de la métrica
+ * @returns {string} Clases CSS
+ */
+const getKPIColorClass = (key, value) => {
+    if (value === null || value === undefined || value === 0) {
+        return 'text-gray-400';
+    }
+
+    switch (key) {
+        case 'eficiencia':
+        case 'tasaSatisfaccion':
+            if (value >= 80) return 'text-green-600 dark:text-green-400';
+            if (value >= 60) return 'text-yellow-600 dark:text-yellow-400';
+            return 'text-red-600 dark:text-red-400';
+        case 'promedioTiempoNeto':
+        case 'promedioTiempoTotal':
+            if (value <= 30) return 'text-green-600 dark:text-green-400';
+            if (value <= 60) return 'text-yellow-600 dark:text-yellow-400';
+            return 'text-red-600 dark:text-red-400';
+        default:
+            return 'text-gray-700 dark:text-gray-200';
+    }
+};
+
+/**
+ * Formatea fecha para mostrar en el título KPI
+ * @param {string} dateString - Fecha en formato YYYY-MM-DD
+ * @returns {string} Fecha formateada
+ */
+const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    } catch (error) {
+        return dateString;
+    }
+};
+
 // =================================================================================
 // SECCIÓN 5: EVENT LISTENERS
 // =================================================================================
@@ -329,6 +591,10 @@ filterIds.forEach(id => {
             const filtered = getFilteredSortedData();
             displayDataInTable(filtered);
             renderPagination(filtered.length, currentPage);
+
+            // Actualizar KPIs en tiempo real con filtros aplicados
+            const kpis = calculateKPIs(filtered);
+            displayKPITable(kpis);
         });
     }
 });
