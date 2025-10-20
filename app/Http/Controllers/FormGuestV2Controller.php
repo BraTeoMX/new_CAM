@@ -330,17 +330,32 @@ class FormGuestV2Controller extends Controller
                 return $newTicket; // La transacción devuelve el ticket
             });
 
-            // 4. EMITIR EVENTO Y DEVOLVER RESPUESTA (SIN CAMBIOS)
+            // 4. EMITIR EVENTO Y DEVOLVER RESPUESTA
             if ($ticket) {
-                event(new NewOrderNotification($ticket));
+                $notificationSent = true;
+                $notificationMessage = '';
+
+                try {
+                    event(new NewOrderNotification($ticket));
+                } catch (\Exception $e) {
+                    $notificationSent = false;
+                    $notificationMessage = ' (con problemas para enviar notificación)';
+                    Log::error('Error al enviar notificación del ticket:', [
+                        'folio' => $ticket->folio,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+
                 return response()->json([
                     'success' => true,
                     'folio'   => $ticket->folio,
-                    'message' => 'Ticket creado con éxito',
+                    'message' => 'Ticket creado con éxito' . $notificationMessage,
                     'data'    => [
                         'modulo'     => $ticket->modulo,
                         'estado'     => $ticket->estado,
                         'created_at' => $ticket->created_at,
+                        'notification_sent' => $notificationSent
                     ]
                 ], 201);
             }
