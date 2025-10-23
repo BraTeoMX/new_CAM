@@ -636,9 +636,12 @@ export class ChatManager {
                         'Se ha generado tu ticket, en breve te atenderá el mecánico.',
                         chatMessages
                     );
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
+                    // Modificación: Después de que el usuario confirme el modal (clic en "OK"), redirigir automáticamente
+                    // Capturamos el parámetro "modulo" recolectado previamente durante la interacción con el bot
+                    const moduloRecogido = this.state.get('userModule');
+                    // Redirigimos a la vista especificada (/FollowOTV2) incorporando el dato del módulo como parámetro adicional en la URL (query string)
+                    // Esto permite un flujo continuo sin intervención manual adicional
+                    window.location.href = `/FollowOTV2?modulo=${encodeURIComponent(moduloRecogido)}`;
                 } else if (statusToSend === '3') {
                     await this.ui.appendChatMessage(
                         triggeredByTimeout ?
