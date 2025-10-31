@@ -60,12 +60,17 @@ class ReportesController extends Controller
                 $segundosNetos = $tiempoEjecucionSeg - $tiempoBahiaSeg;
                 $minutosDecimal = ($segundosNetos > 0) ? round($segundosNetos / 60, 2) : 0;
 
-                // Formateo para tiempo total de ejecución (NUEVO)
-                $minutosTotalesParaMostrar = floor($tiempoEjecucionSeg / 60);
-                $segundosTotalesParaMostrar = $tiempoEjecucionSeg % 60;
+                // Calcular tiempo bruto (gross time) - diferencia entre creación del ticket y finalización del diagnóstico
+                $fechaCreacionTicket = Carbon::parse($ticket->created_at);
+                $fechaFinalizacionDiagnostico = Carbon::parse($asignacion->diagnostico->hora_final);
+                $segundosBrutos = $fechaFinalizacionDiagnostico->diffInSeconds($fechaCreacionTicket);
+
+                // Formateo para tiempo total (bruto)
+                $minutosTotalesParaMostrar = floor($segundosBrutos / 60);
+                $segundosTotalesParaMostrar = $segundosBrutos % 60;
                 $tiempoTotalFormateado = $minutosTotalesParaMostrar . ' min ' . $segundosTotalesParaMostrar . ' seg';
 
-                // Formateo para tiempo neto
+                // Formateo para tiempo neto (sin cambios)
                 $minutosNetosParaMostrar = floor($segundosNetos / 60);
                 $segundosNetosParaMostrar = $segundosNetos % 60;
                 $tiempoNetoFormateado = $minutosNetosParaMostrar . ' min ' . $segundosNetosParaMostrar . ' seg';
