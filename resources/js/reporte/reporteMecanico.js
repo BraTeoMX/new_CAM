@@ -454,8 +454,8 @@ const displayKPITable = (kpis) => {
         // Definir las métricas a mostrar
         const metrics = [
             { key: 'totalTickets', label: 'Total de Tickets', format: 'number' },
-            { key: 'promedioTiempoNeto', label: 'Tiempo Promedio Neto (min)', format: 'decimal' },
             { key: 'promedioTiempoTotal', label: 'Tiempo Promedio Total (min)', format: 'decimal' },
+            { key: 'promedioTiempoNeto', label: 'Tiempo Promedio Neto (min)', format: 'decimal' },
             { key: 'eficiencia', label: 'Eficiencia (%)', format: 'percentage' },
             { key: 'tasaSatisfaccion', label: 'Satisfacción (%)', format: 'percentage' },
             { key: 'totalMecanicos', label: 'Mecánicos Activos', format: 'number' },
