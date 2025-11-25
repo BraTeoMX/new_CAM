@@ -256,7 +256,7 @@ class FormGuestController extends Controller
 
     private function sendTicketCreatedEmail($ticket)
     {
-        $toEmail = 'adejesus@intimark.com.mx'; // Dirección de correo a la que enviar el mensaje
+        $toEmail = 'bteofilo@intimark.com.mx'; // Dirección de correo a la que enviar el mensaje
         Mail::send('emails.ticket_created', ['ticket' => $ticket], function ($message) use ($ticket, $toEmail) {
             $message->to($toEmail)
                 ->subject('Nuevo Ticket Creado: ' . $ticket->Folio);
