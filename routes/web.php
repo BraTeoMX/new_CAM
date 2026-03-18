@@ -18,6 +18,7 @@ use App\Http\Controllers\FormOTMecaController;
 use App\Http\Controllers\InteractionIA;
 use App\Http\Controllers\UserAdminController;
 
+use App\Http\Controllers\FormGuestV3Controller;
 use App\Http\Controllers\FormGuestV2Controller;
 use App\Http\Controllers\VinculacionV2Controller;
 use App\Http\Controllers\FollowAtentionV2Controller;
@@ -189,6 +190,16 @@ Route::get('/FormGuestV2/obtener-operarios', [FormGuestV2Controller::class, 'obt
 Route::get('/FormGuestV2/catalogo-problemas', [FormGuestV2Controller::class, 'catalogoProblemas']);
 Route::post('/FormGuestV2/ticketsOT', [FormGuestV2Controller::class, 'guardarRegistro']);
 Route::get('/FormGuestV2/obtenerAreasModulosSeguimiento', [FormGuestV2Controller::class, 'obtenerAreasModulosSeguimiento']);
+
+// FormGuest V3
+Route::prefix('FormGuestV3')->name('formGuestV3.')->group(function () {
+    Route::get('/', [FormGuestV3Controller::class, 'index'])->name('index');
+    Route::get('/obtenerAreasModulos', [FormGuestV3Controller::class, 'obtenerAreasModulos']);
+    Route::get('/obtener-operarios', [FormGuestV3Controller::class, 'obtenerOperarios']);
+    Route::get('/catalogo-problemas', [FormGuestV3Controller::class, 'catalogoProblemas']);
+    Route::post('/ticketsOT', [FormGuestV3Controller::class, 'guardarRegistro']);
+    Route::get('/obtenerAreasModulosSeguimiento', [FormGuestV3Controller::class, 'obtenerAreasModulosSeguimiento']);
+});
 // segunda version de FollowAtentionController
 Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2', 'index')->name('FollowOTV2');

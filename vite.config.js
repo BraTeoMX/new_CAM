@@ -39,6 +39,7 @@ export default defineConfig({
                 // Sistema de chat refactorizado - reemplaza al chat.js monolítico
                 'resources/js/chat/index.js',
                 'resources/js/reporte/reporteDiario.js',
+                'resources/js/v3/formGuest/index.js',
             ],
             refresh: true,
         }),
