@@ -5,14 +5,13 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('FormGuest V3 Initialized. Consultando API local en lugar de SQL Server...');
+    console.log('FormGuest V3 Initialized. Consultando API local optimizada...');
     
-    // Aquí puedes importar tu lógica, por ejemplo:
-    // import { initChatFlow } from './chatLogic.js';
-    // initChatFlow();
-
-    // Ejemplo de fetch a la nueva API V3 optimizada:
-    // fetch('/FormGuestV3/obtenerAreasModulos')
-    //     .then(res => res.json())
-    //     .then(data => console.log('Módulos cargados en milisegundos:', data));
+    // El chat se inicializa de forma explícita
+    import('./chat/index.js').then(module => {
+        console.log('Módulo de Chat V3 cargado exitosamente.');
+        module.initializeChat();
+    }).catch(err => {
+        console.error('Error cargando módulo de Chat V3:', err);
+    });
 });

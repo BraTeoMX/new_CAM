@@ -44,12 +44,12 @@ class FormGuestV3Controller extends Controller
             $moduloSolicitado = $request->modulo;
 
             // Directamente en MySQL usando índices
-            $operariosDelModulo = OperarioLocal::where('Modulo', $moduloSolicitado)
-                ->orderBy('Nombre')
+            $operariosDelModulo = OperarioLocal::where('modulo', $moduloSolicitado)
+                ->orderBy('nombre')
                 ->get();
 
-            $otrosOperarios = OperarioLocal::where('Modulo', '!=', $moduloSolicitado)
-                ->orderBy('Nombre')
+            $otrosOperarios = OperarioLocal::where('modulo', '!=', $moduloSolicitado)
+                ->orderBy('nombre')
                 ->get();
 
             $operariosFinal = $operariosDelModulo->concat($otrosOperarios);
