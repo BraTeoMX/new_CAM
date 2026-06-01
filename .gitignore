@@ -38,3 +38,6 @@ telescope.sqlite
 
 # Pint
 pint.json
+
+# Antigravity prompt 
+prompt.md

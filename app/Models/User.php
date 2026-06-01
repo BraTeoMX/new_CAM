@@ -128,4 +128,22 @@ class User extends Authenticatable
     {
         return $this->hasRole('Administrador');
     }
+    /**
+     * Relación con el sistema de notificaciones masivas.
+     */
+    public function notificaciones()
+    {
+        return $this->belongsToMany(Notificacion::class, 'notificacion_usuario', 'usuario_id', 'notificacion_id')
+                    ->withPivot('leido_at')
+                    ->withTimestamps()
+                    ->orderByDesc('notificaciones.created_at');
+    }
+
+    /**
+     * Obtener sólo las notificaciones no leídas de este usuario.
+     */
+    public function notificacionesNoLeidas()
+    {
+        return $this->notificaciones()->wherePivotNull('leido_at');
+    }
 }

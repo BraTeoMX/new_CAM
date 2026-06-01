@@ -39,6 +39,13 @@ class TicketOt extends Model
     public $incrementing = true; // Opcional, Laravel lo infiere correctamente.
 
     /**
+     * Integración con eventos.
+     */
+    protected $dispatchesEvents = [
+        'created' => \App\Events\TicketCreado::class,
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

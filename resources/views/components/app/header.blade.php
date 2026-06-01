@@ -24,8 +24,8 @@
             <div class="flex items-center space-x-3">
                 <!-- Divider -->
                 <hr class="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
-                <!-- Notifications button -->
-                <x-dropdown-notifications align="right" />
+                <!-- Notifications button (Livewire Realtime) -->
+                @livewire('campana-notificaciones')
                 <!-- Divider -->
                 <hr class="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
                 <!-- Dark mode toggle -->
