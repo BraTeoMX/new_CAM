@@ -10,7 +10,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-            <a href="{{ route('formGuest.index') }}" 
+            <a href="{{ route('formGuestV3.index') }}" 
                class="flex flex-col items-center justify-center p-6 text-center text-white bg-blue-500 rounded-lg shadow-lg 
                       hover:bg-blue-600 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
                 

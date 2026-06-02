@@ -1,25 +1,41 @@
 /**
- * Gestor centralizado del estado del chat
+ * Gestor centralizado del estado del chat.
  */
 import { MACHINES } from './constants.js';
 
+export const FLOW_STEPS = {
+    module: 10,
+    operator: 20,
+    machine: 30,
+    problem: 40,
+    summary: 50,
+    assistance: 60,
+    final: 70,
+    submitted: 80
+};
+
+const initialState = () => ({
+    userProblem: '',
+    selectedProblemId: null,
+    selectedProblemNeedsSteps: null,
+    userModule: '',
+    moduleType: null,
+    modulePlanta: null,
+    nombreSupervisor: null,
+    numeroSupervisor: null,
+    selectedMachineIndex: null,
+    selectedOperario: null,
+    nextResponseHandler: null,
+    currentStep: null,
+    totalEstimatedIATime: 0,
+    actualStepTimes: {},
+    furthestStep: 0,
+    isSubmitting: false
+});
+
 export class StateManager {
     constructor() {
-        this._state = {
-            userProblem: '',
-            selectedProblemId: null,
-            userModule: '',
-            moduleType: null,
-            modulePlanta: null,
-            nombreSupervisor: null,
-            numeroSupervisor: null,
-            selectedMachineIndex: null,
-            selectedOperario: null,
-            nextResponseHandler: null,
-            currentStep: null,
-            totalEstimatedIATime: 0,
-            actualStepTimes: {}
-        };
+        this._state = initialState();
         this._syncGlobals();
     }
 
@@ -41,27 +57,64 @@ export class StateManager {
         }
     }
 
-    get(key) { return this._state[key]; }
-    set(key, value) { this._state[key] = value; this._syncGlobals(); }
-    update(updates) { Object.assign(this._state, updates); this._syncGlobals(); }
-    getState() { return { ...this._state }; }
+    get(key) {
+        return this._state[key];
+    }
+
+    set(key, value) {
+        this._state[key] = value;
+        this._syncGlobals();
+    }
+
+    update(updates) {
+        Object.assign(this._state, updates);
+        this._syncGlobals();
+    }
+
+    getState() {
+        return { ...this._state };
+    }
+
+    markStep(stepName) {
+        const stepValue = FLOW_STEPS[stepName] || 0;
+        this._state.furthestStep = Math.max(this._state.furthestStep, stepValue);
+        this._syncGlobals();
+    }
+
+    hasProgressAfter(stepName) {
+        return this._state.furthestStep > (FLOW_STEPS[stepName] || 0);
+    }
+
+    resetAfter(stepName) {
+        const keepStep = FLOW_STEPS[stepName] || 0;
+
+        if (keepStep < FLOW_STEPS.operator) {
+            this._state.selectedOperario = null;
+        }
+
+        if (keepStep < FLOW_STEPS.machine) {
+            this._state.selectedMachineIndex = null;
+        }
+
+        if (keepStep < FLOW_STEPS.problem) {
+            this._state.userProblem = '';
+            this._state.selectedProblemId = null;
+            this._state.selectedProblemNeedsSteps = null;
+        }
+
+        if (keepStep < FLOW_STEPS.assistance) {
+            this._state.currentStep = null;
+            this._state.totalEstimatedIATime = 0;
+            this._state.actualStepTimes = {};
+        }
+
+        this._state.isSubmitting = false;
+        this._state.furthestStep = keepStep;
+        this._syncGlobals();
+    }
 
     reset() {
-        this._state = {
-            userProblem: '',
-            selectedProblemId: null,
-            userModule: '',
-            moduleType: null,
-            modulePlanta: null,
-            nombreSupervisor: null,
-            numeroSupervisor: null,
-            selectedMachineIndex: null,
-            selectedOperario: null,
-            nextResponseHandler: null,
-            currentStep: null,
-            totalEstimatedIATime: 0,
-            actualStepTimes: {}
-        };
+        this._state = initialState();
         this._syncGlobals();
         window.iaChatStep = 0;
     }
@@ -85,11 +138,13 @@ export class StateManager {
         }
 
         let maquinaNombre = '';
-        if (this._state.selectedMachineIndex !== null &&
+        if (
+            this._state.selectedMachineIndex !== null &&
             this._state.selectedMachineIndex !== undefined &&
             typeof this._state.selectedMachineIndex === 'number' &&
             MACHINES &&
-            MACHINES[this._state.selectedMachineIndex]) {
+            MACHINES[this._state.selectedMachineIndex]
+        ) {
             maquinaNombre = MACHINES[this._state.selectedMachineIndex];
         }
 
@@ -102,4 +157,5 @@ export class StateManager {
         };
     }
 }
+
 export const chatState = new StateManager();

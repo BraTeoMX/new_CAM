@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreTicketV3Request;
 use App\Models\CatalogoProblema;
 use App\Models\ModuloLocal;
@@ -11,6 +9,9 @@ use App\Models\OperarioLocal;
 use App\Models\TicketOt;
 use App\Services\TicketCreationService;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class FormGuestV3Controller extends Controller
 {
@@ -29,11 +30,17 @@ class FormGuestV3Controller extends Controller
     public function obtenerAreasModulos()
     {
         try {
-            // Consultas a BD local sincronizada para evitar penalidad de red externa
-            $modulos = ModuloLocal::orderBy('modulo')->get();
+            $modulos = Cache::remember('form_guest_v3_modulos_locales', now()->addMinutes(30), function () {
+                return ModuloLocal::query()
+                    ->select('modulo', 'tipo', 'planta', 'nombre_supervisor', 'numero_empleado_supervisor')
+                    ->orderBy('modulo')
+                    ->get();
+            });
+
             return response()->json($modulos);
         } catch (Exception $e) {
             Log::error('V3 Error obtener modulos: ' . $e->getMessage());
+
             return response()->json(['success' => false, 'message' => 'Error'], 500);
         }
     }
@@ -41,31 +48,48 @@ class FormGuestV3Controller extends Controller
     public function obtenerOperarios(Request $request)
     {
         try {
-            $moduloSolicitado = $request->modulo;
+            $moduloSolicitado = (string) $request->modulo;
 
-            // Directamente en MySQL usando índices
-            $operariosDelModulo = OperarioLocal::where('modulo', $moduloSolicitado)
-                ->orderBy('nombre')
-                ->get();
+            $operariosDelModulo = Cache::remember(
+                'form_guest_v3_operarios_modulo_' . md5($moduloSolicitado),
+                now()->addMinutes(15),
+                function () use ($moduloSolicitado) {
+                    return OperarioLocal::query()
+                        ->select('num_operario', 'nombre', 'modulo')
+                        ->where('modulo', $moduloSolicitado)
+                        ->orderBy('nombre')
+                        ->get();
+                }
+            );
 
-            $otrosOperarios = OperarioLocal::where('modulo', '!=', $moduloSolicitado)
-                ->orderBy('nombre')
-                ->get();
+            $otrosOperarios = Cache::remember(
+                'form_guest_v3_operarios_otros_' . md5($moduloSolicitado),
+                now()->addMinutes(15),
+                function () use ($moduloSolicitado) {
+                    return OperarioLocal::query()
+                        ->select('num_operario', 'nombre', 'modulo')
+                        ->where('modulo', '!=', $moduloSolicitado)
+                        ->orderBy('nombre')
+                        ->get();
+                }
+            );
 
-            $operariosFinal = $operariosDelModulo->concat($otrosOperarios);
-
-            return response()->json($operariosFinal);
+            return response()->json($operariosDelModulo->concat($otrosOperarios)->values());
         } catch (Exception $e) {
             Log::error('V3 Error obtener operarios: ' . $e->getMessage());
+
             return response()->json(['success' => false, 'message' => 'Error'], 500);
         }
     }
 
     public function catalogoProblemas()
     {
-        $problemas = CatalogoProblema::where('estatus', 1)
-            ->orderBy('nombre', 'asc')
-            ->get(['id', 'nombre', 'descripcion', 'pasos']);
+        $problemas = Cache::remember('form_guest_v3_catalogo_problemas', now()->addMinutes(30), function () {
+            return CatalogoProblema::where('estatus', 1)
+                ->orderBy('nombre', 'asc')
+                ->get(['id', 'nombre', 'descripcion', 'pasos']);
+        });
+
         return response()->json($problemas);
     }
 
@@ -87,6 +111,7 @@ class FormGuestV3Controller extends Controller
             ], 201);
         } catch (Exception $e) {
             Log::error('V3 Error guardarRegistro: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error al procesar la solicitud',
@@ -98,14 +123,18 @@ class FormGuestV3Controller extends Controller
     public function obtenerAreasModulosSeguimiento()
     {
         try {
-            $modulos = TicketOt::where('created_at', '>=', now()->subDays(4))
-                              ->select('modulo')
-                              ->distinct()
-                              ->orderBy('modulo', 'asc')
-                              ->get();
+            $modulos = Cache::remember('form_guest_v3_modulos_seguimiento', now()->addMinutes(2), function () {
+                return TicketOt::where('created_at', '>=', now()->subDays(4))
+                    ->select('modulo')
+                    ->distinct()
+                    ->orderBy('modulo', 'asc')
+                    ->get();
+            });
+
             return response()->json($modulos);
         } catch (Exception $e) {
-            Log::error('V3 Error al obtener módulos Seguimiento: ' . $e->getMessage());
+            Log::error('V3 Error al obtener modulos Seguimiento: ' . $e->getMessage());
+
             return response()->json(['error' => 'No se pudieron cargar'], 500);
         }
     }
