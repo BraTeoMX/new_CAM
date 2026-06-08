@@ -143,6 +143,8 @@ Route::get('/form-ot-data', [FormOTMecaController::class, 'getData']);
 
 
 // Rutas para usuarios sin autenticados
+// Manual de usuario (PDF fullscreen, acceso público sin login)
+Route::get('/manual', fn () => view('documentos.manual'))->name('manual.usuario');
 
 Route::get('/FormGuest', [FormGuestController::class, 'FormGuest']);
 Route::get('/obtener-modulos', [FormGuestController::class, 'ObtenerModulos']);
