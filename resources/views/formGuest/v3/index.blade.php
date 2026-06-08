@@ -3,7 +3,24 @@
         <!-- Título V3 -->
         <div class="sm:flex sm:justify-between sm:items-center mb-8">
             <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Centro de Atención de
-                Mantenimiento (V3 Optimizada)</h1>
+                Mantenimiento</h1>
+
+            {{-- Enlace al manual: discreto, fuera del chat, nueva pestaña --}}
+            <a href="{{ route('manual.usuario') }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               title="Ver manual de usuario"
+               class="mt-3 sm:mt-0 inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500
+                      hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200 group">
+                {{-- Ícono libro --}}
+                <svg class="w-4 h-4 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
+                     viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M19 2H8.5A3.5 3.5 0 0 0 5 5.5v13A3.5 3.5 0 0 0 8.5 22H19a1 1 0 0 0
+                             1-1V3a1 1 0 0 0-1-1zm-1 18H8.5a1.5 1.5 0 0 1 0-3H18v3zm0-5H8.5A3.49
+                             3.49 0 0 0 6 16.5V5.5A1.5 1.5 0 0 1 8.5 4H18v11z"/>
+                </svg>
+                Manual de usuario
+            </a>
         </div>
 
         <!-- Chat Formulario V3 -->
@@ -26,6 +43,6 @@
 
     {{-- Sistema modularizado V3, cargado mediante Vite para evitar inyecciones directas en el blade --}}
     @vite([
-        'resources/js/v3/formGuest/index.js'
+    'resources/js/v3/formGuest/index.js'
     ])
 </x-guest-layout>
