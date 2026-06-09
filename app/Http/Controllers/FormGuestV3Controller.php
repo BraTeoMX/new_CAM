@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTicketV3Request;
+use App\Models\CatalogoArea;
 use App\Models\CatalogoProblema;
 use App\Models\ModuloLocal;
 use App\Models\OperarioLocal;
@@ -11,6 +12,7 @@ use App\Services\TicketCreationService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class FormGuestV3Controller extends Controller
@@ -30,19 +32,86 @@ class FormGuestV3Controller extends Controller
     public function obtenerAreasModulos()
     {
         try {
-            $modulos = Cache::remember('form_guest_v3_modulos_locales', now()->addMinutes(30), function () {
-                return ModuloLocal::query()
-                    ->select('modulo', 'tipo', 'planta', 'nombre_supervisor', 'numero_empleado_supervisor')
-                    ->orderBy('modulo')
-                    ->get();
-            });
+            $syncCacheKey = 'form_guest_v3_modulos_locales_sync_hourly';
+
+            if (! Cache::has($syncCacheKey)) {
+                $this->sincronizarModulosLocales();
+                Cache::put($syncCacheKey, true, now()->addHour());
+            }
+
+            $modulos = ModuloLocal::query()
+                ->select('modulo', 'tipo', 'planta', 'nombre_supervisor', 'numero_empleado_supervisor')
+                ->orderBy('modulo')
+                ->get();
 
             return response()->json($modulos);
         } catch (Exception $e) {
-            Log::error('V3 Error obtener modulos: ' . $e->getMessage());
+            Log::error('V3 Error obtener modulos: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json(['success' => false, 'message' => 'Error'], 500);
         }
+    }
+
+    private function sincronizarModulosLocales(): void
+    {
+        $modulosCatalogo = CatalogoArea::select('nombre as modulo', 'planta')
+            ->where('estatus', 1)
+            ->orderBy('modulo')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'modulo' => $item->modulo,
+                    'planta' => (string) $item->planta,
+                    'tipo' => 'catalogo',
+                    'nombre_supervisor' => 'N/A',
+                    'numero_empleado_supervisor' => 'N/A',
+                ];
+            });
+
+        $modulosSupervisores = DB::connection('sqlsrv_dev')
+            ->table('modulo_supervisor_views')
+            ->select('modulo', 'planta', 'nombre as nombre_supervisor', 'numero_empleado as numero_empleado_supervisor')
+            ->distinct()
+            ->orderBy('modulo')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'modulo' => $item->modulo,
+                    'planta' => (string) $item->planta,
+                    'tipo' => 'supervisor',
+                    'nombre_supervisor' => $item->nombre_supervisor ?? 'N/A',
+                    'numero_empleado_supervisor' => $item->numero_empleado_supervisor ?? 'N/A',
+                ];
+            });
+
+        $modulosActuales = $modulosCatalogo
+            ->concat($modulosSupervisores)
+            ->filter(fn ($item) => filled($item['modulo']))
+            ->unique('modulo')
+            ->values();
+
+        DB::transaction(function () use ($modulosActuales) {
+            if ($modulosActuales->isEmpty()) {
+                ModuloLocal::query()->delete();
+                return;
+            }
+
+            $modulosLocalesVigentes = $modulosActuales->map(function ($item) {
+                return ModuloLocal::query()->updateOrCreate(
+                    ['modulo' => $item['modulo']],
+                    [
+                        'tipo' => $item['tipo'],
+                        'planta' => $item['planta'],
+                        'nombre_supervisor' => $item['nombre_supervisor'],
+                        'numero_empleado_supervisor' => $item['numero_empleado_supervisor'],
+                    ]
+                )->id;
+            });
+
+            ModuloLocal::query()
+                ->whereNotIn('id', $modulosLocalesVigentes)
+                ->delete();
+        });
     }
 
     public function obtenerOperarios(Request $request)
