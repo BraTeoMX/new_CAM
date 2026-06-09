@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class FormGuestV3Controller extends Controller
 {
@@ -34,10 +35,12 @@ class FormGuestV3Controller extends Controller
         try {
             $syncCacheKey = 'form_guest_v3_modulos_locales_sync_hourly';
 
-            if (! Cache::has($syncCacheKey)) {
-                $this->sincronizarModulosLocales();
-                Cache::put($syncCacheKey, true, now()->addHour());
-            }
+            $this->ejecutarSincronizacionLocal(
+                $syncCacheKey,
+                fn () => $this->sincronizarModulosLocales(),
+                now()->addHour(),
+                'modulos locales'
+            );
 
             $modulos = ModuloLocal::query()
                 ->select('modulo', 'tipo', 'planta', 'nombre_supervisor', 'numero_empleado_supervisor')
@@ -54,6 +57,8 @@ class FormGuestV3Controller extends Controller
 
     private function sincronizarModulosLocales(): void
     {
+        $this->configurarTimeoutSqlServer();
+
         $modulosCatalogo = CatalogoArea::select('nombre as modulo', 'planta')
             ->where('estatus', 1)
             ->orderBy('modulo')
@@ -120,10 +125,12 @@ class FormGuestV3Controller extends Controller
             $syncCacheKey = 'form_guest_v3_operarios_locales_sync_daily';
             $moduloSolicitado = (string) $request->modulo;
 
-            if (! Cache::has($syncCacheKey)) {
-                $this->sincronizarOperariosLocales();
-                Cache::put($syncCacheKey, true, now()->addDay());
-            }
+            $this->ejecutarSincronizacionLocal(
+                $syncCacheKey,
+                fn () => $this->sincronizarOperariosLocales(),
+                now()->addDay(),
+                'operarios locales'
+            );
 
             $operariosDelModulo = OperarioLocal::query()
                 ->select('num_operario', 'nombre', 'modulo')
@@ -147,6 +154,8 @@ class FormGuestV3Controller extends Controller
 
     private function sincronizarOperariosLocales(): void
     {
+        $this->configurarTimeoutSqlServer();
+
         $operariosActuales = DB::connection('sqlsrv_dev')
             ->table('Operarios_Views')
             ->select('NumOperario', 'Nombre', 'Modulo')
@@ -183,6 +192,38 @@ class FormGuestV3Controller extends Controller
                 ->whereNotIn('id', $operariosLocalesVigentes)
                 ->delete();
         });
+    }
+
+    private function ejecutarSincronizacionLocal(string $cacheKey, callable $callback, $ttl, string $contexto): void
+    {
+        $retryCacheKey = $cacheKey . '_retry_after_failure';
+
+        if (Cache::has($cacheKey) || Cache::has($retryCacheKey)) {
+            return;
+        }
+
+        try {
+            $callback();
+            Cache::put($cacheKey, true, $ttl);
+        } catch (Throwable $e) {
+            Cache::put($retryCacheKey, true, now()->addMinutes(10));
+
+            Log::warning("V3 Sincronizacion de {$contexto} omitida, se usaran datos locales.", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    private function configurarTimeoutSqlServer(int $seconds = 60): void
+    {
+        if (! defined('PDO::SQLSRV_ATTR_QUERY_TIMEOUT')) {
+            return;
+        }
+
+        DB::connection('sqlsrv_dev')
+            ->getPdo()
+            ->setAttribute(constant('PDO::SQLSRV_ATTR_QUERY_TIMEOUT'), $seconds);
     }
 
     public function catalogoProblemas()
