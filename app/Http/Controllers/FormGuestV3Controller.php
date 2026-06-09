@@ -117,38 +117,72 @@ class FormGuestV3Controller extends Controller
     public function obtenerOperarios(Request $request)
     {
         try {
+            $syncCacheKey = 'form_guest_v3_operarios_locales_sync_daily';
             $moduloSolicitado = (string) $request->modulo;
 
-            $operariosDelModulo = Cache::remember(
-                'form_guest_v3_operarios_modulo_' . md5($moduloSolicitado),
-                now()->addMinutes(15),
-                function () use ($moduloSolicitado) {
-                    return OperarioLocal::query()
-                        ->select('num_operario', 'nombre', 'modulo')
-                        ->where('modulo', $moduloSolicitado)
-                        ->orderBy('nombre')
-                        ->get();
-                }
-            );
+            if (! Cache::has($syncCacheKey)) {
+                $this->sincronizarOperariosLocales();
+                Cache::put($syncCacheKey, true, now()->addDay());
+            }
 
-            $otrosOperarios = Cache::remember(
-                'form_guest_v3_operarios_otros_' . md5($moduloSolicitado),
-                now()->addMinutes(15),
-                function () use ($moduloSolicitado) {
-                    return OperarioLocal::query()
-                        ->select('num_operario', 'nombre', 'modulo')
-                        ->where('modulo', '!=', $moduloSolicitado)
-                        ->orderBy('nombre')
-                        ->get();
-                }
-            );
+            $operariosDelModulo = OperarioLocal::query()
+                ->select('num_operario', 'nombre', 'modulo')
+                ->where('modulo', $moduloSolicitado)
+                ->orderBy('nombre')
+                ->get();
+
+            $otrosOperarios = OperarioLocal::query()
+                ->select('num_operario', 'nombre', 'modulo')
+                ->where('modulo', '!=', $moduloSolicitado)
+                ->orderBy('nombre')
+                ->get();
 
             return response()->json($operariosDelModulo->concat($otrosOperarios)->values());
         } catch (Exception $e) {
-            Log::error('V3 Error obtener operarios: ' . $e->getMessage());
+            Log::error('V3 Error obtener operarios: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json(['success' => false, 'message' => 'Error'], 500);
         }
+    }
+
+    private function sincronizarOperariosLocales(): void
+    {
+        $operariosActuales = DB::connection('sqlsrv_dev')
+            ->table('Operarios_Views')
+            ->select('NumOperario', 'Nombre', 'Modulo')
+            ->distinct()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'num_operario' => $item->NumOperario,
+                    'nombre' => $item->Nombre,
+                    'modulo' => $item->Modulo,
+                ];
+            })
+            ->filter(fn ($item) => filled($item['num_operario']))
+            ->unique('num_operario')
+            ->values();
+
+        DB::transaction(function () use ($operariosActuales) {
+            if ($operariosActuales->isEmpty()) {
+                OperarioLocal::query()->delete();
+                return;
+            }
+
+            $operariosLocalesVigentes = $operariosActuales->map(function ($item) {
+                return OperarioLocal::query()->updateOrCreate(
+                    ['num_operario' => $item['num_operario']],
+                    [
+                        'nombre' => $item['nombre'],
+                        'modulo' => $item['modulo'],
+                    ]
+                )->id;
+            });
+
+            OperarioLocal::query()
+                ->whereNotIn('id', $operariosLocalesVigentes)
+                ->delete();
+        });
     }
 
     public function catalogoProblemas()
