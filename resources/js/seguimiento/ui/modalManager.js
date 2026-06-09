@@ -11,6 +11,19 @@ import { ticketService } from '../api/ticketService.js';
  * Clase que maneja todos los modales de la aplicación
  */
 export class ModalManager {
+    #escapeHtml(valor) {
+        return String(valor ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    #normalizarTexto(valor) {
+        return String(valor ?? '').trim().toLowerCase();
+    }
+
     /**
      * Obtiene la configuración de SweetAlert2 según el modo oscuro
      * @returns {object} Configuración de estilos
@@ -193,22 +206,29 @@ export class ModalManager {
      * @param {HTMLElement} boton - Botón que disparó la acción
      * @returns {Promise<object|null>} Datos completos o null si se cancela
      */
-    async mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton) {
+    async mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton, fallaPreseleccionada = '') {
         try {
             // Obtener catálogos
             const { fallas, causas, acciones } = await ticketService.obtenerCatalogosFinalizacion();
+            const fallaActualNormalizada = this.#normalizarTexto(fallaPreseleccionada);
+            const fallaCatalogoSeleccionada = fallas.find(falla =>
+                this.#normalizarTexto(falla.nombre) === fallaActualNormalizada
+            )?.nombre || '';
 
             // Construir opciones HTML
-            const fallasOptionsHTML = fallas.map(falla =>
-                `<option value="${falla.nombre}">${falla.nombre}</option>`
-            ).join('');
+            const fallasOptionsHTML = fallas.map(falla => {
+                const nombre = this.#escapeHtml(falla.nombre);
+                const selected = falla.nombre === fallaCatalogoSeleccionada ? ' selected' : '';
+
+                return `<option value="${nombre}"${selected}>${nombre}</option>`;
+            }).join('');
 
             const causasOptionsHTML = causas.map(causa =>
-                `<option value="${causa.nombre}">${causa.nombre}</option>`
+                `<option value="${this.#escapeHtml(causa.nombre)}">${this.#escapeHtml(causa.nombre)}</option>`
             ).join('');
 
             const accionesOptionsHTML = acciones.map(accion =>
-                `<option value="${accion.nombre}">${accion.nombre}</option>`
+                `<option value="${this.#escapeHtml(accion.nombre)}">${this.#escapeHtml(accion.nombre)}</option>`
             ).join('');
 
             const swalOptions = {
@@ -247,6 +267,9 @@ export class ModalManager {
                         ...SELECT2_CONFIG.MODAL,
                         placeholder: 'Selecciona una falla',
                     });
+                    if (fallaCatalogoSeleccionada) {
+                        $('#falla-select').val(fallaCatalogoSeleccionada).trigger('change');
+                    }
                     $('#causa-falla-select').select2({
                         ...SELECT2_CONFIG.MODAL,
                         placeholder: 'Selecciona una causa',

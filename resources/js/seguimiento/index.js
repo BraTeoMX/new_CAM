@@ -153,6 +153,8 @@ class SeguimientoApp {
      */
     async handleFinalizarAtencion(boton) {
         const ticketId = boton.dataset.ticketId;
+        const ticket = ticketState.obtenerTicketPorId(Number(ticketId));
+        const fallaPreseleccionada = ticket?.diagnostico_completo?.falla || ticket?.descripcion_problema || '';
 
         disableButton(boton);
         modalManager.mostrarCargando('Cargando datos...');
@@ -163,7 +165,7 @@ class SeguimientoApp {
             const horaFinalizacion = ahora.toISOString(); // Full datetime in ISO format
 
             // Mostrar modal de finalización
-            const datos = await modalManager.mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton);
+            const datos = await modalManager.mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton, fallaPreseleccionada);
 
             if (datos) {
                 await this.enviarFinalizacionAtencion(ticketId, datos);
