@@ -6,6 +6,12 @@
                 <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">OT's Asignadas
                 </h1>
             </div>
+            <!-- Temporizador de actualización automática -->
+            <div id="refresh-timer-container" class="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/50 shadow-sm select-none">
+                <span class="material-symbols-outlined text-base animate-spin hidden" id="refresh-spinner">sync</span>
+                <span class="material-symbols-outlined text-base" id="refresh-icon">sync</span>
+                <span>Actualizando en: <span id="auto-refresh-timer" class="font-mono font-bold">60</span>s</span>
+            </div>
         </div>
         <!-- Barra de resumen -->
         <div id="resumen-bar" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">

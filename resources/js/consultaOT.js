@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
         await actualizarResumen();
         await cargarYRenderizarRegistros();
 
-        // --- NUEVO: Iniciar la actualización automática cada minuto ---
-        setInterval(actualizarDatosPeriodicamente, 60000); // 60000 ms = 1 minuto
+        // --- NUEVO: Iniciar la actualización automática con temporizador visual ---
+        iniciarTemporizadorRefresco();
     }
 
     // --- CONFIGURACIÓN DE EVENTOS ---
@@ -35,6 +35,54 @@ document.addEventListener('DOMContentLoaded', function () {
         container.addEventListener('click', function (e) {
             // No hay acciones que manejar aquí por el momento.
         });
+    }
+
+    // --- CONTROL DEL TEMPORIZADOR DE ACTUALIZACIÓN ---
+    const tiempoRefresco = 60; // 60 segundos
+    let segundosRestantes = tiempoRefresco;
+    let timerIntervalId = null;
+
+    function iniciarTemporizadorRefresco() {
+        const timerDisplay = document.getElementById('auto-refresh-timer');
+        const refreshSpinner = document.getElementById('refresh-spinner');
+        const refreshIcon = document.getElementById('refresh-icon');
+
+        if (!timerDisplay) return;
+
+        if (timerIntervalId) clearInterval(timerIntervalId);
+
+        timerIntervalId = setInterval(async () => {
+            segundosRestantes--;
+            if (timerDisplay) {
+                timerDisplay.textContent = segundosRestantes;
+            }
+
+            if (segundosRestantes <= 0) {
+                clearInterval(timerIntervalId);
+
+                // Mostrar spinner de carga
+                if (refreshSpinner) refreshSpinner.classList.remove('hidden');
+                if (refreshIcon) refreshIcon.classList.add('hidden');
+                if (timerDisplay) timerDisplay.textContent = "...";
+
+                try {
+                    await actualizarDatosPeriodicamente();
+                } catch (err) {
+                    console.error("Error al refrescar periódicamente:", err);
+                }
+
+                // Ocultar spinner de carga
+                if (refreshSpinner) refreshSpinner.classList.add('hidden');
+                if (refreshIcon) refreshIcon.classList.remove('hidden');
+
+                // Reiniciar contador y volver a arrancar el intervalo
+                segundosRestantes = tiempoRefresco;
+                if (timerDisplay) {
+                    timerDisplay.textContent = segundosRestantes;
+                }
+                iniciarTemporizadorRefresco();
+            }
+        }, 1000);
     }
 
     // --- NUEVA FUNCIÓN: Se ejecuta cada minuto para refrescar los datos ---
