@@ -61,14 +61,19 @@
 
             const severityClasses = {
                 rojo: {
-                    card: 'border-red-500 bg-red-50 dark:bg-red-950/30',
-                    badge: 'bg-red-100 text-red-800',
-                    dot: 'bg-red-500',
+                    card: 'border-red-700 bg-red-100 ring-1 ring-red-200 dark:border-red-400 dark:bg-red-950/50 dark:ring-red-800/60',
+                    badge: 'bg-red-700 text-white dark:bg-red-500 dark:text-white',
+                    dot: 'bg-red-700 dark:bg-red-400',
                 },
                 naranja: {
-                    card: 'border-orange-500 bg-orange-50 dark:bg-orange-950/30',
-                    badge: 'bg-orange-100 text-orange-800',
-                    dot: 'bg-orange-500',
+                    card: 'border-orange-600 bg-orange-100 dark:border-orange-400 dark:bg-orange-950/40',
+                    badge: 'bg-orange-500 text-white dark:bg-orange-500 dark:text-white',
+                    dot: 'bg-orange-600 dark:bg-orange-400',
+                },
+                amarillo: {
+                    card: 'border-yellow-500 bg-yellow-50 dark:border-yellow-400 dark:bg-yellow-950/30',
+                    badge: 'bg-yellow-100 text-yellow-900 dark:bg-yellow-400 dark:text-yellow-950',
+                    dot: 'bg-yellow-500 dark:bg-yellow-300',
                 },
                 verde: {
                     card: 'border-green-500 bg-green-50 dark:bg-green-950/30',

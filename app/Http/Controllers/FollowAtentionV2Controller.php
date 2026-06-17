@@ -154,8 +154,12 @@ class FollowAtentionV2Controller extends Controller
             return 'rojo';
         }
 
-        if ($minutos >= 20) {
+        if ($minutos >= 30) {
             return 'naranja';
+        }
+
+        if ($minutos >= 20) {
+            return 'amarillo';
         }
 
         return 'verde';
