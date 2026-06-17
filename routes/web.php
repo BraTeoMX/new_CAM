@@ -205,6 +205,8 @@ Route::prefix('FormGuestV3')->name('formGuestV3.')->group(function () {
 // segunda version de FollowAtentionController
 Route::controller(FollowAtentionV2Controller::class)->group(function () {
     Route::get('/FollowOTV2', 'index')->name('FollowOTV2');
+    Route::get('/FollowOTV2/monitor', 'monitor')->name('FollowOTV2.monitor');
+    Route::get('/FollowOTV2/monitor/data', 'monitorData')->name('FollowOTV2.monitor.data');
     Route::get('/FollowOTV2/obtenerAreaModulos', 'obtenerAreaModulos');
     Route::get('/FollowOTV2/obtenerResumen/{modulo}', 'obtenerResumen');
     Route::get('/FollowOTV2/obtenerRegistros/{modulo}', 'obtenerRegistros');
