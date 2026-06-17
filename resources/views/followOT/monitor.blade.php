@@ -71,8 +71,8 @@
             </article>
         </section>
 
-        <section class="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 xl:col-span-2">
+        <section class="mb-4">
+            <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h2 class="font-bold text-gray-900 dark:text-gray-100">Distribución del semáforo</h2>
@@ -136,16 +136,56 @@
                     </div>
                 </div>
             </article>
+        </section>
 
-            <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                <div class="mb-3">
-                    <h2 class="font-bold text-gray-900 dark:text-gray-100">Foco operativo</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Mayor concentración de tickets en riesgo</p>
-                </div>
-                <div id="operational-focus" class="space-y-2">
-                    <p class="py-3 text-center text-sm text-gray-500">Cargando...</p>
-                </div>
-            </article>
+        <section class="mb-4">
+            <div class="mb-2">
+                <h2 class="font-bold text-gray-900 dark:text-gray-100">Foco operativo</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Top 3 de concentraciones para dirigir la atención del área.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-gray-100">Por mecánico</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Tickets naranjas o rojos asignados</p>
+                        </div>
+                        <span class="rounded-lg bg-red-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-red-700 dark:bg-red-950 dark:text-red-300">Riesgo</span>
+                    </div>
+                    <div id="focus-mechanics" class="space-y-1.5">
+                        <p class="py-3 text-center text-sm text-gray-500">Cargando...</p>
+                    </div>
+                </article>
+
+                <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-gray-100">Por módulo</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Áreas con mayor concentración en riesgo</p>
+                        </div>
+                        <span class="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:bg-blue-950 dark:text-blue-300">Área</span>
+                    </div>
+                    <div id="focus-modules" class="space-y-1.5">
+                        <p class="py-3 text-center text-sm text-gray-500">Cargando...</p>
+                    </div>
+                </article>
+
+                <article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 md:col-span-2 xl:col-span-1">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-gray-100">Por máquina</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Equipos con más tickets activos</p>
+                        </div>
+                        <span class="rounded-lg bg-violet-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-violet-700 dark:bg-violet-950 dark:text-violet-300">Equipo</span>
+                    </div>
+                    <div id="focus-machines" class="space-y-1.5">
+                        <p class="py-3 text-center text-sm text-gray-500">Cargando...</p>
+                    </div>
+                </article>
+            </div>
         </section>
 
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
@@ -192,7 +232,9 @@
                 lastUpdate: document.getElementById('monitor-last-update'),
                 error: document.getElementById('monitor-error'),
                 severityBar: document.getElementById('severity-bar'),
-                operationalFocus: document.getElementById('operational-focus'),
+                focusMechanics: document.getElementById('focus-mechanics'),
+                focusModules: document.getElementById('focus-modules'),
+                focusMachines: document.getElementById('focus-machines'),
                 summaryEnAtencion: document.getElementById('summary-en-atencion'),
                 summaryEnAtencionRisk: document.getElementById('summary-en-atencion-risk'),
                 summarySinIniciar: document.getElementById('summary-sin-iniciar'),
@@ -442,50 +484,81 @@
                 }
             }
 
-            function renderOperationalFocus(tickets) {
-                const riskyTickets = tickets.filter(ticket => ['rojo', 'naranja'].includes(ticket.severidad));
+            function renderRanking(container, groups, options = {}) {
+                const {
+                    emptyTitle = 'Sin datos para clasificar',
+                    emptyText = 'No hay registros disponibles.',
+                    countLabel = 'tickets',
+                    showSeverity = true,
+                } = options;
 
-                if (!riskyTickets.length) {
-                    containers.operationalFocus.innerHTML = `
+                if (!groups.length) {
+                    container.innerHTML = `
                         <div class="rounded-lg bg-green-50 px-3 py-4 text-center dark:bg-green-950/30">
-                            <p class="text-sm font-bold text-green-800 dark:text-green-300">Sin concentraciones críticas</p>
-                            <p class="mt-1 text-xs text-green-700 dark:text-green-400">No hay tickets rojos o naranjas.</p>
+                            <p class="text-sm font-bold text-green-800 dark:text-green-300">${emptyTitle}</p>
+                            <p class="mt-1 text-xs text-green-700 dark:text-green-400">${emptyText}</p>
                         </div>
                     `;
                     return;
                 }
 
-                const topMechanics = groupTickets(riskyTickets, 'mecanico').slice(0, 3);
-                const topModule = groupTickets(riskyTickets, 'modulo')[0];
-
-                containers.operationalFocus.innerHTML = `
-                    <div class="space-y-1.5">
-                        ${topMechanics.map((mechanic, index) => `
-                            <div class="flex items-center gap-2 rounded-lg bg-gray-50 px-2.5 py-2 dark:bg-gray-900/40">
-                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${index === 0 ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'} text-xs font-black">
-                                    ${index + 1}
-                                </span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-xs font-bold text-gray-800 dark:text-gray-100">${escapeHtml(mechanic.name)}</p>
-                                    <p class="text-[10px] text-gray-500 dark:text-gray-400">Máximo ${mechanic.maxMinutes} min</p>
-                                </div>
-                                <div class="flex gap-1 text-[10px] font-bold">
-                                    ${mechanic.red ? `<span class="rounded bg-red-100 px-1.5 py-0.5 text-red-700 dark:bg-red-950 dark:text-red-300">${mechanic.red} R</span>` : ''}
-                                    ${mechanic.orange ? `<span class="rounded bg-orange-100 px-1.5 py-0.5 text-orange-700 dark:bg-orange-950 dark:text-orange-300">${mechanic.orange} N</span>` : ''}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="mt-2 border-t border-gray-100 pt-2 dark:border-gray-700">
-                        <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Módulo con mayor concentración</p>
-                        <div class="mt-1 flex items-center justify-between gap-2">
-                            <strong class="truncate text-xs text-gray-800 dark:text-gray-100">${escapeHtml(topModule?.name || 'N/A')}</strong>
-                            <span class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                                ${topModule?.total || 0} en riesgo
-                            </span>
+                container.innerHTML = groups.map((group, index) => `
+                    <div class="flex items-center gap-2 rounded-lg bg-gray-50 px-2.5 py-2 dark:bg-gray-900/40">
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${index === 0 ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'} text-xs font-black">
+                            ${index + 1}
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-xs font-bold text-gray-800 dark:text-gray-100" title="${escapeHtml(group.name)}">
+                                ${escapeHtml(group.name)}
+                            </p>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400">
+                                ${group.total} ${countLabel} · Máximo ${group.maxMinutes} min
+                            </p>
                         </div>
+                        ${showSeverity ? `
+                            <div class="flex shrink-0 gap-1 text-[10px] font-bold">
+                                ${group.red ? `<span class="rounded bg-red-100 px-1.5 py-0.5 text-red-700 dark:bg-red-950 dark:text-red-300">${group.red} R</span>` : ''}
+                                ${group.orange ? `<span class="rounded bg-orange-100 px-1.5 py-0.5 text-orange-700 dark:bg-orange-950 dark:text-orange-300">${group.orange} N</span>` : ''}
+                            </div>
+                        ` : ''}
                     </div>
-                `;
+                `).join('');
+            }
+
+            function renderOperationalFocus(tickets) {
+                const riskyTickets = tickets.filter(ticket => ['rojo', 'naranja'].includes(ticket.severidad));
+                const ticketsWithMachine = tickets.filter(ticket => {
+                    const machine = String(ticket.maquina ?? '').trim().toUpperCase();
+
+                    return machine !== '' && machine !== 'N/A' && machine !== 'NA' && machine !== 'SIN DATO';
+                });
+
+                renderRanking(
+                    containers.focusMechanics,
+                    groupTickets(riskyTickets, 'mecanico').slice(0, 3),
+                    {
+                        emptyTitle: 'Sin mecánicos en riesgo',
+                        emptyText: 'No hay tickets naranjas o rojos asignados.',
+                    }
+                );
+
+                renderRanking(
+                    containers.focusModules,
+                    groupTickets(riskyTickets, 'modulo').slice(0, 3),
+                    {
+                        emptyTitle: 'Sin módulos en riesgo',
+                        emptyText: 'No hay concentración naranja o roja por área.',
+                    }
+                );
+
+                renderRanking(
+                    containers.focusMachines,
+                    groupTickets(ticketsWithMachine, 'maquina').slice(0, 3),
+                    {
+                        emptyTitle: 'Sin máquinas identificadas',
+                        emptyText: 'Los tickets activos no contienen una máquina válida.',
+                    }
+                );
             }
 
             function renderKpis(allTickets, ticketsSinIniciar) {
