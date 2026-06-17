@@ -14,21 +14,22 @@ class EnviarReporteIndicadorRojoPruebaCommand extends Command
 
     protected $description = 'Envia un correo de prueba para validar la estructura del reporte de indicador rojo.';
 
-    /**
-     * @var array<int, string>
-     */
-    private array $destinatarios = [
-        'bteofilo@intimark.com.mx',
-        'brateomx@gmail.com',
-    ];
-
     public function handle(): int
     {
+        $destinatarios = config('reportes.indicador_rojo.mails', []);
+
         $this->info('Iniciando envio de correo de prueba.');
-        $this->info('Destinatarios configurados: ' . implode(', ', $this->destinatarios));
+
+        if (empty($destinatarios)) {
+            $this->error('No hay destinatarios configurados para el reporte de indicador rojo.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Destinatarios configurados: ' . implode(', ', $destinatarios));
 
         try {
-            Mail::to($this->destinatarios)->send(new ReporteIndicadorRojoPruebaMail());
+            Mail::to($destinatarios)->send(new ReporteIndicadorRojoPruebaMail());
 
             $this->info('Correo enviado correctamente.');
 
@@ -38,7 +39,7 @@ class EnviarReporteIndicadorRojoPruebaCommand extends Command
 
             Log::error('Error al enviar reporte de indicador rojo de prueba.', [
                 'message' => $e->getMessage(),
-                'destinatarios' => $this->destinatarios,
+                'destinatarios' => $destinatarios,
             ]);
 
             return self::FAILURE;
