@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Mail\ReporteIndicadorRojoPruebaMail;
+use App\Services\FollowOT\ReporteIndicadorRojoService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -12,13 +13,13 @@ class EnviarReporteIndicadorRojoPruebaCommand extends Command
 {
     protected $signature = 'reporte:indicador-rojo-prueba';
 
-    protected $description = 'Envia un correo de prueba para validar la estructura del reporte de indicador rojo.';
+    protected $description = 'Envia el reporte de tickets en indicador rojo.';
 
-    public function handle(): int
+    public function handle(ReporteIndicadorRojoService $reporteIndicadorRojoService): int
     {
         $destinatarios = config('reportes.indicador_rojo.mails', []);
 
-        $this->info('Iniciando envio de correo de prueba.');
+        $this->info('Iniciando envio de reporte de indicador rojo.');
 
         if (empty($destinatarios)) {
             $this->error('No hay destinatarios configurados para el reporte de indicador rojo.');
@@ -29,15 +30,22 @@ class EnviarReporteIndicadorRojoPruebaCommand extends Command
         $this->info('Destinatarios configurados: ' . implode(', ', $destinatarios));
 
         try {
-            Mail::to($destinatarios)->send(new ReporteIndicadorRojoPruebaMail());
+            $reporte = $reporteIndicadorRojoService->generarReporte();
+            $kpis = $reporte['kpis'];
+
+            $this->info('Tickets rojos encontrados: ' . $kpis['total_tickets_rojos']);
+            $this->info('Mecanico con mas tickets rojos: ' . $kpis['mecanico_mas_tickets'] . ' (' . $kpis['mecanico_mas_tickets_total'] . ')');
+            $this->info('Modulo con mas tickets rojos: ' . $kpis['modulo_mas_tickets'] . ' (' . $kpis['modulo_mas_tickets_total'] . ')');
+
+            Mail::to($destinatarios)->send(new ReporteIndicadorRojoPruebaMail($reporte));
 
             $this->info('Correo enviado correctamente.');
 
             return self::SUCCESS;
         } catch (Throwable $e) {
-            $this->error('No fue posible enviar el correo de prueba. Revisa la configuracion SMTP y los logs.');
+            $this->error('No fue posible enviar el reporte de indicador rojo. Revisa la configuracion SMTP y los logs.');
 
-            Log::error('Error al enviar reporte de indicador rojo de prueba.', [
+            Log::error('Error al enviar reporte de indicador rojo.', [
                 'message' => $e->getMessage(),
                 'destinatarios' => $destinatarios,
             ]);

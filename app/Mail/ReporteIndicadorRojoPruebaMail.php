@@ -13,10 +13,15 @@ class ReporteIndicadorRojoPruebaMail extends Mailable
     use Queueable;
     use SerializesModels;
 
+    public function __construct(
+        public array $reporte
+    ) {
+    }
+
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'prueba 1',
+            subject: 'Reporte de tickets en indicador rojo - ' . $this->reporte['fecha_generacion_subject'],
         );
     }
 
@@ -25,7 +30,7 @@ class ReporteIndicadorRojoPruebaMail extends Mailable
         return new Content(
             view: 'emails.reportes.indicador-rojo-prueba',
             with: [
-                'contenido' => 'contenido de prueba',
+                'reporte' => $this->reporte,
             ],
         );
     }
