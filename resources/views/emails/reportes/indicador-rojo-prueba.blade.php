@@ -5,159 +5,217 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de tickets en indicador rojo</title>
 </head>
-<body style="background-color: #F3F4F6; color: #1F2937; font-family: Arial, sans-serif; margin: 0; padding: 0;">
+<body style="background-color: #F1F5F9; color: #1F2937; font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0;">
     @php
         $kpis = $reporte['kpis'];
         $resumen = $reporte['resumen'];
         $tickets = $reporte['tickets'];
     @endphp
 
-    <div style="max-width: 980px; margin: 20px auto; background-color: #FFFFFF; border: 1px solid #E5E7EB;">
-        <div style="background-color: #B91C1C; color: #FFFFFF; padding: 20px;">
-            <h1 style="font-size: 22px; line-height: 1.3; margin: 0;">Reporte de tickets en indicador rojo</h1>
-            <p style="font-size: 13px; line-height: 1.5; margin: 8px 0 0;">
-                Generado: {{ $reporte['fecha_generacion_formateada'] }}
-            </p>
-        </div>
-
-        <div style="padding: 18px;">
-            <h2 style="font-size: 18px; margin: 0 0 12px; color: #111827;">KPIs</h2>
-            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 18px;">
-                <tr>
-                    <td style="border: 1px solid #E5E7EB; padding: 12px; width: 25%; vertical-align: top;">
-                        <p style="font-size: 12px; color: #6B7280; margin: 0;">Total tickets rojos</p>
-                        <p style="font-size: 22px; font-weight: bold; margin: 6px 0 0;">{{ $kpis['total_tickets_rojos'] }}</p>
-                    </td>
-                    <td style="border: 1px solid #E5E7EB; padding: 12px; width: 25%; vertical-align: top;">
-                        <p style="font-size: 12px; color: #6B7280; margin: 0;">Mecanico con mas tickets</p>
-                        <p style="font-size: 15px; font-weight: bold; margin: 6px 0 0;">{{ $kpis['mecanico_mas_tickets'] }}</p>
-                        <p style="font-size: 12px; margin: 4px 0 0;">{{ $kpis['mecanico_mas_tickets_total'] }} tickets</p>
-                    </td>
-                    <td style="border: 1px solid #E5E7EB; padding: 12px; width: 25%; vertical-align: top;">
-                        <p style="font-size: 12px; color: #6B7280; margin: 0;">Modulo con mas tickets</p>
-                        <p style="font-size: 15px; font-weight: bold; margin: 6px 0 0;">{{ $kpis['modulo_mas_tickets'] }}</p>
-                        <p style="font-size: 12px; margin: 4px 0 0;">{{ $kpis['modulo_mas_tickets_total'] }} tickets</p>
-                    </td>
-                    <td style="border: 1px solid #E5E7EB; padding: 12px; width: 25%; vertical-align: top;">
-                        <p style="font-size: 12px; color: #6B7280; margin: 0;">Ticket con mas minutos</p>
-                        <p style="font-size: 15px; font-weight: bold; margin: 6px 0 0;">{{ $kpis['ticket_mayor_minutos'] }}</p>
-                        <p style="font-size: 12px; margin: 4px 0 0;">
-                            {{ $kpis['ticket_mayor_minutos_total'] }} min ({{ $kpis['ticket_mayor_minutos_formateado'] }})
-                        </p>
-                    </td>
-                </tr>
-            </table>
-
-            @if ($tickets->isEmpty())
-                <div style="border: 1px solid #D1D5DB; background-color: #F9FAFB; padding: 16px; margin-bottom: 18px;">
-                    <p style="font-size: 15px; margin: 0;">
-                        No se encontraron tickets en indicador rojo al momento de generar este reporte.
-                    </p>
-                </div>
-            @else
-                <h2 style="font-size: 18px; margin: 0 0 12px; color: #111827;">Resumen</h2>
-                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 18px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F1F5F9; border-collapse: collapse; font-family: Arial, Helvetica, sans-serif;">
+        <tr>
+            <td align="center" style="padding: 24px 12px;">
+                <table width="980" cellpadding="0" cellspacing="0" style="width: 980px; max-width: 100%; background-color: #FFFFFF; border-collapse: collapse; border: 1px solid #CBD5E1;">
                     <tr>
-                        <td style="border: 1px solid #E5E7EB; padding: 10px;">
-                            <strong>En atencion:</strong> {{ $resumen['en_atencion'] }}
-                        </td>
-                        <td style="border: 1px solid #E5E7EB; padding: 10px;">
-                            <strong>Asignados sin iniciar:</strong> {{ $resumen['sin_iniciar'] }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #E5E7EB; padding: 10px; vertical-align: top;">
-                            <strong>Por planta:</strong>
-                            <ul style="margin: 8px 0 0; padding-left: 18px;">
-                                @foreach ($resumen['por_planta'] as $planta => $total)
-                                    <li>Planta {{ $planta ?: 'N/A' }}: {{ $total }}</li>
-                                @endforeach
-                            </ul>
-                        </td>
-                        <td style="border: 1px solid #E5E7EB; padding: 10px; vertical-align: top;">
-                            <strong>Por estado:</strong>
-                            <ul style="margin: 8px 0 0; padding-left: 18px;">
-                                @foreach ($resumen['por_estado'] as $estado => $total)
-                                    <li>{{ $estado ?: 'N/A' }}: {{ $total }}</li>
-                                @endforeach
-                            </ul>
-                        </td>
-                    </tr>
-                </table>
-
-                <h2 style="font-size: 18px; margin: 0 0 12px; color: #111827;">Detalle de tickets rojos</h2>
-
-                @foreach ($tickets as $ticket)
-                    <div style="border: 1px solid #FCA5A5; border-left: 6px solid #B91C1C; margin-bottom: 14px;">
-                        <div style="background-color: #FEF2F2; padding: 12px;">
+                        <td style="background-color: #111827; padding: 22px 24px;">
                             <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                                 <tr>
                                     <td style="vertical-align: top;">
-                                        <p style="font-size: 16px; font-weight: bold; margin: 0;">
-                                            {{ $ticket['folio'] }} - {{ $ticket['mecanico'] }}
+                                        <p style="color: #FCA5A5; font-size: 12px; font-weight: bold; letter-spacing: .5px; margin: 0 0 6px; text-transform: uppercase;">
+                                            Seguimiento operativo
                                         </p>
-                                        <p style="font-size: 12px; color: #4B5563; margin: 4px 0 0;">
-                                            {{ $ticket['tipo_monitor_label'] }} | Estado: {{ $ticket['estado'] }} | Indicador: rojo
+                                        <h1 style="color: #FFFFFF; font-size: 24px; line-height: 1.25; margin: 0;">
+                                            Reporte de tickets en indicador rojo
+                                        </h1>
+                                        <p style="color: #CBD5E1; font-size: 13px; line-height: 1.5; margin: 8px 0 0;">
+                                            Tickets activos que superan el umbral operativo definido en el monitor.
                                         </p>
                                     </td>
-                                    <td style="text-align: right; vertical-align: top;">
-                                        <p style="font-size: 18px; font-weight: bold; color: #B91C1C; margin: 0;">
-                                            {{ $ticket['tiempo_transcurrido_formateado'] }}
-                                        </p>
-                                        <p style="font-size: 12px; margin: 4px 0 0;">
-                                            {{ $ticket['tiempo_transcurrido_minutos'] }} minutos
+                                    <td align="right" style="vertical-align: top; width: 230px;">
+                                        <p style="color: #CBD5E1; font-size: 12px; margin: 0;">Generado</p>
+                                        <p style="color: #FFFFFF; font-size: 15px; font-weight: bold; margin: 5px 0 0;">
+                                            {{ $reporte['fecha_generacion_formateada'] }}
                                         </p>
                                     </td>
                                 </tr>
                             </table>
-                        </div>
+                        </td>
+                    </tr>
 
-                        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
-                            <tr>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px; width: 25%;"><strong>ID:</strong> {{ $ticket['id'] }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px; width: 25%;"><strong>Planta:</strong> {{ $ticket['planta'] ?? 'N/A' }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px; width: 25%;"><strong>Modulo:</strong> {{ $ticket['modulo'] ?? 'N/A' }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px; width: 25%;"><strong>Maquina:</strong> {{ $ticket['maquina'] ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Empleado:</strong> {{ $ticket['numero_empleado'] }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Supervisor:</strong> {{ $ticket['supervisor'] }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>No. supervisor:</strong> {{ $ticket['numero_empleado_supervisor'] }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Clase:</strong> {{ $ticket['clase_maquina'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Creacion:</strong> {{ $ticket['fecha_creacion'] ?: 'N/A' }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Asignacion:</strong> {{ $ticket['fecha_asignacion'] ?: 'N/A' }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Inicio:</strong> {{ $ticket['fecha_inicio_atencion'] ?: 'N/A' }}</td>
-                                <td style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Estimado:</strong> {{ $ticket['tiempo_estimado_formateado'] }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Tipo de falla:</strong> {{ $ticket['tipo_falla'] ?? 'N/A' }}</td>
-                                <td colspan="2" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Bahia:</strong> {{ $ticket['tiempo_bahia']['registrado'] ? $ticket['tiempo_bahia']['total_formateado'] : 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="4" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Descripcion:</strong> {{ $ticket['descripcion'] ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Falla:</strong> {{ $ticket['falla'] }}</td>
-                                <td colspan="2" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Causa:</strong> {{ $ticket['causa'] }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Accion:</strong> {{ $ticket['accion_correctiva'] }}</td>
-                                <td colspan="2" style="border-top: 1px solid #FEE2E2; padding: 8px;"><strong>Comentarios:</strong> {{ $ticket['comentarios'] }}</td>
-                            </tr>
-                            @if ($ticket['tiempo_bahia']['activo'])
+                    <tr>
+                        <td style="padding: 22px 24px 8px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                                 <tr>
-                                    <td colspan="4" style="border-top: 1px solid #FEE2E2; padding: 8px; color: #6D28D9;">
-                                        <strong>Bahia activa:</strong> {{ $ticket['tiempo_bahia']['motivo_activo'] }}
+                                    <td style="padding: 0 0 12px;">
+                                        <h2 style="color: #111827; font-size: 18px; margin: 0;">Indicadores principales</h2>
                                     </td>
                                 </tr>
+                            </table>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                <tr>
+                                    <td style="background-color: #FEF2F2; border: 1px solid #FECACA; padding: 14px; width: 24%; vertical-align: top;">
+                                        <p style="color: #991B1B; font-size: 11px; font-weight: bold; margin: 0; text-transform: uppercase;">Tickets rojos</p>
+                                        <p style="color: #7F1D1D; font-size: 30px; font-weight: bold; line-height: 1; margin: 8px 0 0;">{{ $kpis['total_tickets_rojos'] }}</p>
+                                    </td>
+                                    <td style="width: 1%;"></td>
+                                    <td style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px; width: 25%; vertical-align: top;">
+                                        <p style="color: #64748B; font-size: 11px; font-weight: bold; margin: 0; text-transform: uppercase;">Mecanico con mas tickets</p>
+                                        <p style="color: #111827; font-size: 15px; font-weight: bold; line-height: 1.35; margin: 8px 0 0;">{{ $kpis['mecanico_mas_tickets'] }}</p>
+                                        <p style="color: #475569; font-size: 12px; margin: 6px 0 0;">{{ $kpis['mecanico_mas_tickets_total'] }} tickets</p>
+                                    </td>
+                                    <td style="width: 1%;"></td>
+                                    <td style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px; width: 24%; vertical-align: top;">
+                                        <p style="color: #64748B; font-size: 11px; font-weight: bold; margin: 0; text-transform: uppercase;">Modulo con mas tickets</p>
+                                        <p style="color: #111827; font-size: 15px; font-weight: bold; line-height: 1.35; margin: 8px 0 0;">{{ $kpis['modulo_mas_tickets'] }}</p>
+                                        <p style="color: #475569; font-size: 12px; margin: 6px 0 0;">{{ $kpis['modulo_mas_tickets_total'] }} tickets</p>
+                                    </td>
+                                    <td style="width: 1%;"></td>
+                                    <td style="background-color: #FFF7ED; border: 1px solid #FED7AA; padding: 14px; width: 24%; vertical-align: top;">
+                                        <p style="color: #9A3412; font-size: 11px; font-weight: bold; margin: 0; text-transform: uppercase;">Mayor tiempo</p>
+                                        <p style="color: #111827; font-size: 15px; font-weight: bold; margin: 8px 0 0;">{{ $kpis['ticket_mayor_minutos'] }}</p>
+                                        <p style="color: #9A3412; font-size: 12px; margin: 6px 0 0;">{{ $kpis['ticket_mayor_minutos_total'] }} min - {{ $kpis['ticket_mayor_minutos_formateado'] }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 14px 24px 22px;">
+                            @if ($tickets->isEmpty())
+                                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 18px;">
+                                            <p style="color: #111827; font-size: 16px; font-weight: bold; margin: 0 0 6px;">Sin tickets en indicador rojo</p>
+                                            <p style="color: #475569; font-size: 14px; line-height: 1.5; margin: 0;">
+                                                No se encontraron tickets en indicador rojo al momento de generar este reporte.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            @else
+                                <h2 style="color: #111827; font-size: 18px; margin: 0 0 12px;">Resumen ejecutivo</h2>
+                                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 22px;">
+                                    <tr>
+                                        <td style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; width: 50%; vertical-align: top;">
+                                            <p style="color: #64748B; font-size: 11px; font-weight: bold; margin: 0 0 8px; text-transform: uppercase;">Estatus operativo</p>
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td style="color: #334155; font-size: 13px; padding: 4px 0;">En atencion</td>
+                                                    <td align="right" style="color: #111827; font-size: 13px; font-weight: bold; padding: 4px 0;">{{ $resumen['en_atencion'] }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #334155; font-size: 13px; padding: 4px 0;">Asignados sin iniciar</td>
+                                                    <td align="right" style="color: #111827; font-size: 13px; font-weight: bold; padding: 4px 0;">{{ $resumen['sin_iniciar'] }}</td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td style="width: 2%;"></td>
+                                        <td style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; width: 48%; vertical-align: top;">
+                                            <p style="color: #64748B; font-size: 11px; font-weight: bold; margin: 0 0 8px; text-transform: uppercase;">Distribucion por estado</p>
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                                @foreach ($resumen['por_estado'] as $estado => $total)
+                                                    <tr>
+                                                        <td style="color: #334155; font-size: 13px; padding: 4px 0;">{{ $estado ?: 'N/A' }}</td>
+                                                        <td align="right" style="color: #111827; font-size: 13px; font-weight: bold; padding: 4px 0;">{{ $total }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <h2 style="color: #111827; font-size: 18px; margin: 0 0 12px;">Detalle ordenado por mayor tiempo</h2>
+
+                                @foreach ($tickets as $index => $ticket)
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 1px solid #E2E8F0; margin-bottom: 16px;">
+                                        <tr>
+                                            <td style="background-color: #991B1B; color: #FFFFFF; padding: 12px 14px;">
+                                                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                                    <tr>
+                                                        <td style="vertical-align: top;">
+                                                            <p style="font-size: 12px; font-weight: bold; margin: 0 0 4px;">#{{ $index + 1 }} | {{ $ticket['folio'] }}</p>
+                                                            <p style="font-size: 17px; font-weight: bold; line-height: 1.3; margin: 0;">{{ $ticket['mecanico'] }}</p>
+                                                            <p style="font-size: 12px; line-height: 1.4; margin: 5px 0 0;">{{ $ticket['tipo_monitor_label'] }} | {{ $ticket['estado'] }} | Indicador rojo</p>
+                                                        </td>
+                                                        <td align="right" style="vertical-align: top; width: 190px;">
+                                                            <p style="font-size: 22px; font-weight: bold; line-height: 1; margin: 0;">{{ $ticket['tiempo_transcurrido_formateado'] }}</p>
+                                                            <p style="font-size: 12px; margin: 6px 0 0;">{{ $ticket['tiempo_transcurrido_minutos'] }} minutos</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 0;">
+                                                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                                    <tr>
+                                                        <td style="background-color: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #64748B; font-size: 11px; font-weight: bold; padding: 8px 10px; text-transform: uppercase; width: 18%;">Ubicacion</td>
+                                                        <td style="border-bottom: 1px solid #E2E8F0; color: #111827; font-size: 13px; padding: 8px 10px;">
+                                                            Planta {{ $ticket['planta'] ?? 'N/A' }} | Modulo {{ $ticket['modulo'] ?? 'N/A' }} | Maquina {{ $ticket['maquina'] ?? 'N/A' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="background-color: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #64748B; font-size: 11px; font-weight: bold; padding: 8px 10px; text-transform: uppercase;">Responsables</td>
+                                                        <td style="border-bottom: 1px solid #E2E8F0; color: #111827; font-size: 13px; padding: 8px 10px;">
+                                                            Mecanico: {{ $ticket['mecanico'] }} ({{ $ticket['numero_empleado'] }})<br>
+                                                            Supervisor: {{ $ticket['supervisor'] }} ({{ $ticket['numero_empleado_supervisor'] }})
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="background-color: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #64748B; font-size: 11px; font-weight: bold; padding: 8px 10px; text-transform: uppercase;">Fechas</td>
+                                                        <td style="border-bottom: 1px solid #E2E8F0; color: #111827; font-size: 13px; padding: 8px 10px;">
+                                                            Creacion: {{ $ticket['fecha_creacion'] ?: 'N/A' }}<br>
+                                                            Asignacion: {{ $ticket['fecha_asignacion'] ?: 'N/A' }}<br>
+                                                            Inicio: {{ $ticket['fecha_inicio_atencion'] ?: 'N/A' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="background-color: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #64748B; font-size: 11px; font-weight: bold; padding: 8px 10px; text-transform: uppercase;">Problema</td>
+                                                        <td style="border-bottom: 1px solid #E2E8F0; color: #111827; font-size: 13px; line-height: 1.5; padding: 8px 10px;">
+                                                            <strong>Tipo:</strong> {{ $ticket['tipo_falla'] ?? 'N/A' }}<br>
+                                                            <strong>Descripcion:</strong> {{ $ticket['descripcion'] ?? 'N/A' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="background-color: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #64748B; font-size: 11px; font-weight: bold; padding: 8px 10px; text-transform: uppercase;">Diagnostico</td>
+                                                        <td style="border-bottom: 1px solid #E2E8F0; color: #111827; font-size: 13px; line-height: 1.5; padding: 8px 10px;">
+                                                            Clase: {{ $ticket['clase_maquina'] }} | No. maquina: {{ $ticket['numero_maquina'] }} | Estimado: {{ $ticket['tiempo_estimado_formateado'] }}<br>
+                                                            Falla: {{ $ticket['falla'] }} | Causa: {{ $ticket['causa'] }}<br>
+                                                            Accion: {{ $ticket['accion_correctiva'] }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="background-color: #F8FAFC; color: #64748B; font-size: 11px; font-weight: bold; padding: 8px 10px; text-transform: uppercase;">Bahia / notas</td>
+                                                        <td style="color: #111827; font-size: 13px; line-height: 1.5; padding: 8px 10px;">
+                                                            Bahia: {{ $ticket['tiempo_bahia']['registrado'] ? $ticket['tiempo_bahia']['total_formateado'] : 'N/A' }}
+                                                            @if ($ticket['tiempo_bahia']['activo'])
+                                                                | Bahia activa: {{ $ticket['tiempo_bahia']['motivo_activo'] }}
+                                                            @endif
+                                                            <br>
+                                                            Comentarios: {{ $ticket['comentarios'] }}
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                @endforeach
                             @endif
-                        </table>
-                    </div>
-                @endforeach
-            @endif
-        </div>
-    </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="background-color: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 14px 24px;">
+                            <p style="color: #64748B; font-size: 12px; line-height: 1.5; margin: 0;">
+                                Este correo se genera automaticamente con la misma logica del monitor operativo. Los registros se muestran de mayor a menor tiempo transcurrido.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
