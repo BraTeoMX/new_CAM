@@ -4,8 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de tickets en indicador rojo</title>
+    <style type="text/css">
+        body,
+        table,
+        td,
+        p,
+        h1,
+        h2,
+        span,
+        strong,
+        li {
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+    </style>
+    <!--[if mso]>
+    <style type="text/css">
+        body,
+        table,
+        td,
+        p,
+        h1,
+        h2,
+        span,
+        strong,
+        li {
+            font-family: Arial, Helvetica, sans-serif !important;
+            mso-font-alt: Arial;
+        }
+    </style>
+    <![endif]-->
 </head>
-<body style="background-color: #F1F5F9; color: #1F2937; font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0;">
+<body style="background-color: #F1F5F9; color: #1F2937; font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
     @php
         $kpis = $reporte['kpis'];
         $resumen = $reporte['resumen'];
