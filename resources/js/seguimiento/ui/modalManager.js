@@ -3,7 +3,13 @@
  * @module ui/modalManager
  */
 
-import { SWAL_DARK_MODE_CONFIG, OPCIONES_SATISFACCION, TIEMPOS, SELECT2_CONFIG } from '../config/constants.js';
+import {
+    FINALIZACION_AUTOMATICA,
+    SWAL_DARK_MODE_CONFIG,
+    OPCIONES_SATISFACCION,
+    TIEMPOS,
+    SELECT2_CONFIG
+} from '../config/constants.js';
 import { isDarkMode } from '../utils/domHelpers.js';
 import { ticketService } from '../api/ticketService.js';
 
@@ -11,6 +17,10 @@ import { ticketService } from '../api/ticketService.js';
  * Clase que maneja todos los modales de la aplicación
  */
 export class ModalManager {
+    #alertasAutomaticasEncoladas = [];
+    #flushAlertasTimeoutId = null;
+    #alertaAutomaticaActiva = false;
+
     #escapeHtml(valor) {
         return String(valor ?? '')
             .replace(/&/g, '&amp;')
@@ -31,6 +41,66 @@ export class ModalManager {
      */
     #getConfiguracionDarkMode() {
         return isDarkMode() ? SWAL_DARK_MODE_CONFIG : {};
+    }
+
+    #haySweetAlertBloqueanteActivo() {
+        const popup = Swal.getPopup();
+
+        return Boolean(Swal.isVisible() && popup && !popup.classList.contains('swal2-toast'));
+    }
+
+    #encolarAlertaAutomatica(clave, config) {
+        const alertaExistenteIndex = this.#alertasAutomaticasEncoladas.findIndex(alerta => alerta.clave === clave);
+
+        if (alertaExistenteIndex >= 0) {
+            this.#alertasAutomaticasEncoladas[alertaExistenteIndex] = { clave, config };
+        } else {
+            this.#alertasAutomaticasEncoladas.push({ clave, config });
+        }
+
+        this.#programarFlushAlertasAutomaticas();
+    }
+
+    #programarFlushAlertasAutomaticas() {
+        if (this.#flushAlertasTimeoutId) {
+            return;
+        }
+
+        this.#flushAlertasTimeoutId = setTimeout(() => {
+            this.#flushAlertasTimeoutId = null;
+            this.#mostrarSiguienteAlertaAutomaticaEncolada();
+        }, 500);
+    }
+
+    #mostrarSiguienteAlertaAutomaticaEncolada() {
+        if (!this.#alertasAutomaticasEncoladas.length) {
+            return;
+        }
+
+        if (this.#haySweetAlertBloqueanteActivo() || this.#alertaAutomaticaActiva) {
+            this.#programarFlushAlertasAutomaticas();
+            return;
+        }
+
+        const { clave, config } = this.#alertasAutomaticasEncoladas.shift();
+        this.#mostrarAlertaAutomatica(clave, config);
+    }
+
+    #mostrarAlertaAutomatica(clave, config) {
+        if (this.#haySweetAlertBloqueanteActivo() || this.#alertaAutomaticaActiva) {
+            this.#encolarAlertaAutomatica(clave, config);
+            return;
+        }
+
+        this.#alertaAutomaticaActiva = true;
+
+        Swal.fire({
+            ...config,
+            didClose: () => {
+                this.#alertaAutomaticaActiva = false;
+                this.#programarFlushAlertasAutomaticas();
+            }
+        });
     }
 
     /**
@@ -200,6 +270,23 @@ export class ModalManager {
     }
 
     /**
+     * Genera los datos de finalizacion sin mostrar los pasos visuales.
+     * Replica la estructura del modal para conservar el contrato con ticketService.
+     * @param {string} horaFinalizacion - Hora de finalizacion
+     * @returns {object} Datos completos para finalizar atencion
+     */
+    obtenerDatosFinalizacionAutomatica(horaFinalizacion) {
+        return {
+            falla: FINALIZACION_AUTOMATICA.FALLA,
+            causaFalla: FINALIZACION_AUTOMATICA.CAUSA_FALLA,
+            accionImplementada: FINALIZACION_AUTOMATICA.ACCION_IMPLEMENTADA,
+            comentarios: FINALIZACION_AUTOMATICA.COMENTARIOS,
+            horaFinalizacion,
+            satisfaccion: FINALIZACION_AUTOMATICA.SATISFACCION_EXCELENTE
+        };
+    }
+
+    /**
      * Muestra el modal para finalizar atención
      * @param {number} ticketId - ID del ticket
      * @param {string} horaFinalizacion - Hora de finalización
@@ -346,7 +433,7 @@ export class ModalManager {
         const { folio, descripcion, tiempoRestante } = ticketInfo;
         const minutos = Math.floor(tiempoRestante / 60);
 
-        Swal.fire({
+        this.#mostrarAlertaAutomatica(`advertencia-${folio}`, {
             title: '⚠️ Advertencia de Tiempo',
             html: `
                 <div class="text-left">
@@ -374,7 +461,7 @@ export class ModalManager {
         const { folio, descripcion, tiempoRestante } = ticketInfo;
         const segundos = tiempoRestante;
 
-        Swal.fire({
+        this.#mostrarAlertaAutomatica(`critico-${folio}`, {
             title: '🔥 ¡Tiempo Crítico!',
             html: `
                 <div class="text-left">
@@ -404,7 +491,7 @@ export class ModalManager {
         const minutos = Math.floor(Math.abs(tiempoExcedido) / 60);
         const segundos = Math.abs(tiempoExcedido) % 60;
 
-        Swal.fire({
+        this.#mostrarAlertaAutomatica(`excedido-${folio}`, {
             title: '🚨 ¡Tiempo Excedido!',
             html: `
                 <div class="text-left">

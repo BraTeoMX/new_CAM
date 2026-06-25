@@ -134,6 +134,18 @@ export const OPCIONES_SATISFACCION = [
 ];
 
 /**
+ * Datos por defecto para finalizar atencion sin pasos visuales.
+ * Mantiene la misma estructura que generan los modales para poder reactivarlos despues.
+ */
+export const FINALIZACION_AUTOMATICA = {
+    FALLA: 'N/A',
+    CAUSA_FALLA: 'N/A',
+    ACCION_IMPLEMENTADA: 'N/A',
+    COMENTARIOS: '',
+    SATISFACCION_EXCELENTE: '4',
+};
+
+/**
  * Clases CSS para temporizadores según tiempo restante
  */
 export const TIMER_CLASSES = {
