@@ -160,7 +160,8 @@ export class CardRenderer {
                     </button>
                     <button class="detener-atencion-btn text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                             data-ticket-id="${ticket.id}"
-                            data-maquina="${ticket.maquina}">
+                            data-maquina="${ticket.maquina}"
+                            data-tipo-problema="${(ticket.tipo_problema || '').replace(/"/g, '&quot;')}">
                         Finalizar Atención
                     </button>
                 `;

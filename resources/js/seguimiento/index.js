@@ -153,18 +153,21 @@ class SeguimientoApp {
      */
     async handleFinalizarAtencion(boton) {
         const ticketId = boton.dataset.ticketId;
-
-        disableButton(boton);
-        modalManager.mostrarCargando('Finalizando atencion...');
+        const fallaPreseleccionada = boton.dataset.tipoProblema || '';
 
         try {
             // Capturar hora actual completa (datetime)
             const ahora = new Date();
             const horaFinalizacion = ahora.toISOString(); // Full datetime in ISO format
 
-            // Finalizacion rapida sin pasos visuales.
-            const datos = modalManager.obtenerDatosFinalizacionAutomatica(horaFinalizacion);
-            await this.enviarFinalizacionAtencion(ticketId, datos);
+            // Mostrar el modal interactivo con la preselección
+            const datos = await modalManager.mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton, fallaPreseleccionada);
+            
+            if (datos) {
+                disableButton(boton);
+                modalManager.mostrarCargando('Finalizando atencion...');
+                await this.enviarFinalizacionAtencion(ticketId, datos);
+            }
         } catch (error) {
             console.error('Error al finalizar atención:', error);
             modalManager.mostrarError(error.message);
