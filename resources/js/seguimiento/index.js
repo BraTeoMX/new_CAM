@@ -155,6 +155,9 @@ class SeguimientoApp {
         const ticketId = boton.dataset.ticketId;
         const fallaPreseleccionada = boton.dataset.tipoProblema || '';
 
+        disableButton(boton);
+        modalManager.mostrarCargando();
+
         try {
             // Capturar hora actual completa (datetime)
             const ahora = new Date();
@@ -164,9 +167,10 @@ class SeguimientoApp {
             const datos = await modalManager.mostrarModalFinalizarAtencion(ticketId, horaFinalizacion, boton, fallaPreseleccionada);
             
             if (datos) {
-                disableButton(boton);
                 modalManager.mostrarCargando('Finalizando atencion...');
                 await this.enviarFinalizacionAtencion(ticketId, datos);
+            } else {
+                enableButton(boton);
             }
         } catch (error) {
             console.error('Error al finalizar atención:', error);
